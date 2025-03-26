@@ -1,0 +1,22 @@
+# Commands to Run on Kristi Laptop
+# login to GHCR (only the first time or whenever the token has changed)
+# replace your-token with the full GitHub token
+echo your-token | docker login ghcr.io -u kristiajazi --password-stdin
+
+# pull the image
+docker pull ghcr.io/kristiajazi/stat3d:latest
+
+# verify the build
+docker images
+
+# test the image (replace /path/to/folder with the path you want to mount)
+docker run --platform linux/amd64 -it -v /path/to/folder:/stat3d ghcr.io/kristiajazi/stat3d:latest
+
+-------------------------------------
+
+# Commands Used to Make the Container
+# build the image
+docker buildx build --platform linux/amd64 -t ghcr.io/kristiajazi/stat3d:latest .
+
+# push the image
+docker push ghcr.io/kristiajazi/stat3d:latest
