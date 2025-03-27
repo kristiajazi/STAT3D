@@ -28,7 +28,7 @@ jobs:
         uses: docker/login-action@v2
         with:
           registry: ghcr.io
-          username: ${{ secrets.KRISTIAJAZI }}
+          username: ${{ secrets.kristiajazi }}
           password: ${{ secrets.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 }}
 
       - name: Build and Push Docker Image
