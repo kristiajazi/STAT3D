@@ -29,7 +29,7 @@ jobs:
         with:
           registry: ghcr.io
           username: ${{ secrets.KRISTIAJAZI }}
-          password: ${{ secrets.STAT3D-MVKA }}
+          password: ${{ secrets.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 }}
 
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v4
