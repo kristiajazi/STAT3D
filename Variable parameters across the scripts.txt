@@ -1,0 +1,40 @@
+Script 1-Level extraction 
+
+Parameters : level number from 0 to 2, we suggest the 2 
+
+
+Script 2-Qupth analysis 
+
+Parameters : Cell detection with background radius at 10um, sigma at 1, threshold at 30, convert the numbers in pixel based on the level extracted
+
+
+
+Script 3 : Cellpose 
+
+Parameters :XX diameter (in pixel) from qupath , pre-trained nuclei method, 3D, save file in a folder
+
+
+
+Script 4 :Cell to-transcript mapping
+
+Parameters :
+
+1) folder with transcript data
+2) cellpose image
+3) pixel size (micron) , e.g. level 2 = 0.85, see info from 10X below
+4) z-slice = always 3
+5) nuclear expansion = value from qupath divided by pixel size e.g. 5/0.85
+6)slice to pixel =z-slice/pixel size , e.g. 3/0.85
+7) save file as feture, barcodes, matrix files in .tsv.gz
+8) save the barcode file also as .tsv format and name it barcodes_df 
+
+
+Info from 10X about the pixel size :
+Level	Pixel size (micron)
+0	0.2125
+1	0.425
+2	0.85
+3	1.7
+4	3.4
+5	6.8
+6	13.6
