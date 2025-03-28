@@ -7,6 +7,7 @@ WORKDIR /stat3d
 # Install Mamba, Nextflow, Snakemake, R, and R dependencies via Conda
 RUN conda install -c conda-forge -c bioconda mamba && \
     mamba install -c conda-forge -c bioconda nextflow snakemake pkg-config openjdk=11 && \
+    mamba install -c conda-forge -c bioconda cellpose && \
     conda clean --all --yes
 
 # make a folder for tools
@@ -30,13 +31,12 @@ RUN curl -LO https://github.com/qupath/qupath/releases/download/v0.5.1/QuPath-v0
 ENV PATH="/tools/QuPath/bin:/opt/conda/bin:$PATH"
 
 # Verify installations
-RUN quarto --version
 RUN java -version
+RUN QuPath --help
+RUN python -m cellpose --help
 RUN nextflow -version
 RUN snakemake --version
-RUN curl --version
-RUN wget --version
-RUN QuPath --help
+RUN quarto --version
 
 # Default command
 CMD ["bash"]
