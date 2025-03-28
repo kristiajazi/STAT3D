@@ -38,7 +38,7 @@ RUN nextflow -version
 RUN snakemake --version
 RUN curl --version
 RUN wget --version
-RUN java -jar /usr/local/Qupath/Qupath.jar --help
+RUN QuPath --help
 
 # Default command
 CMD ["bash"]
