@@ -18,7 +18,7 @@ RUN curl -LO https://quarto.org/download/latest/quarto-linux-amd64.deb && \
 #ARG QUPATH_VERSION=0.5.1
 RUN curl -LO https://github.com/qupath/qupath/releases/download/v0.5.1/QuPath-v0.5.1-Linux.tar.xz && \
     tar -xf QuPath-v0.5.1-Linux.tar.xz && \
-    mv QuPath-v0.5.1-Linux/QuPath /usr/local && \
+    mv QuPath-v0.5.1-Linux/QuPath /usr/local/ && \
     chmod u+x usr/local/QuPath/bin/QuPath && \
     rm QuPath-v0.5.1-Linux/ QuPath-v0.5.1-Linux.tar.xz
 
