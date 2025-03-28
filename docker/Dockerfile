@@ -1,41 +1,41 @@
-# Use an official lightweight base image
-# re-run
-FROM continuumio/miniconda3:latest
+# Use the official Micromamba base image
+FROM mambaorg/micromamba:latest
 
 # Set the working directory
 WORKDIR /stat3d
 
-# Install Mamba, Nextflow, Snakemake, R, and R dependencies via Conda
-RUN conda install -c conda-forge -c bioconda mamba && \
-    mamba install -c conda-forge -c bioconda nextflow snakemake r-base r-irkernel && \
-    mamba install -c conda-forge pkg-config r-curl r-ragg && \
-    conda clean --all --yes
+# Install system dependencies for Quarto CLI, Qupath, Nextflow, and Snakemake
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    openjdk-11-jre \
+    libglib2.0-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-# Add Nextflow, Snakemake, and R to PATH (handled automatically by Conda)
-ENV PATH="/opt/conda/bin:$PATH"
+# Install Quarto CLI
+RUN curl -LO https://quarto.org/download/latest/quarto-linux-amd64.deb && \
+    dpkg -i quarto-linux-amd64.deb && \
+    rm quarto-linux-amd64.deb
 
-# Install Quarto CLI for amd64
-RUN wget https://github.com/quarto-dev/quarto-cli/releases/download/v1.3.340/quarto-1.3.340-linux-amd64.deb && \
-    dpkg -i quarto-1.3.340-linux-amd64.deb && \
-    rm quarto-1.3.340-linux-amd64.deb
+# Install Qupath
+ARG QUPATH_VERSION=0.5.1
+RUN curl -LO https://github.com/qupath/qupath/releases/download/v${QUPATH_VERSION}/Qupath-${QUPATH_VERSION}-linux-x64.tar.gz && \
+    tar -xvf Qupath-${QUPATH_VERSION}-linux-x64.tar.gz && \
+    mv Qupath /usr/local/Qupath && \
+    rm Qupath-${QUPATH_VERSION}-linux-x64.tar.gz
 
-# Install pak from CRAN or GitHub
-RUN R -e "install.packages('pak', repos='https://cran.r-project.org')"
+# Set up and install Nextflow and Snakemake via Micromamba
+RUN micromamba install -y -n base -c conda-forge -c bioconda nextflow snakemake && \
+    micromamba clean -a -y
 
-# Use pak to install required packages
-RUN R -e "options(repos=c(CRAN='https://packagemanager.posit.co/cran/latest')); pak::pkg_install(c('Seurat', 'pheatmap', 'stringr', 'tidyverse', 'ComplexHeatmap', 'quarto'))"
+# Add binaries to PATH
+ENV PATH="/usr/local/Qupath/bin:/opt/conda/bin:$PATH"
 
-# Verify the installations in separate steps (avoids single-step failure)
+# Verify installations
+RUN quarto --version
+RUN java -jar /usr/local/Qupath/Qupath.jar --version
 RUN nextflow -version
 RUN snakemake --version
-RUN quarto --version
-RUN R --version
-RUN R -e "library(Seurat); packageVersion('Seurat')" && \
-    R -e "library(pheatmap); packageVersion('pheatmap')" && \
-    R -e "library(stringr); packageVersion('stringr')" && \
-    R -e "library(tidyverse); packageVersion('tidyverse')" && \
-    R -e "library(ComplexHeatmap); packageVersion('ComplexHeatmap')" && \
-    R -e "library(quarto); packageVersion('quarto')"
 
 # Default command to keep the container running or drop into a shell
 CMD ["bash"]
