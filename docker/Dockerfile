@@ -4,7 +4,7 @@ FROM mambaorg/micromamba:latest
 # Set the working directory
 WORKDIR /stat3d
 
-# Install dependencies via Micromamba (including curl, wget, openjdk)
+# Install all Conda/Mamba dependencies upfront
 RUN micromamba install -y -n base -c conda-forge -c bioconda \
     curl \
     wget \
@@ -12,6 +12,9 @@ RUN micromamba install -y -n base -c conda-forge -c bioconda \
     nextflow \
     snakemake \
     && micromamba clean -a -y
+
+# Add Conda binaries to PATH early in the build process
+ENV PATH="/opt/conda/bin:$PATH"
 
 # Install Quarto CLI
 RUN curl -LO https://quarto.org/download/latest/quarto-linux-amd64.deb && \
@@ -25,8 +28,8 @@ RUN curl -LO https://github.com/qupath/qupath/releases/download/v${QUPATH_VERSIO
     mv Qupath /usr/local/Qupath && \
     rm Qupath-${QUPATH_VERSION}-linux-x64.tar.gz
 
-# Add binaries to PATH
-ENV PATH="/usr/local/Qupath/bin:/opt/conda/bin:$PATH"
+# Add Qupath binaries to PATH
+ENV PATH="/usr/local/Qupath/bin:$PATH"
 
 # Verify installations
 RUN quarto --version
@@ -35,6 +38,7 @@ RUN nextflow -version
 RUN snakemake --version
 RUN curl --version
 RUN wget --version
+RUN java -jar /usr/local/Qupath/Qupath.jar --help
 
-# Default command to keep the container running or drop into a shell
+# Default command
 CMD ["bash"]
