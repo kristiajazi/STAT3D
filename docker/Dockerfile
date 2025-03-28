@@ -18,9 +18,9 @@ RUN curl -LO https://quarto.org/download/latest/quarto-linux-amd64.deb && \
 #ARG QUPATH_VERSION=0.5.1
 RUN curl -LO https://github.com/qupath/qupath/releases/download/v0.5.1/QuPath-v0.5.1-Linux.tar.xz && \
     tar -xf QuPath-v0.5.1-Linux.tar.xz && \
-    mv QuPath /usr/local/QuPath && \
+    mv QuPath-v0.5.1-Linux/QuPath /usr/local && \
     chmod u+x usr/local/QuPath/bin/QuPath && \
-    rm QuPath-v0.5.1-Linux.tar.xz
+    rm QuPath-v0.5.1-Linux/ QuPath-v0.5.1-Linux.tar.xz
 
 # Add Conda binaries to PATH early in the build process
 ENV PATH="/usr/local/Qupath/bin:/opt/conda/bin:$PATH"
