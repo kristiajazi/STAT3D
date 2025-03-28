@@ -1,6 +1,9 @@
 # Use the official Micromamba base image
 FROM mambaorg/micromamba:latest
 
+# Switch to root user for installations
+USER root
+
 # Set the working directory
 WORKDIR /stat3d
 
@@ -30,6 +33,9 @@ RUN micromamba install -y -n base -c conda-forge -c bioconda nextflow snakemake 
 
 # Add binaries to PATH
 ENV PATH="/usr/local/Qupath/bin:/opt/conda/bin:$PATH"
+
+# Switch back to the default non-root user
+USER micromamba
 
 # Verify installations
 RUN quarto --version
