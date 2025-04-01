@@ -2,7 +2,7 @@
 conda activate cellpose
 
 # Cellpose 2.1 command
-python -m cellpose --dir C:\Users\Kristi\miniconda3\envs\envs_TC068 --pretrained_model nuclei --chan 0 --chan2 0 --img_filter _morphology.ome --diameter 17 --do_3D --save_tif --verbose --use_gpu
+python -m cellpose --dir /stat3d --pretrained_model nuclei --chan 0 --chan2 0 --img_filter _morphology2.ome --diameter 17 --do_3D --save_tif --verbose --use_gpu
 
 # Deactivate cellpose environment
 conda deactivate
