@@ -7,7 +7,7 @@ import tifffile
 LEVEL = 2
 
 with tifffile.TiffFile('C:/Users/Kristi/Desktop/STAT3D/morphology.ome.tif') as tif:
-    image = tif.series[2].levels[LEVEL].asarray()
+    image = tif.series[0].levels[LEVEL].asarray()
 
 tifffile.imwrite(
     'level_'+str(LEVEL)+'_morphology.ome.tif',
