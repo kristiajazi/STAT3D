@@ -12,7 +12,7 @@ docker run --platform linux/amd64 -it -v /path/to/folder:/stat3d ghcr.io/kristia
 -------------------------------------
 
 # Commands Used to Make the Container (not needed)
-# build the image
+# build the image #the image name is ghcr.io/kristiajazi/stat3d:latest
 docker buildx build --platform linux/amd64 -t ghcr.io/kristiajazi/stat3d:latest .
 
 # Verify the build
