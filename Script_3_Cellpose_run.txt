@@ -7,4 +7,3 @@ python -m cellpose --dir /stat3d --pretrained_model nuclei --chan 0 --chan2 0 --
 # Deactivate cellpose environment
 conda deactivate
 
-python -m cellpose --dir C:\Users\Kristi\Desktop\My_papers\Xenium_method_paper\Xenium_pancreas\2D_files --pretrained_model nuclei --chan 0 --chan2 0 --img_filter _morphology0.ome --diameter 17 --save_tif --verbose --use_gpu
