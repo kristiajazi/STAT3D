@@ -4,10 +4,10 @@ import tifffile
 
 # Variable 'LEVEL' determines the level to extract. It ranges from 0 (highest
 # resolution) to 6 (lowest resolution) for morphology.ome.tif
-LEVEL = 0
+LEVEL = 2
 
-with tifffile.TiffFile('C:/Users/Kristi/Desktop/My_papers/Xenium_method_paper/test_levels/morphology.ome.tif') as tif:
-    image = tif.series[0].levels[LEVEL].asarray()
+with tifffile.TiffFile('C:/Users/Kristi/Desktop/STAT3D/morphology.ome.tif') as tif:
+    image = tif.series[2].levels[LEVEL].asarray()
 
 tifffile.imwrite(
     'level_'+str(LEVEL)+'_morphology.ome.tif',
