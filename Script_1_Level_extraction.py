@@ -6,7 +6,7 @@ import tifffile
 # resolution) to 6 (lowest resolution) for morphology.ome.tif
 LEVEL = 2
 
-with tifffile.TiffFile('C:/Users/Kristi/Desktop/STAT3D/morphology.ome.tif') as tif:
+with tifffile.TiffFile('/stat/morphology.ome.tif') as tif:
     image = tif.series[0].levels[LEVEL].asarray()
 
 tifffile.imwrite(
