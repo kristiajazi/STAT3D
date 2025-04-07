@@ -4,14 +4,17 @@ FROM continuumio/miniconda3:latest
 # Set the working directory
 WORKDIR /stat3d
 
-# Install Mamba, Nextflow, Snakemake, R, and R dependencies via Conda
+# Install Mamba and dependencies via Conda
 RUN conda install -c conda-forge -c bioconda mamba && \
-    mamba install -c conda-forge -c bioconda nextflow snakemake pkg-config openjdk=11 && \
+    mamba install -c conda-forge -c bioconda python=3.10 nextflow snakemake pkg-config openjdk=11 && \
     mamba install -c conda-forge -c bioconda cellpose r-base r-irkernel r-curl r-ragg && \
     mamba install -c conda-forge -c bioconda quarto r-quarto && \
     conda clean --all --yes
 
-# make a folder for tools
+# Install Open-ST globally via pip
+RUN pip install openst
+
+# Make a folder for tools
 RUN mkdir -p /tools
 #RUN ls -l /
 
