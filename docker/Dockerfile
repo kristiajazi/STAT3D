@@ -7,7 +7,7 @@ WORKDIR /stat3d
 # Install Mamba and dependencies via Conda
 RUN conda install -c conda-forge -c bioconda mamba && \
     mamba install -c conda-forge -c bioconda python=3.10 nextflow snakemake pkg-config openjdk=11 && \
-    mamba install -c conda-forge -c bioconda cellpose r-base r-irkernel r-curl r-ragg && \
+    mamba install -c conda-forge -c bioconda r-base r-irkernel r-curl r-ragg && \
     mamba install -c conda-forge -c bioconda quarto r-quarto && \
     conda clean --all --yes
 
