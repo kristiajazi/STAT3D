@@ -45,7 +45,6 @@ RUN R -e "options(repos=c(CRAN='https://packagemanager.posit.co/cran/latest')); 
 # Verify installations
 RUN java -version
 RUN QuPath --help
-RUN python -m cellpose --help
 RUN nextflow -version
 RUN snakemake --version
 RUN quarto --version
