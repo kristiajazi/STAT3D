@@ -47,3 +47,5 @@ sed -i -e '/experimental/ s/^#//g' /etc/apt/sources.list.d/nvidia-container-tool
 9.3 Check if cellpose is all right : root@f5a4a99e0211:/prova# cellpose --help
 
 9.4 Run cellpose : python -m cellpose --dir /prova --pretrained_model nuclei --chan 0 --chan2 0 --img_filter _morphology2.ome --diameter 17 --do_3D --save_tif --verbose --use_gpu  
+
+10. Try run on supercomputer : not needed to run  from step 1 to step 8 , start from step 9 directly !!
