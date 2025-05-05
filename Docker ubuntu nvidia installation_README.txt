@@ -49,3 +49,6 @@ sed -i -e '/experimental/ s/^#//g' /etc/apt/sources.list.d/nvidia-container-tool
 9.4 Run cellpose : python -m cellpose --dir /prova --pretrained_model nuclei --chan 0 --chan2 0 --img_filter _morphology2.ome --diameter 17 --do_3D --save_tif --verbose --use_gpu  
 
 10. Try run on supercomputer : not needed to run  from step 1 to step 8 , start from step 9 directly !!
+
+test
+docker run -it --rm --gpus all --cpus=8 --memory=32g --memory-swap=64g -v C:/Users/Malin_Group/Desktop/prova:/prova docker.io/pyrevo/cellpose-gpu:1.0 
