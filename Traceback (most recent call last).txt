@@ -1,0 +1,22 @@
+Traceback (most recent call last):
+  File "/opt/mambaforge/lib/python3.10/runpy.py", line 196, in _run_module_as_main
+    return _run_code(code, main_globals, None,
+  File "/opt/mambaforge/lib/python3.10/runpy.py", line 86, in _run_code
+    exec(code, run_globals)
+  File "/opt/mambaforge/lib/python3.10/site-packages/cellpose/__main__.py", line 358, in <module>
+    main()
+  File "/opt/mambaforge/lib/python3.10/site-packages/cellpose/__main__.py", line 205, in main
+    out = model.eval(
+  File "/opt/mambaforge/lib/python3.10/site-packages/cellpose/models.py", line 210, in eval
+    masks, flows, styles = self.cp.eval(x, channels=channels,
+  File "/opt/mambaforge/lib/python3.10/site-packages/cellpose/models.py", line 534, in eval
+    masks = self._compute_masks(x.shape, dP, cellprob, flow_threshold=flow_threshold,
+  File "/opt/mambaforge/lib/python3.10/site-packages/cellpose/models.py", line 603, in _compute_masks
+    masks = dynamics.resize_and_compute_masks(
+  File "/opt/mambaforge/lib/python3.10/site-packages/cellpose/dynamics.py", line 839, in resize_and_compute_masks
+    mask = compute_masks(dP, cellprob, niter=niter,
+  File "/opt/mambaforge/lib/python3.10/site-packages/cellpose/dynamics.py", line 906, in compute_masks
+    mask = get_masks_torch(p_final, inds, dP.shape[1:],
+  File "/opt/mambaforge/lib/python3.10/site-packages/cellpose/dynamics.py", line 764, in get_masks_torch
+    seeds1 = torch.nonzero((h1 - hmax1 > -1e-6) * (h1 > 10))
+RuntimeError: nonzero is not supported for tensors with more than INT_MAX elements,   See https://github.com/pytorch/pytorch/issues/51871
