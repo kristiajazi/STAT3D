@@ -34,3 +34,16 @@ sed -i -e '/experimental/ s/^#//g' /etc/apt/sources.list.d/nvidia-container-tool
 7.6 run : docker --help , to see if it is recognized
 
 8. eventually, run : docker run --rm --gpus all nvidia/cuda:11.8.0-base-ubuntu20.04 nvidia-smi  , this will show the same table with the information displayed after performing step 6 , but this time we want to proof that docker is synchronized
+
+
+9. Open docker desktop and pool Massi container : PS C:\Users\Kristi> docker pull pyrevo/cellpose-gpu:1.0
+
+9.0 Create a prova folder in test folder and mount to the docker image pulled before : PS C:\Users\Kristi> docker run -it --rm --gpus all -v C:/Users/Kristi/Desktop/STAT3D/test:/prova docker.io/pyrevo/cellpose-gpu:1.0
+
+9.1 Go in the prova folder : root@f5a4a99e0211:/# cd prova
+
+9.2 Check what the folder contains : root@f5a4a99e0211:/prova# ls
+
+9.3 Check if cellpose is all right : root@f5a4a99e0211:/prova# cellpose --help
+
+9.4 Run cellpose : python -m cellpose --dir /prova --pretrained_model nuclei --chan 0 --chan2 0 --img_filter _morphology2.ome --diameter 17 --do_3D --save_tif --verbose --use_gpu  
