@@ -5,7 +5,7 @@ Read me file for the installation of docker desktop, ubuntu, nvidia tool kit
 Steps
 
 1. Install docker desktop (check all the boxes when installing docker)
-2. Use this like to install ubuntu https://www.omgubuntu.co.uk/how-to-install-wsl2-on-windows-10
+2. Use this link to install ubuntu https://www.omgubuntu.co.uk/how-to-install-wsl2-on-windows-10
 3. Open docker desktop and go to Settings>Resources>WSL integration>Enable Ubuntu>Apply and restart
 4. Close docker desktop and launch it again
 5. Open ubuntu and set the pw 
