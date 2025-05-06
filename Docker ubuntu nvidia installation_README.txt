@@ -50,5 +50,17 @@ sed -i -e '/experimental/ s/^#//g' /etc/apt/sources.list.d/nvidia-container-tool
 
 10. Try run on supercomputer : not needed to run  from step 1 to step 8 , start from step 9 directly !!
 
-test
-docker run -it --rm --gpus all --cpus=8 --memory=32g --memory-swap=64g -v C:/Users/Malin_Group/Desktop/prova:/prova docker.io/pyrevo/cellpose-gpu:1.0 
+test on my pc on date 250506 : successful, 3D cellpose worked after running script "_zeta" which outputs the image called "z4_and_5_level2_morphology_zeta" (this script extracts only z 4 and 5 from z stack of level 2 and merges them together in a new smaller 3D tiff that contains only the focused cells, also this formats allows to use very quickly cellpose gui with gpu if the user wants to train the model by him/her self) , the following commands were run from docker desktop
+
+a) docker pull pyrevo/cellpose-gpu:1.0
+b) docker run -it --rm --gpus all -v C:/Users/Kristi/Desktop/STAT3D/test:/prova docker.io/pyrevo/cellpose-gpu:1.0
+c)cd prova
+d)ls
+e)python -m cellpose --dir /prova --pretrained_model nuclei --chan 0 --chan2 0 --img_filter _zeta --diameter 17 --do_3D --save_tif --verbose --use_gpu
+result :
+2025-05-06 19:53:42,574 [INFO] network run in 1287.61s
+2025-05-06 19:56:29,558 [INFO] masks created in 166.85s
+2025-05-06 19:56:34,617 [INFO] >>>> TOTAL TIME 1460.16 sec
+2025-05-06 19:56:53,379 [INFO] 100%|##########| 1/1 [24:41<00:00, 1481.05s/it]
+2025-05-06 19:56:53,379 [INFO] 100%|##########| 1/1 [24:41<00:00, 1481.05s/it]
+2025-05-06 19:56:53,380 [INFO] >>>> completed in 1484.319 sec
