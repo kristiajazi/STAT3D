@@ -1,20 +1,50 @@
-# Use the official Micromamba base image
-FROM continuumio/miniconda3:latest
+# Use the official NVIDIA CUDA base image
+# This image is based on Ubuntu 22.04 and includes CUDA 12.6.0
+FROM nvidia/cuda:12.6.0-base-ubuntu22.04
 
 # Set the working directory
 WORKDIR /stat3d
 
-# Install Mamba and dependencies via Conda
-RUN conda install -c conda-forge -c bioconda mamba && \
+# Install minimal system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    wget \
+    bzip2 \
+    libgl1 \
+    libglib2.0-0 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Mambaforge
+RUN wget https://github.com/conda-forge/miniforge/releases/download/23.3.1-1/Mambaforge-23.3.1-1-Linux-x86_64.sh -O ~/mambaforge.sh && \
+    bash ~/mambaforge.sh -b -p /opt/mambaforge && \
+    rm ~/mambaforge.sh
+ENV PATH="/opt/mambaforge/bin:$PATH"
+
+# Use mamba to install packages from conda-forge and bioconda channels
+RUN mamba install -c conda-forge -c bioconda mamba && \
     mamba install -c conda-forge -c bioconda python=3.10 nextflow snakemake pkg-config openjdk=11 && \
     mamba install -c conda-forge -c bioconda r-base r-irkernel r-curl r-ragg && \
     mamba install -c conda-forge -c bioconda quarto r-quarto && \
-    conda clean --all --yes
+    mamba clean --all --yes
 
-# Install Open-ST globally via pip
-RUN pip install openst
+# Install PyTorch packages first with CUDA 12.6
+RUN pip install --no-cache-dir \
+    torch==2.6.0 \
+    torchvision==0.21.0 \
+    torchaudio==2.6.0 \
+    --index-url https://download.pytorch.org/whl/cu126
 
-# Make a folder for tools
+# Then install remaining packages from PyPI
+RUN pip install --no-cache-dir \
+    setuptools \
+    pyqtgraph \
+    PyQt5 \
+    numba \
+    scipy \
+    numpy \
+    natsort \
+    cellpose
+
+# Make a folder for additional tools
 RUN mkdir -p /tools
 #RUN ls -l /
 
@@ -26,8 +56,8 @@ RUN curl -LO https://github.com/qupath/qupath/releases/download/v${QUPATH_VERSIO
     mv QuPath-v${QUPATH_VERSION}-Linux/QuPath/ /tools && \
     rm QuPath-v${QUPATH_VERSION}-Linux.tar.xz
 
-# Add Conda binaries to PATH early in the build process
-ENV PATH="/tools/QuPath/bin:/opt/conda/bin:$PATH"
+# Add QuPath binaries to PATH
+ENV PATH="/tools/QuPath/bin:$PATH"
 
 # Install pak from CRAN or GitHub
 RUN R -e "install.packages('pak', repos='https://cran.r-project.org')"
