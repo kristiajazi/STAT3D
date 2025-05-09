@@ -51,7 +51,6 @@ sed -i -e '/experimental/ s/^#//g' /etc/apt/sources.list.d/nvidia-container-tool
 10. Try run on supercomputer : not needed to run  from step 1 to step 8 , start from step 9 directly !!
 
 test on my pc on date 250506 : successful, 3D cellpose worked after running script "_zeta" which outputs the image called "z4_and_5_level2_morphology_zeta" (this script extracts only z 4 and 5 from z stack of level 2 and merges them together in a new smaller 3D tiff that contains only the focused cells, also this formats allows to use very quickly cellpose gui with gpu if the user wants to train the model by him/her self) , the following commands were run from docker desktop
-
 a) docker pull pyrevo/cellpose-gpu:1.0
 b) docker run -it --rm --gpus all -v C:/Users/Kristi/Desktop/STAT3D/test:/prova docker.io/pyrevo/cellpose-gpu:1.0
 c)cd prova
