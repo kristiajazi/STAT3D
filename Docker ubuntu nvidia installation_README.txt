@@ -64,12 +64,12 @@ result :
 2025-05-06 19:56:53,379 [INFO] 100%|##########| 1/1 [24:41<00:00, 1481.05s/it]
 2025-05-06 19:56:53,380 [INFO] >>>> completed in 1484.319 sec
 
-test of 250509
+test of 250509 , run from github 
 Run the new image following the steps 
-1.docker login ghcr.io -u YOUR_GITHUB_USERNAME
+1.docker login ghcr.io -u YOUR_GITHUB_USERNAME , this means :  docker login ghcr.io -u kristiajazi
 2.Pw is the token MV_KA
 3.docker pull ghcr.io/kristiajazi/stat3d:latest
-4. docker run --platform linux/amd64 -it -v C:/Users/Kristi/Desktop/STAT3D/test:/stat3d ghcr.io/kristiajazi/stat3d:latest
+4. docker run --platform linux/amd64 --gpus all -it -v C:/Users/Kristi/Desktop/STAT3D/test:/stat3d ghcr.io/kristiajazi/stat3d:latest
 5.ls
 6.python -m cellpose --dir /stat3d --pretrained_model nuclei --chan 0 --chan2 0 --img_filter _zeta --diameter 17 --do_3D --save_tif --verbose --use_gpu
-Note : it starts with no GPU
+Note : without --gpus all it does not recognize the nvidia card 
