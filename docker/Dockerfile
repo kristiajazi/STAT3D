@@ -82,7 +82,7 @@ RUN conda env export | grep -E "^[^#].*=" > /tools/conda_packages.txt
 RUN R -e "write.table(installed.packages()[, c('Package', 'Version')], file='/tools/r_packages.txt', \
     row.names=FALSE, col.names=TRUE, sep='\t', quote=FALSE)"
 
-# Verification
+# CUDA verification
 #CMD ["python", "-c", "import torch; print(f'PyTorch {torch.__version__} | CUDA: {torch.cuda.is_available()}')"]
 
 # Default command
