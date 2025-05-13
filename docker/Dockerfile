@@ -14,7 +14,6 @@ RUN wget https://github.com/conda-forge/miniforge/releases/download/23.3.1-1/Mam
     rm ~/mambaforge.sh
 ENV PATH="/opt/mambaforge/bin:$PATH"
 
-# Use mamba to install packages from conda-forge, bioconda, and pytorch channels
 RUN mamba install -y -c conda-forge -c bioconda -c pytorch \
     mamba \
     python=3.10 \
@@ -22,10 +21,16 @@ RUN mamba install -y -c conda-forge -c bioconda -c pytorch \
     snakemake \
     pkg-config \
     openjdk=11 \
-    r-base \
+    r-base=4.3.1 \  # Explicitly specify R version
+    r-essentials \  # Installs many common R packages
+    r-devtools \
+    r-remotes \
     r-irkernel \
     r-curl \
     r-ragg \
+    r-matrix \
+    r-mass \
+    r-ggplot2 \
     quarto \
     r-quarto \
     pytorch \
@@ -55,14 +60,33 @@ RUN R -e "install.packages('pak', repos='https://cran.r-project.org')"
 
 # Use pak to install required packages
 RUN R -e "options(repos=c(CRAN='https://packagemanager.posit.co/cran/latest')); \
-    install.packages('remotes'); \
-    install.packages('devtools'); \
-    install.packages('Matrix'); \
+    pak::pkg_install(c( \
+        'Matrix', \
+        'MASS', \
+        'survival', \
+        'sp', \
+        'ggplot2', \
+        'patchwork', \
+        'ggrepel', \
+        'viridis', \
+        'plotly', \
+        'rgl', \
+        'data.table', \
+        'readxl', \
+        'geosphere', \
+        'pheatmap', \
+        'IRanges', \
+        'Biobase', \
+        'S4Vectors', \
+        'SummarizedExperiment', \
+        'sctransform', \
+        'EnhancedVolcano', \
+        'ComplexHeatmap', \
+        'stringr', \
+        'tidyverse' \
+    )); \
     devtools::install_github('satijalab/seurat-data'); \
-    pak::pkg_install(c('stringr', 'tidyverse', 'Seurat', 'pheatmap', 'ComplexHeatmap', 'IRanges', 'sp', \
-    'SummarizedExperiment', 'SeuratObject', 'Biobase', 'S4Vectors', 'patchwork', \
-    'ggrepel', 'EnhancedVolcano', 'readxl', 'data.table', 'sctransform', 'geosphere', \
-    'plotly', 'viridis', 'rgl'))"
+    pak::pkg_install('Seurat')"
 
 # Verify installations
 RUN java -version
