@@ -1,6 +1,11 @@
-FROM nvidia/cuda:12.2.0-base-ubuntu20.04
+# Use the official NVIDIA CUDA base image
+# This image is based on Ubuntu 22.04 and includes CUDA 12.6.0
+FROM nvidia/cuda:12.6.0-base-ubuntu22.04
 
-# Install system dependencies
+# Set the working directory
+WORKDIR /stat3d
+
+# Install minimal system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     bzip2 \
@@ -8,17 +13,19 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libglib2.0-0 \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Mambaforge (system-wide)
+# Install Mambaforge
 RUN wget https://github.com/conda-forge/miniforge/releases/download/23.3.1-1/Mambaforge-23.3.1-1-Linux-x86_64.sh -O ~/mambaforge.sh && \
     bash ~/mambaforge.sh -b -p /opt/mambaforge && \
     rm ~/mambaforge.sh
 ENV PATH="/opt/mambaforge/bin:$PATH"
 
-# Install just the Python/Nextflow tools via conda
-RUN mamba install -y -c conda-forge -c bioconda -c pytorch \
-    python=3.10 nextflow snakemake openjdk=11 quarto \
-    pytorch torchvision torchaudio opencv cellpose \
-    && mamba clean --all --yes
+# Use mamba to install packages from conda-forge and bioconda channels
+RUN mamba install -c conda-forge -c bioconda mamba && \
+    mamba install -c conda-forge -c bioconda python=3.10 nextflow snakemake pkg-config openjdk=11 && \
+    mamba install -c conda-forge -c bioconda -c pytorch pytorch torchvision torchaudio opencv cellpose && \
+    mamba install -c conda-forge -c bioconda r-base r-irkernel r-curl r-ragg && \
+    mamba install -c conda-forge -c bioconda quarto r-quarto && \
+    mamba clean --all --yes
 
 # Make a folder for additional tools
 RUN mkdir -p /tools
@@ -35,42 +42,18 @@ RUN curl -LO https://github.com/qupath/qupath/releases/download/v${QUPATH_VERSIO
 # Add QuPath binaries to PATH
 ENV PATH="/tools/QuPath/bin:$PATH"
 
-# Then use rocker/r-ver for R
-FROM rocker/r-ver:4.3.1
-COPY --from=base / /
-
 # Install pak from CRAN or GitHub
 RUN R -e "install.packages('pak', repos='https://cran.r-project.org')"
 
 # Use pak to install required packages
 RUN R -e "options(repos=c(CRAN='https://packagemanager.posit.co/cran/latest')); \
-    pak::pkg_install(c( \
-        'Matrix', \
-        'MASS', \
-        'survival', \
-        'sp', \
-        'ggplot2', \
-        'patchwork', \
-        'ggrepel', \
-        'viridis', \
-        'plotly', \
-        'rgl', \
-        'data.table', \
-        'readxl', \
-        'geosphere', \
-        'pheatmap', \
-        'IRanges', \
-        'Biobase', \
-        'S4Vectors', \
-        'SummarizedExperiment', \
-        'sctransform', \
-        'EnhancedVolcano', \
-        'ComplexHeatmap', \
-        'stringr', \
-        'tidyverse' \
-    )); \
-    devtools::install_github('satijalab/seurat-data'); \
-    pak::pkg_install('Seurat')"
+    install.packages('remotes'); \
+    install.packages('Matrix'); \
+    remotes::install_github('satijalab/seurat-data'); \
+    pak::pkg_install(c('tidyverse', 'Seurat', 'pheatmap', 'ComplexHeatmap', 'IRanges', 'sp', \
+    'SummarizedExperiment', 'SeuratObject', 'Biobase', 'S4Vectors', 'patchwork', \
+    'ggrepel', 'EnhancedVolcano', 'readxl', 'data.table', 'sctransform', 'geosphere', \
+    'plotly', 'viridis', 'rgl'))"
 
 # Verify installations
 RUN java -version
@@ -89,9 +72,6 @@ RUN R -e "packages <- c('Seurat', 'pheatmap', 'stringr', 'tidyverse', 'ComplexHe
 RUN conda env export | grep -E "^[^#].*=" > /tools/conda_packages.txt
 RUN R -e "write.table(installed.packages()[, c('Package', 'Version')], file='/tools/r_packages.txt', \
     row.names=FALSE, col.names=TRUE, sep='\t', quote=FALSE)"
-
-# CUDA verification
-#CMD ["python", "-c", "import torch; print(f'PyTorch {torch.__version__} | CUDA: {torch.cuda.is_available()}')"]
 
 # Default command
 CMD ["bash"]
