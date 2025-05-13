@@ -14,31 +14,10 @@ RUN wget https://github.com/conda-forge/miniforge/releases/download/23.3.1-1/Mam
     rm ~/mambaforge.sh
 ENV PATH="/opt/mambaforge/bin:$PATH"
 
-# Install R and core dependencies via conda first
+# Install just the Python/Nextflow tools via conda
 RUN mamba install -y -c conda-forge -c bioconda -c pytorch \
-    mamba \
-    python=3.10 \
-    nextflow \
-    snakemake \
-    pkg-config \
-    openjdk=11 \
-    r-base=4.3.1 \
-    r-essentials \
-    r-devtools \
-    r-remotes \
-    r-irkernel \
-    r-curl \
-    r-ragg \
-    r-matrix \
-    r-mass \
-    r-ggplot2 \
-    quarto \
-    r-quarto \
-    pytorch \
-    torchvision \
-    torchaudio \
-    opencv \
-    cellpose \
+    python=3.10 nextflow snakemake openjdk=11 quarto \
+    pytorch torchvision torchaudio opencv cellpose \
     && mamba clean --all --yes
 
 # Make a folder for additional tools
@@ -55,6 +34,10 @@ RUN curl -LO https://github.com/qupath/qupath/releases/download/v${QUPATH_VERSIO
 
 # Add QuPath binaries to PATH
 ENV PATH="/tools/QuPath/bin:$PATH"
+
+# Then use rocker/r-ver for R
+FROM rocker/r-ver:4.3.1
+COPY --from=base / /
 
 # Install pak from CRAN or GitHub
 RUN R -e "install.packages('pak', repos='https://cran.r-project.org')"
