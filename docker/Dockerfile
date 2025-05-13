@@ -14,6 +14,7 @@ RUN wget https://github.com/conda-forge/miniforge/releases/download/23.3.1-1/Mam
     rm ~/mambaforge.sh
 ENV PATH="/opt/mambaforge/bin:$PATH"
 
+# Install R and core dependencies via conda first
 RUN mamba install -y -c conda-forge -c bioconda -c pytorch \
     mamba \
     python=3.10 \
@@ -21,8 +22,8 @@ RUN mamba install -y -c conda-forge -c bioconda -c pytorch \
     snakemake \
     pkg-config \
     openjdk=11 \
-    r-base=4.3.1 \  # Explicitly specify R version
-    r-essentials \  # Installs many common R packages
+    r-base=4.3.1 \
+    r-essentials \
     r-devtools \
     r-remotes \
     r-irkernel \
