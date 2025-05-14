@@ -73,3 +73,9 @@ Run the new image following the steps
 5.ls
 6.python -m cellpose --dir /stat3d --pretrained_model nuclei --chan 0 --chan2 0 --img_filter _zeta --diameter 17 --do_3D --save_tif --verbose --use_gpu
 Note : without --gpus all it does not recognize the nvidia card 
+
+
+25/05/14 computerSC
+1. docker pull ghcr.io/kristiajazi/stat3d:latest
+2. docker run --platform linux/amd64 --gpus all -it -v C:/Users/Malin_Group/Desktop/prova:/stat3d ghcr.io/kristiajazi/stat3d:latest
+3. python -m cellpose --dir . --pretrained_model nuclei --chan 0 --chan2 0 --img_filter _morphology_zeta --diameter 17 --do_3D --save_tif --verbose --use_gpu
