@@ -20,12 +20,39 @@ RUN wget https://github.com/conda-forge/miniforge/releases/download/23.3.1-1/Mam
 ENV PATH="/opt/mambaforge/bin:$PATH"
 
 # Use mamba to install packages from conda-forge and bioconda channels
-RUN mamba install -c conda-forge -c bioconda mamba && \
-    mamba install -c conda-forge -c bioconda python=3.10 nextflow snakemake pkg-config openjdk=11 && \
-    mamba install -c conda-forge -c bioconda -c pytorch pytorch torchvision torchaudio opencv cellpose && \
-    mamba install -c conda-forge -c bioconda r-base r-irkernel r-curl r-ragg && \
-    mamba install -c conda-forge -c bioconda quarto r-quarto && \
-    mamba clean --all --yes
+RUN mamba install -y -c conda-forge -c bioconda -c pytorch \
+    # Core tools
+    mamba \
+    python=3.10 \
+    nextflow \
+    snakemake \
+    pkg-config \
+    openjdk=11 \
+    # PyTorch stack with CUDA
+    pytorch=2.6.0 \
+    torchvision=0.21.0 \
+    torchaudio=2.6.0 \
+    cudatoolkit=12 \
+    # Image processing
+    opencv \
+    cellpose=3.1.0 \
+    # R stack
+    r-base \
+    r-irkernel \
+    r-curl \
+    r-ragg \
+    # Documentation
+    quarto \
+    r-quarto \
+    # Additional Python packages
+    setuptools \
+    pyqtgraph \
+    pyqt \
+    numba \
+    scipy \
+    numpy \
+    natsort \
+    && mamba clean --all --yes
 
 # Make a folder for additional tools
 RUN mkdir -p /tools
