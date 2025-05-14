@@ -71,7 +71,7 @@ Run the new image following the steps
 3.docker pull ghcr.io/kristiajazi/stat3d:latest
 4. docker run --platform linux/amd64 --gpus all -it -v C:/Users/Kristi/Desktop/STAT3D/test:/stat3d ghcr.io/kristiajazi/stat3d:latest
 5.ls
-6.python -m cellpose --dir /stat3d --pretrained_model nuclei --chan 0 --chan2 0 --img_filter _zeta --diameter 17 --do_3D --save_tif --verbose --use_gpu
+6.python -m cellpose --dir /stat3d --pretrained_model nuclei --chan 0 --chan2 0 --img_filter _zeta --diameter 17 --do_3D --save_tif --verbose --use_gpu #careful name of the file to segment 
 Note : without --gpus all it does not recognize the nvidia card 
 
 
