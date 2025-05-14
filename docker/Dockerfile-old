@@ -20,29 +20,34 @@ RUN wget https://github.com/conda-forge/miniforge/releases/download/23.3.1-1/Mam
 ENV PATH="/opt/mambaforge/bin:$PATH"
 
 # Use mamba to install packages from conda-forge and bioconda channels
-RUN mamba install -c conda-forge -c bioconda mamba && \
-    mamba install -c conda-forge -c bioconda python=3.10 nextflow snakemake pkg-config openjdk=11 && \
-    mamba install -c conda-forge -c bioconda r-base r-irkernel r-curl r-ragg && \
-    mamba install -c conda-forge -c bioconda quarto r-quarto && \
-    mamba clean --all --yes
-
-# Install PyTorch packages first with CUDA 12.6
-RUN pip install --no-cache-dir \
-    torch==2.6.0 \
-    torchvision==0.21.0 \
-    torchaudio==2.6.0 \
-    --index-url https://download.pytorch.org/whl/cu126
-
-# Then install remaining packages from PyPI
-RUN pip install --no-cache-dir \
+RUN mamba install -y -c conda-forge -c bioconda -c pytorch \
+    # Core tools
+    mamba \
+    python=3.10 \
+    nextflow \
+    snakemake \
+    pkg-config \
+    openjdk=11 \
+    pytorch=2.6.0 \
+    torchvision=0.21.0 \
+    torchaudio=2.6.0 \
+    cudatoolkit=12 \
+    opencv \
+    cellpose=3.1.0 \
+    r-base \
+    r-irkernel \
+    r-curl \
+    r-ragg \
+    quarto \
+    r-quarto \
     setuptools \
     pyqtgraph \
-    PyQt5 \
+    pyqt \
     numba \
     scipy \
     numpy \
     natsort \
-    cellpose==3.1.0
+    && mamba clean --all --yes
 
 # Make a folder for additional tools
 RUN mkdir -p /tools
