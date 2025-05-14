@@ -28,23 +28,18 @@ RUN mamba install -y -c conda-forge -c bioconda -c pytorch \
     snakemake \
     pkg-config \
     openjdk=11 \
-    # PyTorch stack with CUDA
     pytorch=2.6.0 \
     torchvision=0.21.0 \
     torchaudio=2.6.0 \
     cudatoolkit=12 \
-    # Image processing
     opencv \
     cellpose=3.1.0 \
-    # R stack
     r-base \
     r-irkernel \
     r-curl \
     r-ragg \
-    # Documentation
     quarto \
     r-quarto \
-    # Additional Python packages
     setuptools \
     pyqtgraph \
     pyqt \
