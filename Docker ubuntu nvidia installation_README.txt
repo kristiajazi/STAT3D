@@ -75,7 +75,11 @@ Run the new image following the steps
 Note : without --gpus all it does not recognize the nvidia card 
 
 
-25/05/14 computerSC
+25/05/14 computerSC and my laptopSC , final container with cellpose and GPU!!!
 1. docker pull ghcr.io/kristiajazi/stat3d:latest
 2. docker run --platform linux/amd64 --gpus all -it -v C:/Users/Malin_Group/Desktop/prova:/stat3d ghcr.io/kristiajazi/stat3d:latest
 3. python -m cellpose --dir . --pretrained_model nuclei --chan 0 --chan2 0 --img_filter _morphology_zeta --diameter 17 --do_3D --save_tif --verbose --use_gpu
+On my computer 
+1.docker pull ghcr.io/kristiajazi/stat3d:latest
+2.docker run --platform linux/amd64 --gpus all -it -v C:/Users/Kristi/Desktop/STAT3D/test:/stat3d ghcr.io/kristiajazi/stat3d:latest
+3.python -m cellpose --dir . --pretrained_model nuclei --chan 0 --chan2 0 --img_filter _morphology_zeta --diameter 17 --do_3D --save_tif --verbose --use_gpu
