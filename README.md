@@ -1,6 +1,35 @@
 # STAT3D
 Spatial Trancriptomics Analysis Tool 3D
 
+## Table of Contents
+- [Description](#description)
+- [Installation](#installation)
+- [Inputs](#inputs)
+- [Outputs](#outputs)
+- [Parameters](#parameters)
+- [Usage](#usage)
+- [Known Issues](#known-issues)
+  - [Cellpose CUDA out-of-memory (GPU + 3D)](#cellpose-cuda-out-of-memory-gpu--3d)
+
+## Description
+STAT3D is a tool designed for the analysis of spatial transcriptomics data in 3D. It provides functionalities for data preprocessing, analysis, and visualization of 3D spatial transcriptomics datasets.
+
+## Installation
+installare docker e i comandi per scaricare la immagine docker ed entrare, in modo da avere tutto pronto per la pipeline
+
+## Inputs
+Descivere.
+
+## Outputs
+Descrivere.
+
+## Parameters
+STAT3D supports various parameters for customizing the analysis. Below are some of the key parameters:
+- Aggiungere i parametri principali con una breve descrizione di cosa fanno
+
+## Usage
+To run STAT3D, use the following command:
+- Aggioungere il comando principale per eseguire STAT3D, con un esempio di come passare i parametri
 
 ## Known Issues
 
@@ -23,5 +52,5 @@ python -c "import torch; print(torch.cuda.is_available())"
 If the GPU is available but the error persists, consider running STAT3D without GPU support (or using a machine with more VRAM):
 
 ```bash
-Inserire il comando (oppure esmpio config file, solo la parte pertinente) per eseguire STAT3D senza supporto GPU
+Inserire il comando (oppure esempio config file, solo la parte pertinente) per eseguire STAT3D senza supporto GPU
 ```
