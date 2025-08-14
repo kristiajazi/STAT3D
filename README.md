@@ -15,7 +15,7 @@ Spatial Trancriptomics Analysis Tool 3D
 STAT3D is a tool designed for the analysis of spatial transcriptomics data in 3D. It provides functionalities for data preprocessing, analysis, and visualization of 3D spatial transcriptomics datasets.
 
 ## Installation
-installare docker e i comandi per scaricare la immagine docker ed entrare, in modo da avere tutto pronto per la pipeline
+Come installare docker e i comandi per scaricare la immagine docker ed entrare, in modo da avere tutto pronto per la pipeline
 
 ## Inputs
 Descivere.
@@ -28,11 +28,14 @@ STAT3D supports various parameters for customizing the analysis. Below are some 
 - Aggiungere i parametri principali con una breve descrizione di cosa fanno
 
 ## Usage
+Si puó trovare un'immagine di esempio (molto leggera) che può essere utilizzata per testare STAT3D?
+In tal caso possiamo creare una cartella `test_data` con un esempio di immagine e un file di configurazione di esempio.
+Questo permetterebbe agli utenti di testare STAT3D senza dover preparare i propri dati e soprattutto rende la vita del referee facile facile in modo da renderlo meglio disposto :)
+
 To run STAT3D, use the following command:
 - Aggioungere il comando principale per eseguire STAT3D, con un esempio di come passare i parametri
 
 ## Known Issues
-
 ### Cellpose CUDA out-of-memory (GPU + 3D)
 When running STAT3D with GPU enabled and 3D inference, large images may fail due to insufficient GPU memory. The error message typically looks like this:
 
