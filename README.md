@@ -26,11 +26,12 @@ Descrivere.
 ## Parameters
 STAT3D supports various parameters for customizing the analysis. Below are some of the key parameters:
 - Aggiungere i parametri principali con una breve descrizione di cosa fanno
+- se non ha senso questa sezione, rimuoverla (ma consiglio almeno di commentare alcuni parametri principali o quelli di che vanno modificati piú spesso o di difficile comprensione di cosa fanno)
 
 ## Usage
 Si puó trovare un'immagine di esempio (molto leggera) che può essere utilizzata per testare STAT3D?
-In tal caso possiamo creare una cartella `test_data` con un esempio di immagine e un file di configurazione di esempio.
-Questo permetterebbe agli utenti di testare STAT3D senza dover preparare i propri dati e soprattutto rende la vita del referee facile facile in modo da renderlo meglio disposto :)
+In tal caso possiamo creare una cartella `test_data` (oppure possiamo mettere il link se é troppo grande per github) con un esempio di immagine e file di configurazione.
+Questo permetterebbe agli utenti di testare STAT3D senza dover preparare i propri dati e soprattutto rende la vita del referee facile facile in modo da renderlo meglio predisposto a farci un buon commento :)
 
 To run STAT3D, use the following command:
 - Aggioungere il comando principale per eseguire STAT3D, con un esempio di come passare i parametri
