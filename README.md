@@ -16,6 +16,15 @@ STAT3D is a tool designed for the analysis of spatial transcriptomics data in 3D
 
 ## Installation
 Come installare docker e i comandi per scaricare la immagine docker ed entrare, in modo da avere tutto pronto per la pipeline
+Note : download the folder named "workflow" from STAT3D repository and save it in the same direcotry path which contains the morphology.ome image and transcript.parquet file 
+
+1.Install Docker desktop through the webpage https://docs.docker.com/desktop/ 
+
+2.Download STAT3D docker image by running the following command in the docker desktop terminal:  docker run --platform linux/amd64 --gpus all -it -v C:/your/directory/path:/stat3d ghcr.io/kristiajazi/stat3d:latest
+
+3.Enter the workflow directory by running the following command in the docker desktop terminal: cd workflow
+
+4.Initialize STAT3D pipeline by running the following command in the docker desktop terminal: snakemake --cores 1
 
 ## Inputs
 Descivere.
