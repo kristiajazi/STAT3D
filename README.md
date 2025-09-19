@@ -15,8 +15,8 @@ Spatial Trancriptomics Analysis Tool 3D
 STAT3D is a tool designed for the analysis of spatial transcriptomics data in 3D. It provides functionalities for data preprocessing, analysis, and visualization of 3D spatial transcriptomics datasets.
 
 ## Installation
-Come installare docker e i comandi per scaricare la immagine docker ed entrare, in modo da avere tutto pronto per la pipeline
-Note : download the folder named "workflow" from STAT3D repository and save it in the same direcotry path which contains the morphology.ome image and transcript.parquet file 
+
+0. Download the folder named "workflow" from STAT3D repository and save it in the same direcotry path which contains the morphology.ome image and transcript.parquet file 
 
 1.Install Docker desktop through the webpage https://docs.docker.com/desktop/ 
 
@@ -27,7 +27,8 @@ Note : download the folder named "workflow" from STAT3D repository and save it i
 4.Initialize STAT3D pipeline by running the following command in the docker desktop terminal: snakemake --cores 1
 
 ## Inputs
-Descivere.
+Xenium image : morphology.ome.tif 
+Xenium transcripts file : transcripts.parquet
 
 ## Outputs
 Descrivere.
