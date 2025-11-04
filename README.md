@@ -31,7 +31,7 @@ Xenium image : morphology.ome.tif
 Xenium transcripts file : transcripts.parquet
 
 ## Outputs
-Descrivere.
+One R data serialized ("sp_obj.rds") file compatible with R studio containing all the STAT3D pre-processed. One Portable Document Format ("spatialobj_plot.pdf") file showing the spatial image of the tissue of interest where each dot represent a cell.
 
 ## Parameters
 STAT3D supports various parameters for customizing the analysis. Below are some of the key parameters:
