@@ -52,7 +52,12 @@ In tal caso possiamo creare una cartella `test_data` (oppure possiamo mettere il
 Questo permetterebbe agli utenti di testare STAT3D senza dover preparare i propri dati e soprattutto rende la vita del referee facile facile in modo da renderlo meglio predisposto a farci un buon commento :)
 
 To run STAT3D, use the following command:
-- Aggioungere il comando principale per eseguire STAT3D, con un esempio di come passare i parametri
+
+1.docker run --platform linux/amd64 --gpus all -it -v C:/your/directory/path:/stat3d ghcr.io/kristiajazi/stat3d:latest
+
+2.cd workflow
+
+3.snakemake --cores 1
 
 ## Known Issues
 ### Cellpose CUDA out-of-memory (GPU + 3D)
