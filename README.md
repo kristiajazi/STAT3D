@@ -34,9 +34,17 @@ Xenium transcripts file : transcripts.parquet
 One R data serialized ("sp_obj.rds") file compatible with R studio containing all the STAT3D pre-processed. One Portable Document Format ("spatialobj_plot.pdf") file showing the spatial image of the tissue of interest where each dot represent a cell.
 
 ## Parameters
-STAT3D supports various parameters for customizing the analysis. Below are some of the key parameters:
-- Aggiungere i parametri principali con una breve descrizione di cosa fanno
-- se non ha senso questa sezione, rimuoverla (ma consiglio almeno di commentare alcuni parametri principali o quelli di che vanno modificati piú spesso o di difficile comprensione di cosa fanno)
+STAT3D supports various parameters for customizing the analysis. Below are some of the key parameters listed in the configuration file (config.yaml):
+"Level" : determines the level that will be extracted from the pyramydal image (morphology.ome.tif)
+"Z_SLICE_A" and "Z_SLICE_B" : determines the two z-stacks that will be extracted from the single pyramidal level   
+"CELL_EXPANSION": based on detected nucleus objects, define cell size
+"SIGMA": control /reduce the noise effect
+"THRESHOLD": intensity parameter 
+"MIN_AREA": define the range of nucleus size 
+"MAX_AREA": define the range of nucleus size 
+"BACKGROUND_RADIUS": if background subtraction is considered, 0 equals no background subtraction
+"MEDIAN_RADIUS": reduce image texture
+"sample_size": number of nuclei used to calculate all the parameters
 
 ## Usage
 Si puó trovare un'immagine di esempio (molto leggera) che può essere utilizzata per testare STAT3D?
