@@ -47,9 +47,7 @@ STAT3D supports various parameters for customizing the analysis. Below are some 
 "sample_size": number of nuclei used to calculate all the parameters
 
 ## Usage
-Si puó trovare un'immagine di esempio (molto leggera) che può essere utilizzata per testare STAT3D?
-In tal caso possiamo creare una cartella `test_data` (oppure possiamo mettere il link se é troppo grande per github) con un esempio di immagine e file di configurazione.
-Questo permetterebbe agli utenti di testare STAT3D senza dover preparare i propri dati e soprattutto rende la vita del referee facile facile in modo da renderlo meglio predisposto a farci un buon commento :)
+Test data are located in the folder : Test_STAT3D
 
 To run STAT3D, use the following command:
 
