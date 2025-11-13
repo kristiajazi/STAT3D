@@ -13,11 +13,11 @@ Spatial Trancriptomics Analysis Tool 3D.
 -   [Known Issues](#known-issues)
     -   [Cellpose CUDA out-of-memory (GPU + 3D)](#cellpose-cuda-out-of-memory-gpu--3d)
 
-## Description {#description}
+## Description
 
 STAT3D is a tool designed for the analysis of spatial transcriptomics data in 3D. It provides functionalities for data preprocessing, analysis, and visualization of 3D spatial transcriptomics datasets.
 
-## Installation {#installation}
+## Installation
 
 0.  Download the folder named "workflow" from STAT3D repository and save it in the same direcotry path which contains the morphology.ome image and transcript.parquet file
 
@@ -41,12 +41,14 @@ cd workflow
 snakemake --cores 1
 ```
 
-## Inputs {#inputs}
+## Inputs
 
 Required files are:
 
--   Xenium image : `morphology.ome.tif`, which should be a standard OME-TIFF (pyramidal multi-resolution TIFF).
--   Xenium transcripts file : `transcripts.parquet` parquet with numeric x/y coordinates in the same pixel coordinate system as the image.
+| File | Description
+|------------------------|------------------------|
+| morphology.ome.tif | Xenium image : which should be a standard OME-TIFF (pyramidal multi-resolution TIFF). |
+| transcripts.parquet | Xenium transcripts : parquet file with numeric x/y coordinates in the same pixel coordinate system as the image |
 
 You can verify the input files using the following commands inside the Docker container:
 
@@ -60,7 +62,7 @@ tbl = pq.read_table("transcripts.parquet", columns=["x","y","z","gene"] )
 print(tbl.to_pandas().head())
 ```
 
-## Outputs {#outputs}
+## Outputs
 STAT3D produces two main output files:
 
 | File | Description
@@ -71,7 +73,7 @@ STAT3D produces two main output files:
 
 One R data serialized ("sp_obj.rds") file compatible with R studio containing all the STAT3D pre-processed. One Portable Document Format ("spatialobj_plot.pdf") file showing the spatial image of the tissue of interest where each dot represent a cell.
 
-## Parameters {#parameters}
+## Parameters
 
 STAT3D supports several configuration parameters (defined in `config.yaml`) that control image extraction, filtering, and segmentation. Below is a compact reference table for the most commonly used parameters.
 
@@ -111,7 +113,7 @@ sample_size: 100
 
 Tip: change a few parameters and run the pipeline on a small test region first to visually inspect segmentation quality before processing the full dataset.
 
-## Usage {#usage}
+## Usage
 
 To run STAT3D, use the following commands:
 
@@ -123,7 +125,7 @@ snakemake --cores 1
 
 To verify the STAT3D installation you can use a test data located in the folder : Test_STAT3D
 
-## Known Issues {#known-issues}
+## Known Issues
 
 ### Cellpose CUDA out-of-memory (GPU + 3D)
 
