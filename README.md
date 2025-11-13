@@ -70,9 +70,6 @@ STAT3D produces two main output files:
 | sp_obj.rds | file compatible with R studio containing all the STAT3D pre-processed. |
 | spatialobj_plot.pdf | the spatial image of the tissue of interest where each dot represent a cell. |
 
-
-One R data serialized ("sp_obj.rds") file compatible with R studio containing all the STAT3D pre-processed. One Portable Document Format ("spatialobj_plot.pdf") file showing the spatial image of the tissue of interest where each dot represent a cell.
-
 ## Parameters
 
 STAT3D supports several configuration parameters (defined in `config.yaml`) that control image extraction, filtering, and segmentation. Below is a compact reference table for the most commonly used parameters.
@@ -117,7 +114,7 @@ Tip: change a few parameters and run the pipeline on a small test region first t
 
 To run STAT3D, use the following commands:
 
-``` bash=
+```bash=
 docker run --platform linux/amd64 --gpus all -it -v C:/your/directory/path:/stat3d ghcr.io/kristiajazi/stat3d:latest
 cd workflow
 snakemake --cores 1
