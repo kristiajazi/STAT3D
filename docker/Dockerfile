@@ -64,19 +64,12 @@ ENV PATH="/tools/QuPath/bin:$PATH"
 # Install pak from CRAN or GitHub
 RUN R -e "install.packages('pak', repos='https://cran.r-project.org')"
 
-# Use pak to install required packages
-RUN R -e "options(repos=c(CRAN='https://packagemanager.posit.co/cran/latest')); \
-    install.packages('remotes'); \
-    install.packages('Matrix'); \
-    remotes::install_github('satijalab/seurat-data'); \
-    pak::pkg_install(c('tidyverse', 'Seurat', 'pheatmap', 'ComplexHeatmap', 'IRanges', 'sp', \
-    'SummarizedExperiment', 'SeuratObject', 'Biobase', 'S4Vectors', 'patchwork', \
-    'ggrepel', 'EnhancedVolcano', 'readxl', 'data.table', 'sctransform', 'geosphere', \
-    'plotly', 'viridis', 'rgl'))"
-
-# Install Bioconductor packages separately (they have complex dependencies)
+# Install R packages using BiocManager and install.packages (more reliable in Docker)
 RUN R -e "if (!require('BiocManager', quietly=TRUE)) install.packages('BiocManager'); \
-    BiocManager::install(c('scuttle', 'SingleR', 'celldex', 'scRNAseq'), ask=FALSE)"
+    install.packages(c('remotes', 'Matrix')); \
+    remotes::install_github('satijalab/seurat-data'); \
+    install.packages(c('tidyverse', 'Seurat', 'pheatmap', 'ComplexHeatmap', 'ggrepel', 'readxl', 'data.table', 'plotly', 'viridis', 'rgl', 'patchwork'), dependencies=TRUE); \
+    BiocManager::install(c('IRanges', 'SummarizedExperiment', 'Biobase', 'S4Vectors', 'EnhancedVolcano', 'sctransform', 'geosphere', 'scuttle', 'SingleR', 'celldex', 'scRNAseq'), ask=FALSE)"
 
 # Verify installations
 RUN java -version
