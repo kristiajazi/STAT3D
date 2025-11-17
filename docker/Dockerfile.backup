@@ -11,7 +11,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     bzip2 \
     libgl1 \
     libglib2.0-0 \
-    git \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Mambaforge
@@ -72,7 +71,7 @@ RUN R -e "options(repos=c(CRAN='https://packagemanager.posit.co/cran/latest')); 
     pak::pkg_install(c('tidyverse', 'Seurat', 'pheatmap', 'ComplexHeatmap', 'IRanges', 'sp', \
     'SummarizedExperiment', 'SeuratObject', 'Biobase', 'S4Vectors', 'patchwork', \
     'ggrepel', 'EnhancedVolcano', 'readxl', 'data.table', 'sctransform', 'geosphere', \
-    'plotly', 'viridis', 'rgl', 'scuttle', 'SingleR', 'celldex', 'scRNAseq'))"
+    'plotly', 'viridis', 'rgl'))"
 
 # Verify installations
 RUN java -version
@@ -84,7 +83,7 @@ RUN R --version
 RUN R -e "packages <- c('Seurat', 'pheatmap', 'stringr', 'tidyverse', 'ComplexHeatmap', 'IRanges', 'sp', \
     'SummarizedExperiment', 'SeuratObject', 'SeuratData', 'Biobase', 'S4Vectors', 'Matrix', 'patchwork', \
     'ggrepel', 'EnhancedVolcano', 'readxl', 'data.table', 'sctransform', 'geosphere', 'plotly', 'viridis', \
-    'rgl', 'scuttle', 'SingleR', 'celldex', 'scRNAseq'); sapply(packages, function(pkg) { library(pkg, character.only = TRUE); \
+    'rgl'); sapply(packages, function(pkg) { library(pkg, character.only = TRUE); \
     cat(pkg, as.character(packageVersion(pkg)), '\\n') })"
 
 # Print a list of packages and versions
