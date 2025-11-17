@@ -96,7 +96,3 @@ run-pipeline-gpu = "snakemake --cores 1"
 
 # Task to verify installations
 verify = { cmd = "bash -c 'echo \"=== Verifying installations ===\"; java -version; nextflow -version; snakemake --version; quarto --version; R --version; R -e \"cat(\\\"R packages loaded successfully\\n\\\")\"'" }
-
-[build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
