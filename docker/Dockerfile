@@ -72,7 +72,11 @@ RUN R -e "options(repos=c(CRAN='https://packagemanager.posit.co/cran/latest')); 
     pak::pkg_install(c('tidyverse', 'Seurat', 'pheatmap', 'ComplexHeatmap', 'IRanges', 'sp', \
     'SummarizedExperiment', 'SeuratObject', 'Biobase', 'S4Vectors', 'patchwork', \
     'ggrepel', 'EnhancedVolcano', 'readxl', 'data.table', 'sctransform', 'geosphere', \
-    'plotly', 'viridis', 'rgl', 'scuttle', 'SingleR', 'celldex', 'scRNAseq'))"
+    'plotly', 'viridis', 'rgl'))"
+
+# Install Bioconductor packages separately (they have complex dependencies)
+RUN R -e "if (!require('BiocManager', quietly=TRUE)) install.packages('BiocManager'); \
+    BiocManager::install(c('scuttle', 'SingleR', 'celldex', 'scRNAseq'), ask=FALSE)"
 
 # Verify installations
 RUN java -version
