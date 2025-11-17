@@ -35,10 +35,10 @@ r-curl = "*"
 r-ragg = "*"
 
 # Python packages (PyTorch with CUDA)
-pytorch::pytorch = "2.6.0"
-pytorch::pytorch-cuda = "12.6"
-pytorch::torchvision = "0.21.0"
-pytorch::torchaudio = "2.6.0"
+pytorch = "2.6.0"
+pytorch-cuda = "12.6"
+torchvision = "0.21.0"
+torchaudio = "2.6.0"
 pyarrow = ">=13.0"
 numba = ">=0.57"
 natsort = ">=8.4"
@@ -59,21 +59,21 @@ r-remotes = "*"
 r-matrix = "*"
 
 # R packages - Bioconductor (data structures and utilities)
-bioconda::r-iranges = "*"
-bioconda::r-summarizedexperiment = "*"
-bioconda::r-biobase = "*"
-bioconda::r-s4vectors = "*"
-bioconda::r-seuratobject = "*"
+r-iranges = "*"
+r-summarizedexperiment = "*"
+r-biobase = "*"
+r-s4vectors = "*"
+r-seuratobject = "*"
 
 # R packages - analysis and visualization
-bioconda::r-enhancedvolcano = "*"
-bioconda::r-sctransform = "*"
+r-enhancedvolcano = "*"
+r-sctransform = "*"
 
 # R packages - newly requested Bioconductor packages
-bioconda::r-scuttle = "*"
-bioconda::r-singler = "*"
-bioconda::r-celldex = "*"
-bioconda::r-scrnaseq = "*"
+r-scuttle = "*"
+r-singler = "*"
+r-celldex = "*"
+r-scrnaseq = "*"
 
 # R packages - utilities
 r-geosphere = "*"
