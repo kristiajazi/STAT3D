@@ -5,16 +5,12 @@ on:
     branches:
       - main
     paths:
-      - 'docker/Dockerfile'
-      - 'pixi.toml'
-      - 'pixi.lock'
+      - 'docker/Dockerfile'  # Only trigger if Dockerfile changes
   pull_request:
     branches:
       - main
     paths:
-      - 'docker/Dockerfile'
-      - 'pixi.toml'
-      - 'pixi.lock'
+      - 'docker/Dockerfile'  # Only trigger PRs that modify Dockerfile
 
 jobs:
   build-and-push:
@@ -48,7 +44,7 @@ jobs:
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v4
         with:
-          context: .
+          context: ./docker
           file: ./docker/Dockerfile
           push: true
           platforms: linux/amd64
