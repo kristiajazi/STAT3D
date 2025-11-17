@@ -47,11 +47,11 @@ natsort = "*"
 r-tidyverse = "*"
 r-seurat = "*"
 r-pheatmap = "*"
-# r-complexheatmap = "*"  # Removed - may not be available in conda-forge
+bioconductor-complexheatmap = "*"
 r-patchwork = "*"
 r-ggrepel = "*"
 r-readxl = "*"
-r-data-table = "*"
+r-data.table = "*"
 r-plotly = "*"
 r-viridis = "*"
 r-rgl = "*"
@@ -59,21 +59,21 @@ r-remotes = "*"
 r-matrix = "*"
 
 # R packages - Bioconductor (data structures and utilities)
-r-iranges = "*"
-r-summarizedexperiment = "*"
-r-biobase = "*"
-r-s4vectors = "*"
+bioconductor-iranges = "*"
+bioconductor-summarizedexperiment = "*"
+bioconductor-biobase = "*"
+bioconductor-s4vectors = "*"
 r-seuratobject = "*"
 
 # R packages - analysis and visualization
-r-enhancedvolcano = "*"
-r-sctransform = "*"
+bioconductor-enhancedvolcano = "*"
+# bioconductor-sctransform = "*"  # Not found in bioconda, may need manual installation
 
 # R packages - newly requested Bioconductor packages
-r-scuttle = "*"
-r-singler = "*"
-r-celldex = "*"
-r-scrnaseq = "*"
+bioconductor-scuttle = "*"
+bioconductor-singler = "*"
+bioconductor-celldex = "*"
+bioconductor-scrnaseq = "*"
 
 # R packages - utilities
 r-geosphere = "*"
