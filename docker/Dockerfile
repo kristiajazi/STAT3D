@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     curl \
     bzip2 \
+    xz-utils \
     ca-certificates \
     git \
     libgl1 \
