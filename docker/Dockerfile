@@ -3,6 +3,9 @@
 # Build: docker build -f docker/Dockerfile-pixi -t stat3d:pixi .
 # Run: docker run --platform linux/amd64 --gpus all -it -v /path/to/data:/stat3d stat3d:pixi
 
+# Build trigger version: 2025-11-17-001
+# Update this version to trigger a new Docker image build in GitHub Actions
+
 FROM nvidia/cuda:12.6.0-base-ubuntu22.04
 
 # Set working directory
