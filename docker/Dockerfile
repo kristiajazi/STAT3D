@@ -8,8 +8,7 @@
 
 FROM nvidia/cuda:12.6.0-base-ubuntu22.04
 
-# Set working directory
-WORKDIR /stat3d
+WORKDIR /etc/stat3d
 
 # Install system essentials and git
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -29,8 +28,9 @@ RUN curl -fsSL https://github.com/prefix-dev/pixi/releases/download/v${PIXI_VERS
     chmod +x /usr/local/bin/pixi && \
     pixi --version
 
-# Copy pixi configuration
-COPY pixi.toml pixi.lock* ./
+# Copy pixi configuration to both /etc/stat3d and /stat3d
+COPY pixi.toml pixi.lock* /etc/stat3d/
+COPY pixi.toml pixi.lock* /stat3d/
 
 # Initialize pixi environment and install dependencies
 RUN pixi install
