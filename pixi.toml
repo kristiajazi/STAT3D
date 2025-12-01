@@ -13,7 +13,7 @@ curl = "*"
 pkg-config = "*"
 
 # NVIDIA/CUDA (for GPU support)
-cuda-version = "11.8"
+#cuda-version = "11.8"
 
 # Core scientific computing
 python = "3.10"
@@ -34,11 +34,13 @@ r-irkernel = "*"
 r-curl = "*"
 r-ragg = "*"
 
-# Python packages (PyTorch with CUDA)
+[dependencies]
+# Python packages (PyTorch with CUDA 11.8)
 pytorch = "2.5.*"
 torchvision = "0.20.*"
 torchaudio = "2.5.*"
 pytorch-cuda = "11.8"
+# REMOVE cuda-version line completely
 pyarrow = "*"
 numba = "*"
 natsort = "*"
