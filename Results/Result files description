@@ -1,0 +1,11 @@
+STAT3D intermediate results :
+
+1. "z_slice_measurement.csv" file. This file idenfies how many z-stacks are in each level of the image pyramid
+2. "export" folder. This folder shows the image of every z-stack in the "morphology.ome.tif" image
+3. "Laplacian_score.csv". This file indicates the level of sharpness of the first 10 images (z0,z1,z2,...z9) that form the z-stack in the "morphology.ome.tif" image
+4. "z4_and_5_level2_morphology.tif". This image is the new size-reduced and sharpness-preserved image. It will be the base for the rest of STAT3D analysis
+5. "QuPath_measurements.csv". This file contains all the image's information regarding the size and area of the nuclei detected in the tissue biopsy. It represents the base for the nuclei average diameter and nuclear expansion average calculations
+6. "nuclei_diameter.csv". This file represents the value of the average diameter of the nuclei in the tissue biopsy. It will be automatically implemented in the Cellpose segmentation.
+7. "average_min_distance.csv". This file represent the average minimum distance across the nuclei. It is used during the calculation of the average nuclear expansion value.
+8. "average_nuclear_expansion.csv". This file represent the epansion of each nuclei to ensure correct transcripts assignation and avoid overlap with proximal cells.
+9. "
