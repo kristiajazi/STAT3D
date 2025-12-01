@@ -35,10 +35,10 @@ r-curl = "*"
 r-ragg = "*"
 
 # Python packages (PyTorch with CUDA)
-pytorch = "2.6.0"
-# pytorch-cuda = "12.6"  # Removed - not a valid conda package, CUDA version handled by cuda-version above
-torchvision = "0.21.0"
-torchaudio = "2.6.0"
+pytorch = { version = "2.6.0", build = "*cuda*" }
+torchvision = { version = "0.21.0", build = "*cuda*" }
+torchaudio = { version = "2.6.0", build = "*cuda*" }
+pytorch-cuda = "12.1"
 pyarrow = "*"
 numba = "*"
 natsort = "*"
