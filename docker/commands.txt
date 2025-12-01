@@ -6,8 +6,9 @@ echo your-token | docker login ghcr.io -u kristiajazi --password-stdin
 # Pull the image (to do every time a new version has been pushed)
 docker pull ghcr.io/kristiajazi/stat3d:latest
 
-# Run the image (replace /path/to/folder with the path you want to mount) , in my case docker run --platform linux/amd64 -it -v C:/Users/Kristi/Desktop/STAT3D/test:/stat3d ghcr.io/kristiajazi/stat3d:latest
-docker run --platform linux/amd64 -it -v /path/to/folder:/stat3d ghcr.io/kristiajazi/stat3d:latest
+# Run the image (replace /path/to/folder with the path you want to mount)
+docker run --platform linux/amd64 --gpus all -it --rm -v C:/Users/path/:/stat3d ghcr.io/kristiajazi/stat3d:latest
+
 
 -------------------------------------
 
