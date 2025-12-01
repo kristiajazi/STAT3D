@@ -36,7 +36,7 @@ r-ragg = "*"
 
 # Python packages (PyTorch with CUDA)
 pytorch = "2.6.0"
-pytorch-cuda = "12.6"  # Removed - not a valid conda package, CUDA version handled by cuda-version above
+#pytorch-cuda = "12.6"  # Removed - not a valid conda package, CUDA version handled by cuda-version above
 torchvision = "0.21.0"
 torchaudio = "2.6.0"
 pyarrow = "*"
