@@ -144,5 +144,5 @@ python -c "import torch; print(torch.cuda.is_available())"
 If the GPU is available but the error persists, consider running STAT3D without GPU support (or using a machine with more VRAM):
 
 ``` bash
-Inserire il comando (oppure esempio config file, solo la parte pertinente) per eseguire STAT3D senza supporto GPU
+From config.yaml file : cellpose_use_gpu: false
 ```
