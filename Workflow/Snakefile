@@ -36,11 +36,11 @@ rule all:
         "/stat3d/barcodes.tsv.gz",
         "/stat3d/sp_obj.rds",
         "/stat3d/spatialobj_plot.pdf",
-		"/stat3d/Laplacian_score.csv",
-		"/stat3d/Spatial_SingleR.pdf,
-		"/stat3d/singler.rds",
-		"/stat3d/UMAP_SingleR.pdf",
-		"/stat3d/QC.pdf"
+        "/stat3d/Laplacian_score.csv",
+        "/stat3d/Spatial_SingleR.pdf",
+        "/stat3d/singler.rds",
+        "/stat3d/UMAP_SingleR.pdf",
+        "/stat3d/QC.pdf"
 
 rule generate_Z_slice_groovy:
     output:
@@ -241,3 +241,4 @@ rule seurat_spatial_object_automatic_annotation:
     script:
         "seurat_spatial_object.R"
 	
+
