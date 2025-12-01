@@ -35,9 +35,10 @@ r-curl = "*"
 r-ragg = "*"
 
 # Python packages (PyTorch with CUDA)
-pytorch = { version = "2.6.0", build = "*cuda*" }
-torchvision = { version = "0.21.0", build = "*cuda*" }
-torchaudio = { version = "2.6.0", build = "*cuda*" }
+[dependencies]
+pytorch = "2.6.0=*cuda12.1*"
+torchvision = "0.21.0=*cuda12.1*" 
+torchaudio = "2.6.0=*cuda12.1*"
 pytorch-cuda = "12.1"
 pyarrow = "*"
 numba = "*"
