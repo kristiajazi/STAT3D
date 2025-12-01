@@ -19,7 +19,7 @@ STAT3D is a tool designed for the analysis of spatial transcriptomics data in 3D
 
 ## Installation
 
-0.  Download the folder named "workflow" from STAT3D repository and save it in the same direcotry path which contains the morphology.ome image and transcript.parquet file
+0.  Download the folder named "Workflow" from STAT3D repository and save it in the same direcotry path which contains the morphology.ome image and transcript.parquet file
 
 1.  Install Docker Desktop through the official webpage: https://docs.docker.com/desktop/
 
