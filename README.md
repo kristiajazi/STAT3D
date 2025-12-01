@@ -32,7 +32,7 @@ docker run --platform linux/amd64 --gpus all -it -v C:/your/directory/path:/stat
 3.  Enter the workflow directory by running the following command in the docker desktop terminal:
 
 ``` bash
-cd workflow
+cd Workflow
 ```
 
 4.  Initialize STAT3D pipeline by running the following command in the docker desktop terminal:
