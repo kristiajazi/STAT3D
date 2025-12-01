@@ -2,7 +2,7 @@
 name = "stat3d"
 version = "0.1.0"
 description = "Spatial Transcriptomics Analysis Tool 3D"
-channels = ["conda-forge", "bioconda"]
+channels = ["conda-forge", "bioconda", "pytorch", "nvidia"]
 platforms = ["linux-64"]
 
 [dependencies]
@@ -35,9 +35,9 @@ r-curl = "*"
 r-ragg = "*"
 
 # Python packages (PyTorch with CUDA)
-pytorch = { version = "2.6.0", build = "*cuda*" }
-torchvision = { version = "0.21.0", build = "*cuda*" }
-torchaudio = { version = "2.6.0", build = "*cuda*" }
+pytorch = ">=2.6.0"
+torchvision = ">=0.21.0"
+torchaudio = ">=2.6.0"
 pytorch-cuda = "12.1"
 pyarrow = "*"
 numba = "*"
