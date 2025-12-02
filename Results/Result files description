@@ -9,8 +9,8 @@ STAT3D intermediate results :
 7. "average_min_distance.csv". This file represent the average minimum distance across the nuclei. It is used during the calculation of the average nuclear expansion value.
 8. "average_nuclear_expansion.csv". This file represent the epansion of each nuclei to ensure correct transcripts assignation and avoid overlap with proximal cells.
 9. "sp_obj.rds". This file represents the seurat object including the spatial data within the "reduction" slot. It is the base for the downstream analysis (e.g. QC, Normalization, PCA) 
-10. "spatialobj_plot.pdf". This file displays as dot-plot the tissue image, where each plot represents a cell.  
+10. "spatialobj_plot.pdf". This file displays the tissue image as dot-plot, where each plot represents a cell.  
 11. "Spatial_SingleR.pdf". This file displays the spatial UMAP plot with the clusters labels generated after QC, SCTransform normalization, FindNeighbours, FindClusters and automatic annotation with single R.
-12. "singler.rds". This file represents the Seurat object generate after QC, SCTransform normalization, FindNeighbours, FindClusters and automatic annotation with single R.
-13. "UMAP_SingleR.pdf".  This file displays the spatial UMAP plot with the clusters labels generated after QC, SCTransform normalization, FindNeighbours, FindClusters and automatic annotation with single R.
+12. "singler.rds". This file represents the Seurat object generated after QC, SCTransform normalization, FindNeighbours, FindClusters and automatic annotation with single R.
+13. "UMAP_SingleR.pdf".  This file displays the spatial UMAP plot with the SingleR labelled clusters. The data underwent QC, SCTransform normalization, FindNeighbours, FindClusters and automatic annotation with single R.
 14. "QC.pdf". This file represents the QC plot displaying the distributions of numbers of features and numbers of clunts in the sample of interest.
