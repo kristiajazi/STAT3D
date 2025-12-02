@@ -37,7 +37,7 @@ RUN pixi install
 
 # Install PyTorch with CUDA 12.6 support via pip (conda resolves CPU-only versions)
 # This matches the working configuration from the original Dockerfile
-RUN pixi run pip install --no-cache-dir \
+RUN /etc/stat3d/.pixi/envs/default/bin/pip install --no-cache-dir \
     torch==2.6.0 \
     torchvision==0.21.0 \
     torchaudio==2.6.0 \
