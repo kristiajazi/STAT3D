@@ -3,7 +3,7 @@
 # Build: docker build -f docker/Dockerfile-pixi -t stat3d:pixi .
 # Run: docker run --platform linux/amd64 --gpus all -it -v /path/to/data:/stat3d stat3d:pixi
 
-# Build trigger version: 2025-11-17-001
+# Build trigger version: 2025-12-02-001
 # Update this version to trigger a new Docker image build in GitHub Actions
 
 FROM nvidia/cuda:12.6.0-base-ubuntu22.04
@@ -34,6 +34,14 @@ COPY pixi.toml pixi.lock* /stat3d/
 
 # Initialize pixi environment and install dependencies
 RUN pixi install
+
+# Install PyTorch with CUDA 12.6 support via pip (conda resolves CPU-only versions)
+# This matches the working configuration from the original Dockerfile
+RUN pixi run pip install --no-cache-dir \
+    torch==2.6.0 \
+    torchvision==0.21.0 \
+    torchaudio==2.6.0 \
+    --index-url https://download.pytorch.org/whl/cu126
 
 # Install QuPath (not available via conda, so install manually)
 ARG QUPATH_VERSION=0.5.1
