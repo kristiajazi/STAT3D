@@ -72,7 +72,7 @@ saveRDS(sp_obj, file = snakemake@output[["rds"]])
 
 # Save DimPlot to PDF using Snakemake-defined path
 
-pdf(snakemake@output[["pdf"]], width = 8, height = 6)
+pdf(snakemake@output[["pdf"]], width = 10, height = 6)
 
 print(DimPlot(sp_obj, reduction = 'spatialobj_'))
 
@@ -80,7 +80,7 @@ dev.off()
 
 #QC plot
 
-pdf(snakemake@output[["pdf_qc"]], width = 8, height = 6)
+pdf(snakemake@output[["pdf_qc"]], width = 10, height = 6)
 
 print(VlnPlot(sp_obj, features = c("nFeature_RNA", "nCount_RNA"), ncol = 2, pt.size = 0))
 
@@ -134,7 +134,7 @@ saveRDS(sp_obj_SingleR, file = snakemake@output[["rds_singler"]])
 
 # Save UMAP plot to its own PDF
 
-pdf(snakemake@output[["pdf_umap_singler"]], width = 8, height = 6)
+pdf(snakemake@output[["pdf_umap_singler"]], width = 10, height = 6)
 
 print(sp_obj_UMAP_SingleR)
 
@@ -142,9 +142,10 @@ dev.off()
 
 # Save spatial plot to its own PDF
 
-pdf(snakemake@output[["pdf_spatial_singler"]], width = 8, height = 6)
+pdf(snakemake@output[["pdf_spatial_singler"]], width = 10, height = 6)
 
 print(spatial_UMAP_SingleR)
 
 dev.off()
+
 
