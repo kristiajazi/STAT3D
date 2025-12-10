@@ -21,10 +21,10 @@ sample_size: 15000
 #Cellpose
 directory: /stat3d
 cellpose_use_gpu: true
+cellpose_img_filter : morphology_TC070.ome_STAT3D
 
 #Cell-to-transcript files and parameters
 transcripts_df: /stat3d/transcriptsTC070.parquet
-cellpose_img_filter : morphology_TC070.ome_STAT3D
 
 #Level 2 pixel size 
 PIXEL_SIZE: 0.85
@@ -34,4 +34,5 @@ Z_SLICE_MICRON: 3
 
 #NUC_EXP_PIXEL:(average nuclear expansion / pixel size)
 #NUC_EXP_SLICE: (average nuclear expansion / z slice micron) 
+
 
