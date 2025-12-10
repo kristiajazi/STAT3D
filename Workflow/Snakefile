@@ -14,8 +14,8 @@ z_a = config.get("Z_SLICE_A", "STAT3D_A")
 z_b = config.get("Z_SLICE_B", "STAT3D_B")
 
 input_tiff_basename = os.path.splitext(os.path.basename(config["INPUT_TIFF"]))[0]
-image_output = os.path.join(directory, f"{input_tiff_basename}_processed.tif")
-seg_npy_output = os.path.join(directory, f"{input_tiff_basename}_processed_seg.npy")
+image_output = os.path.join(directory, f"{input_tiff_basename}_STAT3D.tif")
+seg_npy_output = os.path.join(directory, f"{input_tiff_basename}_STAT3D_seg.npy")
 
 # Define output CSV path and image output path 
 csv_output = os.path.join(directory, "QuPath_measurements.csv")
@@ -250,3 +250,4 @@ rule seurat_spatial_object_automatic_annotation:
     script:
         "seurat_spatial_object.R"
 	
+
