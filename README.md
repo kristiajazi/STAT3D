@@ -94,7 +94,7 @@ STAT3D supports several configuration parameters (defined in `config.yaml`) that
 | MEDIAN_RADIUS | reduce image texture | Integer (pixels) |
 | sample_size | number of nuclei used to calculate all the parameters | Integer (e.g. `2000`) / Recommended number : 15000 |
 | cellpose_use_gpu | enable of GPU during 3D Cellpose segmentation. If set as flase the segmentation runs in CPU | Boolean (e.g. ´true´ or ´false´) / Recommended : ´true´ for morphology.ome.tiff images smaller than 3 GB |
-| cellpose_img_filter|  name the image processed by Cellpose and produced after z-stack extractions. This name must be written before the pipeline starts. | e.g. ´morphology_X.ome_STAT3D´ |
+| cellpose_img_filter|  name the image processed by Cellpose and produced after z-stack extractions. This name must be written before the pipeline starts. | e.g. ´morphology_X.ome_STAT3D´ / If the input tiff image ID is ´morphology_X.ome.tif´, the parameter needed in this slot is ´morphology_X.ome_STAT3D´ |
 | transcripts_df | name of the transcripts.parquet file provided by 10x. This name must be written before the pipeline starts. | e.g. ´/stat3d/transcripts.parquet´ |
 | PIXEL_SIZE | pixel size at various levels of the image pyramid | Integer (e.g. `0.85` for level 2)/ Recommended pixel sizes by 10x are listed in Table 1 |
 
