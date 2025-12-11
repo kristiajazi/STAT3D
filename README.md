@@ -82,8 +82,9 @@ STAT3D supports several configuration parameters (defined in `config.yaml`) that
 
 | Parameter | Description | Example / Notes |
 |------------------------|------------------------|------------------------|
-| Level | determines the level that will be extracted from the pyramydal image (morphology.ome.tif) | Integer (e.g. `0`, `1`) |
-| Z_SLICE_A and Z_SLICE_B | determines the two z-stacks that will be extracted from the single pyramidal level | Integer z indices (e.g. `10`, `12`) |
+| INPUT_TIFF | name of your image in the stat3d container | e.g. stst3d/name_of_your_morphology.ome.tiff image / Recommended path : ´stat3d/morphology_X.ome.tif´ |
+| Level | determines the level that will be extracted from the pyramydal image (morphology.ome.tif) | Integer (e.g. `0`, `1`) / Recommended level: 2 |
+| Z_SLICE_A and Z_SLICE_B | determines the two z-stacks that will be extracted from the single pyramidal level | Integer z indices (e.g. `4`, `5`) |
 | CELL_EXPANSION | based on detected nucleus objects, define cell size | Integer (pixels) |
 | SIGMA | control /reduce the noise effect | Float (e.g. `1.0`) |
 | THRESHOLD | intensity parameter | Float or int |
@@ -91,9 +92,26 @@ STAT3D supports several configuration parameters (defined in `config.yaml`) that
 | MAX_AREA | define the range of nucleus size | Integer |
 | BACKGROUND_RADIUS | if background subtraction is considered, 0 equals no background subtraction | Integer (pixels) |
 | MEDIAN_RADIUS | reduce image texture | Integer (pixels) |
-| sample_size | number of nuclei used to calculate all the parameters | Integer (e.g. `100`) |
+| sample_size | number of nuclei used to calculate all the parameters | Integer (e.g. `2000`) / Recommended number : 15000 |
+| sample_size | number of nuclei used to calculate all the parameters | Integer (e.g. `2000`) / Recommended number : 15000 |
+| cellpose_use_gpu | enable of GPU during 3D Cellpose segmentation. If set as flase the segmentation runs in CPU | Boolean (e.g. ´true´ or ´false´) / Recommended : true for morphology.ome.tiff images smaller than 3 GB |
+| cellpose_img_filter|  name the image processed by Cellpose and produced after z-stack extractions. This name must be written before the pipeline starts. | e.g. ´morphology_X.ome_STAT3D´ |
+| transcripts_df | name of the transcripts.parquet file provided by 10x. This name must be written before the pipeline starts. | e.g. ´/stat3d/transcripts.parquet´ |
+| PIXEL_SIZE | pixel size at various levels of the image pyramid | Integer (e.g. `0.85` for level 2) | Recommended pixel sizes by 10x are listed in table 1 |
 
 To change these values, edit `config.yaml` in the `workflow` folder and re-run the pipeline (for example: `snakemake --cores 1`). For most parameters, start with conservative values and adjust based on the visual quality of segmentation on a small test region.
+
+## Table 1. Pixel Size at various level (by 10x Genomics)
+The table displays the pixel sizes associated with each pyramidal level in images prodcued by Xenium platform.
+
+| Pyramidal Level | Pixel size (micron)
+|------------------------|------------------------|
+0 |	0.2125
+1 | 0.425
+2 | 0.85
+3 | 1.7
+4 | 3.4
+5 | 6.8
 
 ### Example `config.yaml` snippet
 
@@ -114,7 +132,7 @@ MEDIAN_RADIUS: 3
 sample_size: 100
 ```
 
-Tip: change a few parameters and run the pipeline on a small test region first to visually inspect segmentation quality before processing the full dataset.
+Tip: change a few parameters and run the pipeline to first to visually inspect segmentation quality before processing the full dataset.
 
 ## Usage
 
@@ -122,7 +140,7 @@ To run STAT3D, use the following commands:
 
 ```bash=
 docker run --platform linux/amd64 --gpus all -it -v C:/your/directory/path:/stat3d ghcr.io/kristiajazi/stat3d:latest
-cd workflow
+cd Workflow
 snakemake --cores 1
 ```
 
