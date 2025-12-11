@@ -145,6 +145,11 @@ snakemake --cores 1
 
 To verify the STAT3D installation you can use a test data located in the folder : Test_STAT3D
 
+## STAT3D validation datasets
+HCP dataset : https://www.10xgenomics.com/datasets/pancreatic-cancer-with-xenium-human-multi-tissue-and-cancer-panel-1-standard
+KCP dataset : https://www.10xgenomics.com/datasets/human-kidney-preview-data-xenium-human-multi-tissue-and-cancer-panel-1-standard
+
+
 ## Known Issues
 
 ### Cellpose CUDA out-of-memory (GPU + 3D)
