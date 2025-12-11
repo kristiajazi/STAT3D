@@ -145,8 +145,11 @@ snakemake --cores 1
 
 ## STAT3D validation datasets
 The datsets used for the validation of STAT3D piepline can be found in the webpages listed below.
-HCP dataset : https://www.10xgenomics.com/datasets/pancreatic-cancer-with-xenium-human-multi-tissue-and-cancer-panel-1-standard
-KCP dataset : https://www.10xgenomics.com/datasets/human-kidney-preview-data-xenium-human-multi-tissue-and-cancer-panel-1-standard
+
+| Dataset | Link
+|------------------------|------------------------|
+| HCP | https://www.10xgenomics.com/datasets/pancreatic-cancer-with-xenium-human-multi-tissue-and-cancer-panel-1-standard |
+| KCP | https://www.10xgenomics.com/datasets/human-kidney-preview-data-xenium-human-multi-tissue-and-cancer-panel-1-standard|
 
 
 ## Known Issues
