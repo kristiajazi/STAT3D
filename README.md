@@ -69,6 +69,8 @@ STAT3D produces two main output files:
 |------------------------|------------------------|
 | sp_obj.rds | file compatible with R studio containing all the STAT3D pre-processed. |
 | spatialobj_plot.pdf | the spatial image of the tissue of interest where each dot represent a cell. |
+| spatialobj_plot.pdf | the spatial image of the tissue of interest where each dot represent a cell. |
+  QC
 
 ## Parameters
 
