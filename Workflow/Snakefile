@@ -178,7 +178,7 @@ rule image_measurements:
     shell:
         "Rscript image_measurements.R {input.csv} {output.min_distance} {output.nuclear_expansion} {output.nuclei_diameter}"
 
-rule run_cellpose_2:
+rule run_cellpose:
     input:
         image = image_output,
         diameter_csv = "/stat3d/nuclei_diameter.csv"
@@ -250,4 +250,5 @@ rule seurat_spatial_object_automatic_annotation:
     script:
         "seurat_spatial_object.R"
 	
+
 
