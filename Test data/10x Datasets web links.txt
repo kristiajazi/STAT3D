@@ -1,5 +1,0 @@
-Web page for downloading 10x Datasets used to validate STAT3D: 
-
-HCP dataset : https://www.10xgenomics.com/datasets/pancreatic-cancer-with-xenium-human-multi-tissue-and-cancer-panel-1-standard
-
-KCP dataset : https://www.10xgenomics.com/datasets/human-kidney-preview-data-xenium-human-multi-tissue-and-cancer-panel-1-standard
