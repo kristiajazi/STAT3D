@@ -88,7 +88,7 @@ STAT3D supports several configuration parameters (defined in `config.yaml`) that
 |------------------------|------------------------|------------------------|
 | INPUT_TIFF | name of your image in the stat3d container | e.g. stst3d/name_of_your_morphology.ome.tiff image / Recommended path : ´stat3d/morphology_X.ome.tif´|
 | Level | determines the level that will be extracted from the pyramydal image (morphology.ome.tif) | Integer (e.g. `0`, `1`) / Recommended level: 2 |
-| Z_SLICE_A and Z_SLICE_B | determines the two z-stacks that will be extracted from the single pyramidal level | Integer z indices (e.g. `4`, `5`). The optimal z_A and z_B are automatically calculated by STAT3D, dispalyed as message in the Terminal and inputed in the wrokflow. However, they can be changed with this parameter |
+| Z_SLICE_A and Z_SLICE_B | determines the two z-stacks that will be extracted from the single pyramidal level | Integer z indices (e.g. `4`, `5`). The optimal z_A and z_B are automatically calculated by STAT3D, dispalyed as message in the Docker terminal and inputed in the wrokflow. However, they can be changed with this parameter |
 | CELL_EXPANSION | based on detected nucleus objects, define cell size | Integer (pixels) |
 | SIGMA | control /reduce the noise effect | Float (e.g. `1.0`) |
 | THRESHOLD | intensity parameter | Float or int |
