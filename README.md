@@ -105,7 +105,7 @@ STAT3D supports several configuration parameters (defined in `config.yaml`) that
 To change these values, edit `config.yaml` in the `workflow` folder and re-run the pipeline (for example: `snakemake --cores 1`). For most parameters, start with conservative values and adjust based on the visual quality of segmentation on a small test region.
 
 ## Table 1. Pixel Size at various level (by 10x Genomics)
-The table displays the pixel sizes associated with each pyramidal level in images prodcued by Xenium platform.
+The table displays the pixel sizes associated with each pyramidal level in images prodcued with Xenium platform.
 
 | Pyramidal Level | Pixel size (micron)
 |------------------------|------------------------|
