@@ -26,6 +26,10 @@ STAT3D is a tool designed for the analysis of spatial transcriptomics data in 3D
 2.  Download STAT3D docker image by running the following command in the docker desktop terminal:\
 
 ``` bash
+docker pull ghcr.io/kristiajazi/stat3d:latest
+```
+
+``` bash
 docker run --platform linux/amd64 --gpus all -it -v C:/your/directory/path:/stat3d ghcr.io/kristiajazi/stat3d:latest
 ```
 
