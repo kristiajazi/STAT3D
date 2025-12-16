@@ -17,11 +17,18 @@ input_tiff_basename = os.path.splitext(os.path.basename(config["INPUT_TIFF"]))[0
 image_output = os.path.join(directory, f"{input_tiff_basename}_STAT3D.tif")
 seg_npy_output = os.path.join(directory, f"{input_tiff_basename}_STAT3D_seg.npy")
 
-# Define output CSV path and image output path 
+# Define output CSV path
 csv_output = os.path.join(directory, "QuPath_measurements.csv")
+average_min_distance_csv = os.path.join(directory, "average_min_distance.csv")
+average_nuclear_expansion_csv = os.path.join(directory, "average_nuclear_expansion.csv")
+nuclei_diameter_csv = os.path.join(directory, "nuclei_diameter.csv")
 
-# Path to the output CSV for Z slice
-z_slice_csv = os.path.join(directory, "Z_slice.csv")
+# Path to the output CSV for Z slice and export folder
+z_slice_csv = os.path.join(directory, "z_slice_measurements.csv")
+export_dir  = os.path.join(directory, "export")
+
+# Path for Laplacian score
+Laplacian_score_csv = os.path.join(directory, "Laplacian_score.csv")
 
 # Dynamically build full paths from config
 directory = config["directory"]
@@ -54,8 +61,8 @@ rule generate_zslice_groovy:
     output:
         "Z_slice_script.groovy"
     params:
-        z_slice_csv="z_slice_measurements.csv",
-        export_dir="/stat3d/export"
+        z_slice_csv=z_slice_csv,
+        export_dir=export_dir
     run:
         with open(output[0], "w") as f:
             f.write(f"""// Z_slice_script.groovy
@@ -99,7 +106,7 @@ rule run_zslice_script:
         image=config["INPUT_TIFF"],   
         script="Z_slice_script.groovy"
     output:
-        "/stat3d/z_slice_measurements.csv"
+        zslice = z_slice_csv
     shell:
         "QuPath script --image {input.image} {input.script}"
 
@@ -107,16 +114,16 @@ rule compute_laplacian:
     input:
         tiff = config["INPUT_TIFF"]
     output:
-        "/stat3d/Laplacian_score.csv"
+        csv = Laplacian_score_csv
     shell:
         """
-        python Laplacian_score_script.py {input.tiff} {output}
+        python Laplacian_score_script.py {input.tiff} {output.csv}
         """
 		
 rule process_tiff:
     input:
         tiff = config["INPUT_TIFF"],
-        csv = "/stat3d/z_slice_measurements.csv"
+        csv = z_slice_csv
     output:
         image_output
     run:
@@ -170,18 +177,18 @@ rule run_qupath_analysis:
 
 rule image_measurements:
     input:
-        csv=csv_output
+        csv = csv_output
     output:
-        min_distance="/stat3d/average_min_distance.csv",
-        nuclear_expansion="/stat3d/average_nuclear_expansion.csv",
-        nuclei_diameter="/stat3d/nuclei_diameter.csv"
+        min_distance = average_min_distance_csv,
+        nuclear_expansion = average_nuclear_expansion_csv,
+        nuclei_diameter = nuclei_diameter_csv
     shell:
         "Rscript image_measurements.R {input.csv} {output.min_distance} {output.nuclear_expansion} {output.nuclei_diameter}"
 
 rule run_cellpose:
     input:
         image = image_output,
-        diameter_csv = "/stat3d/nuclei_diameter.csv"
+        diameter_csv = nuclei_diameter_csv
     output:
         seg_npy = seg_npy_output
     params:
@@ -207,7 +214,7 @@ rule cell_to_transcript:
     input:
         seg_data = seg_npy_output,
         transcripts = config["transcripts_df"],
-        average_nuclear_expansion_csv = os.path.join(directory, "average_nuclear_expansion.csv")
+        average_nuclear_expansion_csv = average_nuclear_expansion_csv
     output:
         matrix = os.path.join(directory, "matrix.mtx"),
         features = os.path.join(directory, "features.tsv"),
@@ -238,17 +245,14 @@ rule gzip_outputs:
 
 rule seurat_spatial_object_automatic_annotation:
     input:
-        input_dir = "/stat3d",
-        barcodes = "/stat3d/barcodes.tsv.gz"
+        input_dir = directory,
+        barcodes = os.path.join(directory, "barcodes.tsv.gz")
     output:
-        rds = "/stat3d/sp_obj.rds",
-        pdf = "/stat3d/spatialobj_plot.pdf",
-        rds_singler = "/stat3d/singler.rds",
-        pdf_umap_singler = "/stat3d/UMAP_SingleR.pdf",
-        pdf_spatial_singler = "/stat3d/Spatial_SingleR.pdf",
-        pdf_qc = "/stat3d/QC.pdf"
+        rds = os.path.join(directory, "sp_obj.rds"),
+        pdf = os.path.join(directory, "spatialobj_plot.pdf"),
+        rds_singler = os.path.join(directory, "singler.rds"),
+        pdf_umap_singler = os.path.join(directory, "UMAP_SingleR.pdf"),
+        pdf_spatial_singler = os.path.join(directory, "Spatial_SingleR.pdf"),
+        pdf_qc = os.path.join(directory, "QC.pdf")
     script:
         "seurat_spatial_object.R"
-	
-
-
