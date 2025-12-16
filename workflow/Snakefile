@@ -255,5 +255,5 @@ rule seurat_spatial_object_automatic_annotation:
         pdf_spatial_singler = os.path.join(directory, "Spatial_SingleR.pdf"),
         pdf_qc = os.path.join(directory, "QC.pdf")
     script:
-
         "seurat_spatial_object.R"
+
