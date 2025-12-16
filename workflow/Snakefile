@@ -44,6 +44,7 @@ spatialobj_plot_pdf = os.path.join(directory, "spatialobj_plot.pdf")
 singler_rds = os.path.join(directory, "singler.rds")
 UMAP_SingleR_pdf = os.path.join(directory, "UMAP_SingleR.pdf")
 Spatial_SingleR_pdf = os.path.join(directory, "Spatial_SingleR.pdf")
+QC_pdf = os.path.join(directory, "QC.pdf")
 
 rule all:
     input:
@@ -265,4 +266,5 @@ rule seurat_spatial_object_automatic_annotation:
         pdf_qc = os.path.join(directory, "QC.pdf")
     script:
         "seurat_spatial_object.R"
+
 			
