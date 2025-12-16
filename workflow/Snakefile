@@ -233,15 +233,15 @@ rule gzip_outputs:
         features = rules.cell_to_transcript.output.features,
         barcodes = rules.cell_to_transcript.output.barcodes
     output:
-        matrix_gz = "/stat3d/matrix.mtx.gz",
-        features_gz = "/stat3d/features.tsv.gz",
-        barcodes_gz = "/stat3d/barcodes.tsv.gz"
+        matrix_gz = os.path.join(directory, "matrix.mtx.gz"),
+        features_gz = os.path.join(directory, "features.tsv.gz"),
+        barcodes_gz = os.path.join(directory, "barcodes.tsv.gz")
     shell:
         """
         gzip -c {input.matrix} > {output.matrix_gz}
         gzip -c {input.features} > {output.features_gz}
         gzip -c {input.barcodes} > {output.barcodes_gz}
-        """
+        """	
 
 rule seurat_spatial_object_automatic_annotation:
     input:
@@ -255,4 +255,5 @@ rule seurat_spatial_object_automatic_annotation:
         pdf_spatial_singler = os.path.join(directory, "Spatial_SingleR.pdf"),
         pdf_qc = os.path.join(directory, "QC.pdf")
     script:
+
         "seurat_spatial_object.R"
