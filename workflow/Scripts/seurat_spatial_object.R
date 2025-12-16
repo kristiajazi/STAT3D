@@ -19,10 +19,6 @@ if (!requireNamespace("SingleR", quietly = TRUE)) {
   BiocManager::install("SingleR", update = FALSE, ask = FALSE)
 }
 
-if (!requireNamespace("SingleR", quietly = TRUE)) {
-  BiocManager::install("SingleR", update = FALSE, ask = FALSE)
-}
-
 if (!requireNamespace("scRNAseq", quietly = TRUE)) {
   BiocManager::install("scRNAseq", update = FALSE, ask = FALSE)
 }
@@ -72,7 +68,7 @@ saveRDS(sp_obj, file = snakemake@output[["rds"]])
 
 # Save DimPlot to PDF using Snakemake-defined path
 
-pdf(snakemake@output[["pdf"]], width = 10, height = 6)
+pdf(snakemake@output[["pdf"]], width = 8, height = 6)
 
 print(DimPlot(sp_obj, reduction = 'spatialobj_'))
 
@@ -92,7 +88,7 @@ sp_obj<- subset(sp_obj , subset = nCount_RNA > 0)
 
 sp_obj
 
-sp_obj <- SCTransform(sp_obj, assay = "SCT")
+sp_obj <- SCTransform(sp_obj)
 
 sp_obj<- RunPCA(sp_obj, npcs = 30, features = rownames(sp_obj))
 
@@ -147,5 +143,6 @@ pdf(snakemake@output[["pdf_spatial_singler"]], width = 10, height = 6)
 print(spatial_UMAP_SingleR)
 
 dev.off()
+
 
 
