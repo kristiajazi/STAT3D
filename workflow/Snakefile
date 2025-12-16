@@ -6,7 +6,7 @@ import pandas as pd
 
 configfile: "config.yaml"
 
-# use configured working directory early
+# use configured working directory 
 directory = config["directory"]
 
 # Define output image filename
@@ -256,4 +256,5 @@ rule seurat_spatial_object_automatic_annotation:
         pdf_qc = os.path.join(directory, "QC.pdf")
     script:
         "seurat_spatial_object.R"
+
 
