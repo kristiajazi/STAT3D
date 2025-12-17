@@ -32,7 +32,7 @@ export_dir  = os.path.join(directory, "export")
 # Define path for Laplacian score
 Laplacian_score_csv = os.path.join(directory, "Laplacian_score.csv")
 
-
+# Define path to segmentation output
 def get_seg_output(wildcards, input):
     basename = os.path.splitext(os.path.basename(input.image))[0]
     return os.path.join(directory, f"{basename}_seg.npy")
@@ -277,4 +277,5 @@ rule seurat_spatial_object_automatic_annotation:
         
         
         
+
        
