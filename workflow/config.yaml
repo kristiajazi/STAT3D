@@ -1,5 +1,8 @@
 #STAT3D configuration file
 
+# Set outputs directory
+directory: /stat3d
+
 #z extraction for image reduction
 INPUT_TIFF: /stat3d/morphology_TC070.ome.tif
 #Z_SLICE_A: 4
@@ -19,7 +22,6 @@ MEDIAN_RADIUS: 0.0
 sample_size: 15000
 
 #Cellpose
-directory: /stat3d
 cellpose_use_gpu: true
 cellpose_img_filter : morphology_TC070.ome_STAT3D
 
@@ -34,5 +36,6 @@ Z_SLICE_MICRON: 3
 
 #NUC_EXP_PIXEL:(average nuclear expansion / pixel size)
 #NUC_EXP_SLICE: (average nuclear expansion / z slice micron) 
+
 
 
