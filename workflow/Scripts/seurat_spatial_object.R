@@ -37,6 +37,7 @@ library(scRNAseq)
 # Snakemake I/O
 input_dir <- snakemake@input[["input_dir"]]
 barcodes_file <- snakemake@input[["barcodes"]]
+ref_name <- snakemake@params[["ref"]]
 output_rds <- snakemake@output[["rds"]]
 cat("Output PDF: ", snakemake@output[["pdf"]], "\n")
 
@@ -98,9 +99,14 @@ sp_obj <- FindNeighbors(sp_obj, reduction = "pca", dims = 1:30)
 
 sp_obj_SingleR<- FindClusters(sp_obj, resolution = 0.3)
 
-ref<-celldex::HumanPrimaryCellAtlasData()
+ref <- tryCatch({
+  do.call(paste0("celldex::", ref_name), list())
+}, error = function(e) {
+  stop(paste("Error loading reference:", ref_name, "\nError:", e$message))
+})
 
-ref
+cat("Using SingleR reference:", ref_name, "\n")
+cat("Reference contains", ncol(ref), "samples\n")
 
 #get counts number for our object
 
@@ -119,6 +125,8 @@ sp_obj_SingleR$singleR.labels<- prediction$labels[match(rownames(sp_obj_SingleR@
 sp_obj_UMAP_SingleR<- DimPlot(sp_obj_SingleR, reduction = 'umap', group.by = 'singleR.labels')
 
 spatial_UMAP_SingleR<- DimPlot(sp_obj_SingleR, reduction = 'spatialobj_',group.by = 'singleR.labels')
+
+SingleR_predictions_QC<-plotScoreHeatmap(prediction)
 
 # Save output
 
@@ -141,6 +149,14 @@ dev.off()
 pdf(snakemake@output[["pdf_spatial_singler"]], width = 10, height = 6)
 
 print(spatial_UMAP_SingleR)
+
+dev.off()
+
+#Save predictions QC 
+
+pdf(snakemake@output[["pdf_singler_prediction_QC"]], width = 10, height = 6)
+
+print(SingleR_predictions_QC)
 
 dev.off()
 
