@@ -67,8 +67,6 @@ sp_obj[["spatialobj_"]] <- CreateDimReducObject(
 
 saveRDS(sp_obj, file = snakemake@output[["rds"]])
 
-# Save DimPlot to PDF using Snakemake-defined path
-
 pdf(snakemake@output[["pdf"]], width = 8, height = 6)
 
 print(DimPlot(sp_obj, reduction = 'spatialobj_'))
@@ -99,22 +97,13 @@ sp_obj <- FindNeighbors(sp_obj, reduction = "pca", dims = 1:30)
 
 sp_obj_SingleR<- FindClusters(sp_obj, resolution = 0.3)
 
-ref <- tryCatch({
-  do.call(paste0("celldex::", ref_name), list())
-}, error = function(e) {
-  stop(paste("Error loading reference:", ref_name, "\nError:", e$message))
-})
+ref <- eval(parse(text = paste0("celldex::", ref_name, "()")))
 
-cat("Using SingleR reference:", ref_name, "\n")
-cat("Reference contains", ncol(ref), "samples\n")
-
-#get counts number for our object
+cat("Successfully loaded reference:", ref_name, "\n")
 
 counts<- GetAssayData(sp_obj_SingleR, layer = 'counts')
 
 counts
-
-#Run singleR on default mode
 
 prediction<-SingleR(test=counts, ref=ref, labels=ref$label.main)
 
@@ -154,11 +143,13 @@ dev.off()
 
 #Save predictions QC 
 
-pdf(snakemake@output[["pdf_singler_prediction_QC"]], width = 10, height = 6)
+pdf(snakemake@output[["pdf_qc_predictions"]], width = 8, height = 6)
 
 print(SingleR_predictions_QC)
 
 dev.off()
+
+
 
 
 
