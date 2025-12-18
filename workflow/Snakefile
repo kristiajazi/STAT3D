@@ -48,6 +48,7 @@ spatialobj_plot_pdf = os.path.join(directory, "spatialobj_plot.pdf")
 singler_rds = os.path.join(directory, "singler.rds")
 Spatial_SingleR_pdf = os.path.join(directory, "Spatial_SingleR.pdf")
 UMAP_SingleR_pdf = os.path.join(directory, "UMAP_SingleR.pdf")
+QC_predictions_pdf = os.path.join(directory, "SingleR_predictions_QC.pdf")
 
 # Rule all dispaying each sequential STAT3D output 
 rule all:
@@ -68,7 +69,8 @@ rule all:
         spatialobj_plot_pdf,
         singler_rds,
         Spatial_SingleR_pdf,
-        UMAP_SingleR_pdf                            
+        UMAP_SingleR_pdf,
+		QC_predictions_pdf
 
 
 rule generate_zslice_groovy:
@@ -279,4 +281,5 @@ rule seurat_spatial_object_automatic_annotation:
         
         
         
+
        
