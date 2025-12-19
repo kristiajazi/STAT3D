@@ -145,7 +145,7 @@ To run STAT3D, use the following commands:
 
 ```bash=
 docker run --platform linux/amd64 --gpus all -it -v C:/your/directory/path:/stat3d ghcr.io/kristiajazi/stat3d:latest
-cd Workflow
+cd /stat3d/workflow
 snakemake --cores 1
 ```
 
