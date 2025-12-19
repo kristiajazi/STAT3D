@@ -145,6 +145,7 @@ Tip: change a few parameters and run the pipeline to first to visually inspect s
 To run STAT3D, use the following commands:
 
 ```bash=
+docker pull ghcr.io/kristiajazi/stat3d:latest # only once when using STAT3D for the first time
 docker run --platform linux/amd64 --gpus all -it -v C:/your/directory/path:/stat3d ghcr.io/kristiajazi/stat3d:latest
 cd /stat3d/workflow
 snakemake --cores 1
