@@ -102,7 +102,8 @@ STAT3D supports several configuration parameters (defined in `config.yaml`) that
 | cellpose_img_filter|  name the image processed by Cellpose and produced after z-stack extractions. This name must be written before the pipeline starts. | e.g. ´morphology_X.ome_STAT3D´ / If the INPUT_TIFF is ´morphology_X.ome.tif´, the parameter needed in this slot is ´morphology_X.ome_STAT3D´ |
 | transcripts_df | name of the transcripts.parquet file provided by 10x. This name must be written before the pipeline starts. | e.g. ´/stat3d/transcripts.parquet´ |
 | PIXEL_SIZE | pixel size at various levels of the image pyramid | Integer (e.g. `0.85` for level 2)/ Recommended pixel sizes by 10x are listed in Table 1 |
-| label.column | Granularity of SingleR annotation it can be set as label.main or label.fine | label.main annotates the main cells function and phenotypes (e.g. CD8 T cells); label.fine defines specifically cells functions and phenotypes (e.g. Ehxausted CD8 T cells). |
+| label.column | Granularity of SingleR annotation it can be set as label.main or label.fine | label.main annotates the main cells function and phenotypes (e.g. CD8 T cells); label.fine defines specifically cells functions and phenotypes (e.g. Ehxausted CD8 T cells) |
+| ref | Name of the "celldex" reference dataset  | e.g. ´HumanPrimaryCellAtlasData´ / No parentheses after the dataset name |
 
 To change these values, edit `config.yaml` in the `workflow` folder and re-run the pipeline (for example: `snakemake --cores 1`). For most parameters, start with conservative values and adjust based on the visual quality of segmentation on a small test region.
 
