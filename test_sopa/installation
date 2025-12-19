@@ -1,5 +1,20 @@
 SOPA WORKING STEPS
+SOPA is a true mess..follow these steps
 
+1.Download the xenium dataset from 10x webpage or the links saved in STAT3D page
+2.Extract the files and create a new folder called "sopa_directory" which must contain these files : experiment.xenium, morphology_mip and _focus, transcripts. parquest. Since it is not really clear which other files to include, I include them all except for morphology.ome.tiff
+3.use conda and install sopa : pip install sopa[cellpose]
+4.convert the sopa_directory in .zarr (SpatialData sdata) format : sopa convert sopa_directory --technology xenium # it is better to have this file ready before using the sopa environment which is described below
+5.download the config.yaml file called "cellpose.yaml" , in the same folder where .zarr is located, the yaml file was modifed with the gpu addition and saved in test_sopa folder
+6.close this prompt window and open a new one for creating the sopa environment
+7.create the sopa environment with : conda update conda , followed by:  conda create --name sopa , then enter the env by writing: conda activate sopa #if u dont create the env the pipeline does not run
+8.install snakemake : pip install snakemake
+9.check if you need to install sopa, but it actually does not need : pip install sopa[cellpose]
+10.from the env run  this command to enable parallelization of the processes : set SOPA_PARALLELIZATION_BACKEND=dask
+11.run the pipeline with this command : snakemake --config sdata_path=C:/Users/Malin_Group/Kristi/sopa_directory.zarr --configfile=C:/Users/Malin_Group/Kristi/cellpose.yaml --cores 1 --use-conda
+
+
+#Here below are the previous attempts with CLI
 create a directory called sopa_directory with inside morphology_mip and _focus and transcripts.parquet
 
 enter the folder where the sopa_dir folder is located (cd/---)
