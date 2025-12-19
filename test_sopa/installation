@@ -8,7 +8,7 @@ SOPA is a true mess..follow these steps
 4.convert the sopa_directory in .zarr (SpatialData sdata) format : sopa convert sopa_directory --technology xenium # it is better to have this file ready before using the sopa environment which is described below
 5.download the config.yaml file called "cellpose.yaml" , in the same folder where .zarr is located, the yaml file was modifed with the gpu addition and saved in test_sopa folder
 6.close this prompt window and open a new one for creating the sopa environment
-7.create the sopa environment with : conda update conda , followed by:  conda create --name sopa , then enter the env by writing: conda activate sopa #if u dont create the env the pipeline does not run
+7.create the sopa environment with : conda update conda , followed by:  conda create --name sopa , then enter the env by writing: conda activate sopa #if you don't create this environment the pipeline does not run
 8.install snakemake : pip install snakemake
 9.check if you need to install sopa, but it actually does not need : pip install sopa[cellpose]
 10.from the env run  this command to enable parallelization of the processes : set SOPA_PARALLELIZATION_BACKEND=dask
