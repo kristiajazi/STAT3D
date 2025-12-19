@@ -191,7 +191,7 @@ rule run_qupath_analysis:
     output:
         csv_QuPath_output
     shell:
-        "groovy scripts/QuPath script --image {input.image} {input.script}"
+        "QuPath script --image {input.image} {input.script}"
 
 rule image_measurements:
     input:
@@ -298,4 +298,5 @@ rule seurat_spatial_object_automatic_annotation:
         
         
         
+
        
