@@ -75,7 +75,7 @@ STAT3D produces two main output files:
 | morphology_your_sample.ome_STAT3D.tif | This image is the new size-reduced and sharpness-preserved image. It will be the base for the rest of the STAT3D analysis. |
 | sp_obj.rds | File compatible with R studio containing all the STAT3D pre-processed data. This file is the base for the next standard downstram analysis such as QC, PCA etc. |
 | spatialobj_plot.pdf | The spatial image of the tissue of interest where each dot represent a cell. |
-| Spatial_SingleR.pdf | This file displays the spatial UMAP plot with the clusters labels generated after QC, SCTransform normalization, FindNeighbours, FindClusters functions and automatic annotation with single R. |
+| Spatial_SingleR.pdf | This file displays the spatial UMAP plot with the clusters labels generated after QC, SCTransform normalization, FindNeighbours, FindClusters functions and automatic annotation with SingleR. |
 | singler.rds | This file represents the Seurat object generated after QC, SCTransform normalization, PCA (npcs = 30), UMAP (dims = 1:30), FindNeighbours (dims = 1:30), FindClusters (resolution = 0.3)  and automatic annotation with SingleR |
 | UMAP_SingleR.pdf |  This file displays the spatial UMAP plot with the SingleR labelled clusters. |
 | QC_predictions.pdf | Heatmap displaying the predictions scores of each cell type assigned to each cluster by SingleR annotation. |
