@@ -19,7 +19,7 @@ STAT3D is a tool designed for the analysis of spatial transcriptomics data in 3D
 
 ## Installation
 
-0.  Download the folder named "Workflow" from STAT3D repository and save it in the same direcotry path which contains the morphology.ome image and transcript.parquet file
+0.  Download the folder named "workflow" from STAT3D repository and save it in the same direcotry path which contains the morphology.ome image and transcript.parquet file
 
 1.  Install Docker Desktop through the official webpage: https://docs.docker.com/desktop/
 
@@ -36,7 +36,7 @@ docker run --platform linux/amd64 --gpus all -it -v C:/your/directory/path:/stat
 3.  Enter the workflow directory by running the following command in the docker desktop terminal:
 
 ``` bash
-cd workflow
+cd /stat3d/workflow
 ```
 
 4.  Initialize STAT3D pipeline by running the following command in the docker desktop terminal:
@@ -78,6 +78,7 @@ STAT3D produces two main output files:
 | Spatial_SingleR.pdf | This file displays the spatial UMAP plot with the clusters labels generated after QC, SCTransform normalization, FindNeighbours, FindClusters functions and automatic annotation with single R. |
 | singler.rds | This file represents the Seurat object generated after QC, SCTransform normalization, FindNeighbours, FindClusters and automatic annotation with single R. |
 | UMAP_SingleR.pdf |  This file displays the spatial UMAP plot with the SingleR labelled clusters. The data underwent QC, SCTransform normalization, PCA (npcs = 30), UMAP (dims = 1:30), FindNeighbours (dims = 1:30), FindClusters (resolution = 0.3)  and automatic annotation with single R (ref.celldex::HumanPrimaryCellAtlasData). |
+| QC_predictions.pdf | Heatmap displaying the predictions scores of each cell type assigned to each cluster by SingleR annotation. |
 
 
 ## Parameters
