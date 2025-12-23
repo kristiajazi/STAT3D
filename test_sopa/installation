@@ -31,7 +31,7 @@ the workers will not have enough memory space for allocating the data, 1900 crea
 8. do not use the environment sopa with snakefile, it is not needed and gives strange errors
 9.Do not need to resolve the segmentation with : sopa resolve cellpose sopa_directory.zarr # resolve segmentation conflicts at boundaries, it is done automatically
 10.run : sopa aggregate sopa_directory.zarr --aggregate-channels --min-transcripts 10 (use the config file to check the parameters, this does not work sopa aggregate sopa_directory.zarr --average-intensities)
-11.run time with supercomputer HCP dataset in gpu : 48 minutes, 6 hours with my laptop (SOPA did not test the datasets they talk about, except for merscope, maybe, for the time efficiency they created a test dataset explained in supplementary data)
+11.run time with supercomputer HCP dataset in gpu : 48 minutes, 6 hours with my laptop (SOPA did not test the datasets they talk about (except for merscope, maybe) for the time efficiency they created a test dataset explained in supplementary data)
 
 
 
