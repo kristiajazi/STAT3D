@@ -4,7 +4,7 @@ SOPA is a true mess..follow these steps
 0. Work always in the same directory folder during all the steps
 1.Download the xenium dataset from 10x webpage or the links saved in STAT3D page
 2.Extract the files and create a new folder called "sopa_directory" which must contain these files : experiment.xenium, morphology_mip and _focus, transcripts. parquest. Since it is not really clear which other files to include, I include them all except for morphology.ome.tiff
-3.use conda and install sopa : pip install sopa[cellpose]
+3.downgrade cellpose to v3.0.8 (it should be v3, not v4) use conda and install sopa : pip install sopa[cellpose], pip uninstall cellpose, pip install cellpose==3.0.8
 4.convert the sopa_directory in .zarr (SpatialData sdata) format : sopa convert sopa_directory --technology xenium # it is better to have this file ready before using the sopa environment which is described below
 5.download the config.yaml file called "cellpose.yaml" , in the same folder where .zarr is located, the yaml file was modifed with the gpu addition and saved in test_sopa folder
 6.close this prompt window and open a new one for creating the sopa environment
@@ -15,24 +15,27 @@ SOPA is a true mess..follow these steps
 11.run the pipeline with this command : snakemake --config sdata_path=C:/Users/Malin_Group/Kristi/sopa_directory.zarr --configfile=C:/Users/Malin_Group/Kristi/cellpose.yaml --cores 1 --use-conda
 
 
-#Here below are the previous attempts with CLI
-create a directory called sopa_directory with inside morphology_mip and _focus and transcripts.parquet
 
-enter the folder where the sopa_dir folder is located (cd/---)
 
-pip install sopa[cellpose] (do not create an environment in conda, just enter conda, otherwise sopa does not get installed)
+SOPA RUN WITH CLI SUCCESSFULLY
 
-sopa --help # show command names and arguments
+0. Work always in the same directory folder during all the steps
+1.Download the xenium dataset from 10x webpage or the links saved in STAT3D page
+2.Extract the files and create a new folder called "sopa_directory" which must contain these files : experiment.xenium, morphology_mip and _focus, transcripts. parquest. Since it is not really clear which other files to include, I include them all except for morphology.ome.tiff
+3.Install sopa with downgraded cellpose to v3.0.8 (it should be v3, not v4) use conda and install sopa : pip install sopa[cellpose], pip uninstall cellpose, pip install cellpose==3.0.8
+4.convert the sopa_directory in .zarr (SpatialData sdata) format : sopa convert sopa_directory --technology xenium 
+5.run : set SOPA_PARALLELIZATION_BACKEND=dask
+6.sopa patchify image sopa_directory.zarr --patch-width-pixel 1900 --patch-overlap-pixel 150 # make patches for low-memory segmentation, you must use 1900 not higher than that because otherwise the distribution of the data on 4 workers will be killed,
+the workers will not have enough memory space for allocating the data, 1900 creates 224 patches (before I created 14 patches, while the automatic patching created 24 , too few, the data processign was too heavy).You can use 2000 and 150 or 1900 and 150.
+7.run : sopa segmentation cellpose sopa_directory.zarr --diameter 30 --channels DAPI --gpu
+8. do not use the environment sopa with snakefile, it is not needed and gives strange errors
+9.Do not need to resolve the segmentation with : sopa resolve cellpose sopa_directory.zarr # resolve segmentation conflicts at boundaries, it is done automatically
+10.run : sopa aggregate sopa_directory.zarr --aggregate-channels --min-transcripts 10 (use the config file to check the parameters, this does not work sopa aggregate sopa_directory.zarr --average-intensities)
+11.run time with supercomputer HCP dataset in gpu : 48 minutes, 6 hours with my laptop (SOPA did not test the datasets they talk about, except for merscope, maybe, for the time efficiency they created a test dataset explained in supplementary data)
 
-sopa convert sopa_directory --technology xenium # read some data
 
-set SOPA_PARALLELIZATION_BACKEND=dask
 
-sopa patchify image sopa_directory.zarr --patch-width-pixel 1500 --patch-overlap-pixel 50 # make patches for low-memory segmentation
 
-sopa segmentation cellpose sopa_directory.zarr --diameter 60 --channels DAPI --gpu # 
-
-sopa resolve cellpose sopa_directory.zarr # resolve segmentation conflicts at boundaries
 
 sopa aggregate sopa_directory.zarr --average-intensities # transcripts/channels aggregation
 
@@ -55,6 +58,10 @@ sopa resolve cellpose sopa_directory.zarr # resolve segmentation conflicts at bo
 sopa aggregate sopa_directory.zarr --average-intensities # transcripts/channels aggregation
 
 sopa explorer write sopa_directory.zarr # convert for interactive vizualisation
+
+
+
+
 
 
 Time monitoring $start = Get-Date
