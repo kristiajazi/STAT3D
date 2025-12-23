@@ -9,7 +9,7 @@ SOPA RUN WITH CLI SUCCESSFULLY
 3.Install sopa with downgraded cellpose to v3.0.8 (it should be v3, not v4) use conda and install sopa : pip install sopa[cellpose], pip uninstall cellpose, pip install cellpose==3.0.8
 4.convert the sopa_directory in .zarr (SpatialData sdata) format : sopa convert sopa_directory --technology xenium 
 5.run : set SOPA_PARALLELIZATION_BACKEND=dask
-6.sopa patchify image sopa_directory.zarr --patch-width-pixel 1900 --patch-overlap-pixel 150 # make patches for low-memory segmentation, you must use 1900 not higher than that because otherwise the distribution of the data on 4 workers will be killed,
+6.sopa patchify image sopa_directory.zarr --patch-width-pixel 1900 --patch-overlap-pixel 150 # make patches for low-memory segmentation, you must use 1900 OR 2000 not higher than that because otherwise the distribution of the data on 4 workers will be killed,
 the workers will not have enough memory space for allocating the data, 1900 creates 224 patches (before I created 14 patches, while the automatic patching created 24 , too few, the data processign was too heavy).You can use 2000 and 150 or 1900 and 150.
 7.run : sopa segmentation cellpose sopa_directory.zarr --diameter 30 --channels DAPI --gpu
 8. do not use the environment sopa with snakefile, it is not needed and gives strange errors
