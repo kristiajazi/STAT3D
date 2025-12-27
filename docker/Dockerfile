@@ -58,8 +58,14 @@ ENV PATH="/tools/QuPath/bin:$PATH"
 # Verify key installations using pixi
 RUN pixi run verify
 
-# Prepare output directory
-RUN mkdir -p /tools/logs
+# Copy workflow files to /stat3d (must be after pixi install)
+COPY workflow/ /stat3d/workflow/
 
-# Default command: enter pixi environment and start bash
-CMD ["pixi", "run", "bash"]
+# Copy and install stat3d command wrapper
+COPY docker/stat3d-help.sh /usr/local/bin/stat3d-help.sh
+COPY docker/stat3d-wrapper.sh /usr/local/bin/stat3d
+RUN chmod +x /usr/local/bin/stat3d-help.sh /usr/local/bin/stat3d
+
+# Default command: run stat3d with arguments or show help
+ENTRYPOINT ["pixi", "run"]
+CMD ["stat3d", "--help"]
