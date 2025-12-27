@@ -3,7 +3,15 @@
 
 set -e
 
+# Activate pixi environment directly (faster than 'pixi run')
+export PATH="/etc/stat3d/.pixi/envs/default/bin:$PATH"
+
 WORKFLOW_DIR="/stat3d/workflow"
+
+# Handle special commands
+if [[ "$1" == "sysinfo" ]]; then
+    exec /usr/local/bin/stat3d-sysinfo
+fi
 
 # Check if --help or -h is passed
 if [[ "$1" == "--help" || "$1" == "-h" ]]; then

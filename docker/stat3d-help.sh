@@ -115,7 +115,7 @@ ENVIRONMENT:
 
 ADVANCED USAGE:
     View installed packages and system info:
-        docker run --rm stat3d:latest bash -c "pixi run sysinfo"
+        docker run --rm stat3d:latest sysinfo
     
     Check workflow status:
         docker run --rm -v \$(pwd):/stat3d stat3d:latest --detailed-summary
