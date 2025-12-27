@@ -120,7 +120,7 @@ print "Done!"
 
 rule run_zslice_script:
     input:
-        image=config["INPUT_TIFF"],   
+        image=config["INPUT_TIFF"],
         script="Z_slice_script.groovy"
     output:
         zslice = z_slice_csv
@@ -136,7 +136,7 @@ rule compute_laplacian:
         """
         python scripts/Laplacian_score_script.py {input.tiff} {output.csv}
         """
-		
+
 rule process_tiff:
     input:
         tiff = config["INPUT_TIFF"],
@@ -147,8 +147,10 @@ rule process_tiff:
         import subprocess
         import pandas as pd
         
-        # Read CSV and set the L-scores 
+        # Read CSV and verify it has data
         df = pd.read_csv(input.csv, delimiter=',')
+        if len(df) == 0:
+            raise ValueError("Laplacian score CSV is empty! No Z-slices were processed.")
         
         # Sort rows by sharpness score (descending)
         df_sorted = df.sort_values(by=df.columns[1], ascending=False)
@@ -169,8 +171,8 @@ rule process_tiff:
             str(z_b),
             str(config["LEVEL"]),
             output[0]
-        ])
-	
+        ], check=True)
+
 rule generate_groovy_script:
     output:
         "QuPath_script.groovy"
@@ -258,7 +260,7 @@ rule gzip_outputs:
         gzip -c {input.matrix} > {output.matrix_gz}
         gzip -c {input.features} > {output.features_gz}
         gzip -c {input.barcodes} > {output.barcodes_gz}
-        """	
+        """
 
 # Define valid celldex references 
 VALID_REFS = [
@@ -292,9 +294,3 @@ rule seurat_spatial_object_automatic_annotation:
         pdf_qc_predictions = os.path.join(directory, "SingleR_predictions_QC.pdf")
     script:
         "scripts/seurat_spatial_object.R"
-			     
-       
-        
-        
-        
-       
