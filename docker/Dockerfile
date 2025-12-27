@@ -64,8 +64,9 @@ COPY workflow/ /stat3d/workflow/
 # Copy and install stat3d command wrapper
 COPY docker/stat3d-help.sh /usr/local/bin/stat3d-help.sh
 COPY docker/stat3d-wrapper.sh /usr/local/bin/stat3d
-RUN chmod +x /usr/local/bin/stat3d-help.sh /usr/local/bin/stat3d
+COPY docker/stat3d-sysinfo.sh /usr/local/bin/stat3d-sysinfo
+RUN chmod +x /usr/local/bin/stat3d-help.sh /usr/local/bin/stat3d /usr/local/bin/stat3d-sysinfo
 
 # Default command: run stat3d with arguments or show help
-ENTRYPOINT ["pixi", "run"]
-CMD ["stat3d", "--help"]
+ENTRYPOINT ["/usr/local/bin/stat3d"]
+CMD ["--help"]
