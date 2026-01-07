@@ -48,9 +48,7 @@ sp_obj <- Read10X(data.dir = input_dir)[["Gene Expression"]]
 sp_obj <- CreateSeuratObject(counts = sp_obj, project = "sp_obj.xenium", assay = "RNA")
 
 barcodes_df <- read.table(gzfile(barcodes_file), header = FALSE, sep = "\t", stringsAsFactors = FALSE)
-
-colnames(barcodes_df) <- c("cell_id_sp_obj", "x_sp_obj", "y_sp_obj", "z_sp_obj")
-
+colnames(barcodes_df) <- c("cell_id_sp_obj", "x_sp_obj", "y_sp_obj")
 coords_sp_obj <- barcodes_df[, c("x_sp_obj", "y_sp_obj")]
 rownames(coords_sp_obj) <- barcodes_df$cell_id_sp_obj
 sp_obj <- AddMetaData(sp_obj, metadata = coords_sp_obj)
@@ -68,7 +66,7 @@ sp_obj[["spatialobj_"]] <- CreateDimReducObject(
 
 # Save output
 
-sp_obj<-subset(sp_obj, subset = nCount_RNA >0)
+sp_obj<-subset(sp_obj, subset = nCount_RNA >0) 
 
 saveRDS(sp_obj, file = snakemake@output[["rds"]])
 
@@ -92,8 +90,6 @@ dev.off()
 
 sp_obj<- subset(sp_obj , subset = nCount_RNA > 0)
 
-sp_obj
-
 sp_obj <- SCTransform(sp_obj)
 
 sp_obj<- RunPCA(sp_obj, npcs = 30, features = rownames(sp_obj))
@@ -113,8 +109,6 @@ cat("Successfully loaded reference:", ref_name, "\n")
 #Get counts number for our object
 
 counts<- GetAssayData(sp_obj_SingleR, layer = 'counts')
-
-counts
 
 #Run SingleR Annotation
 
@@ -139,11 +133,25 @@ prediction <- SingleR(test = counts, ref = ref, labels = labels)
 
 sp_obj_SingleR$singleR.labels<- prediction$labels[match(rownames(sp_obj_SingleR@meta.data),rownames(prediction))]
 
-sp_obj_UMAP_SingleR<- DimPlot(sp_obj_SingleR, reduction = 'umap', group.by = 'singleR.labels')
+sp_obj_UMAP_SingleR<- DimPlot(sp_obj_SingleR, reduction = 'umap', group.by = 'singleR.labels',
+                              pt.size = 0.2) +
+                              theme_classic(base_size = 10)+
+                              theme(
+                              legend.position = "bottom",
+                              legend.key.size = unit(0.5, "lines"),
+                              legend.text = element_text(size = 5),
+                              axis.text = element_text(size = 5))
 
-spatial_UMAP_SingleR<- DimPlot(sp_obj_SingleR, reduction = 'spatialobj_',group.by = 'singleR.labels')
+spatial_UMAP_SingleR<- DimPlot(sp_obj_SingleR, reduction = 'spatialobj_',group.by = 'singleR.labels',pt.size = 0.2) +
+                              theme_classic(base_size = 10)+
+                              theme(
+                              legend.position = "bottom",
+                              legend.key.size = unit(0.5, "lines"),
+                              legend.text = element_text(size = 5),
+                              axis.text = element_text(size = 5))
 
 SingleR_predictions_QC<-plotScoreHeatmap(prediction)
+
 
 # Save SingleR-annotated object
 
@@ -151,7 +159,7 @@ saveRDS(sp_obj_SingleR, file = snakemake@output[["rds_singler"]])
 
 # Save SingleR UMAP plot
 
-pdf(snakemake@output[["pdf_umap_singler"]], width = 15, height = 15)
+pdf(snakemake@output[["pdf_umap_singler"]])
 
 print(sp_obj_UMAP_SingleR)
 
@@ -159,7 +167,7 @@ dev.off()
 
 # Save SingleR spatial plot 
 
-pdf(snakemake@output[["pdf_spatial_singler"]], width = 15, height = 15)
+pdf(snakemake@output[["pdf_spatial_singler"]])
 
 print(spatial_UMAP_SingleR)
 
@@ -172,4 +180,3 @@ pdf(snakemake@output[["pdf_qc_predictions"]], width = 30, height = 15)
 print(SingleR_predictions_QC)
 
 dev.off()
-
