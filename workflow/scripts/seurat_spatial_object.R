@@ -139,9 +139,23 @@ prediction <- SingleR(test = counts, ref = ref, labels = labels)
 
 sp_obj_SingleR$singleR.labels<- prediction$labels[match(rownames(sp_obj_SingleR@meta.data),rownames(prediction))]
 
-sp_obj_UMAP_SingleR<- DimPlot(sp_obj_SingleR, reduction = 'umap', group.by = 'singleR.labels')
+sp_obj_UMAP_SingleR<- DimPlot(sp_obj_SingleR, reduction = 'umap', group.by = 'singleR.labels',
+                              pt.size = 0.2) +
+                              theme_classic(base_size = 10)+
+                              theme(
+                              legend.position = "bottom",
+                              legend.key.size = unit(0.5, "lines"),
+                              legend.text = element_text(size = 5),
+                              axis.text = element_text(size = 5))
 
-spatial_UMAP_SingleR<- DimPlot(sp_obj_SingleR, reduction = 'spatialobj_',group.by = 'singleR.labels')
+spatial_UMAP_SingleR<- DimPlot(sp_obj_SingleR, reduction = 'spatialobj_',group.by = 'singleR.labels', 
+                               pt.size = 0.2) +
+                               theme_classic(base_size = 10)+
+                               theme(
+                               legend.position = "bottom",
+                               legend.key.size = unit(0.5, "lines"),
+                               legend.text = element_text(size = 5),
+                               axis.text = element_text(size = 5))
 
 SingleR_predictions_QC<-plotScoreHeatmap(prediction)
 
