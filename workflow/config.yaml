@@ -4,7 +4,7 @@
 directory: /stat3d
 
 #z extraction for image reduction
-INPUT_TIFF: /stat3d/morphology_TC070.ome.tif
+INPUT_TIFF: /stat3d/morphology_K.ome.tif
 #Z_SLICE_A: 6
 #Z_SLICE_B: 7
 LEVEL: 2
@@ -23,14 +23,15 @@ sample_size: 15000
 
 #Cellpose
 cellpose_use_gpu: true
-cellpose_img_filter : morphology_TC070.ome_STAT3D
+cellpose_img_filter : morphology_K.ome_STAT3D
+cellpose_do_3D: false
 
 #Cell-to-transcript files and parameters
-transcripts_df: /stat3d/transcriptsTC070.parquet
+transcripts_df: /stat3d/transcripts_K.parquet
 
 #SingleR Annotation
-ref : HumanPrimaryCellAtlasData #just the function name without parentheses
-label_column: label.fine
+ref : HumanPrimaryCellAtlasData
+label_column: label.main
 
 #Level 2 pixel size 
 PIXEL_SIZE: 0.85
