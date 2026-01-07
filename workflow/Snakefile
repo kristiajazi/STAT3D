@@ -76,7 +76,7 @@ rule all:
 
 rule generate_zslice_groovy:
     output:
-        "Z_slice_script.groovy"
+        "scripts/Z_slice_script.groovy"
     params:
         z_slice_csv=z_slice_csv,
         export_dir=export_dir
@@ -121,7 +121,7 @@ print "Done!"
 rule run_zslice_script:
     input:
         image=config["INPUT_TIFF"],   
-        script="Z_slice_script.groovy"
+        script="scripts/Z_slice_script.groovy"
     output:
         zslice = z_slice_csv
     shell:
@@ -173,7 +173,7 @@ rule process_tiff:
 	
 rule generate_groovy_script:
     output:
-        "QuPath_script.groovy"
+        "scripts/QuPath_script.groovy"
     run:
         with open(output[0], "w") as f:
             f.write(f"""// QuPath_script.groovy
@@ -186,7 +186,7 @@ saveDetectionMeasurements('{csv_QuPath_output}')
 rule run_qupath_analysis:
     input:
         image=image_output,
-        script="QuPath_script.groovy"
+        script="scripts/QuPath_script.groovy"
     output:
         csv_QuPath_output
     shell:
@@ -226,7 +226,6 @@ rule run_cellpose:
             --verbose \
             {params.use_gpu}
         """
-
 
 rule cell_to_transcript:
     input:
