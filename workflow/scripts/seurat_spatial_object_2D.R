@@ -150,8 +150,6 @@ spatial_UMAP_SingleR<- DimPlot(sp_obj_SingleR, reduction = 'spatialobj_',group.b
                               legend.text = element_text(size = 5),
                               axis.text = element_text(size = 5))
 
-SingleR_predictions_QC<-plotScoreHeatmap(prediction)
-
 
 # Save SingleR-annotated object
 
@@ -177,6 +175,7 @@ dev.off()
 
 pdf(snakemake@output[["pdf_qc_predictions"]], width = 30, height = 15)
 
-print(SingleR_predictions_QC)
+plotScoreHeatmap(prediction)
 
 dev.off()
+
