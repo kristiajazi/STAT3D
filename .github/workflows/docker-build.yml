@@ -5,14 +5,16 @@ on:
     branches:
       - main
     paths:
-      - 'docker/Dockerfile'
+      - 'docker/**'
+      - 'workflow/**'
       - 'pixi.toml'
       - 'pixi.lock'
   pull_request:
     branches:
       - main
     paths:
-      - 'docker/Dockerfile'
+      - 'docker/**'
+      - 'workflow/**'
       - 'pixi.toml'
       - 'pixi.lock'
 

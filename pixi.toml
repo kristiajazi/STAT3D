@@ -62,6 +62,7 @@ bioconductor-summarizedexperiment = "*"
 bioconductor-biobase = "*"
 bioconductor-s4vectors = "*"
 r-seuratobject = "*"
+r-cowplot = "*"
 
 # R packages - analysis and visualization
 bioconductor-enhancedvolcano = "*"
@@ -94,3 +95,9 @@ run-pipeline-gpu = "snakemake --cores 1"
 
 # Task to verify installations
 verify = { cmd = "bash -c 'echo \"=== Verifying installations ===\"; java -version; nextflow -version; snakemake --version; quarto --version; R --version; R -e \"cat(\\\"R packages loaded successfully\\n\\\")\"'" }
+
+# Task to display system and package information
+sysinfo = { cmd = "bash -c 'echo \"=== STAT3D System Information ===\"; echo \"\"; echo \"Container built: $(date -r /etc/stat3d/pixi.toml +\"%Y-%m-%d %H:%M\")\" 2>/dev/null || true; echo \"Pixi version: $(pixi --version)\"; echo \"\"; echo \"=== Python Environment ===\"; python --version; echo \"\"; echo \"=== Python Packages ===\"; pip list; echo \"\"; echo \"=== R Environment ===\"; R --version | head -n1; echo \"\"; echo \"=== R Packages ===\"; R -e \"ip <- installed.packages()[,c(1,3)]; print(as.data.frame(ip), row.names=FALSE)\" 2>/dev/null; echo \"\"; echo \"=== Conda/Pixi Packages ===\"; pixi list'" }
+
+# Task to run stat3d wrapper (calls the installed wrapper script)
+stat3d = { cmd = "/usr/local/bin/stat3d" }
