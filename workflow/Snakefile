@@ -259,9 +259,9 @@ rule gzip_outputs:
         gzip -c {input.matrix} > {output.matrix_gz}
         gzip -c {input.features} > {output.features_gz}
         gzip -c {input.barcodes} > {output.barcodes_gz}
-        """	
+        """
 
-# Define valid celldex references 
+		# Define valid celldex references 
 VALID_REFS = [
     "HumanPrimaryCellAtlasData",
     "BlueprintEncodeData",
