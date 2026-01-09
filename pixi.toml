@@ -62,6 +62,7 @@ bioconductor-summarizedexperiment = "*"
 bioconductor-biobase = "*"
 bioconductor-s4vectors = "*"
 r-seuratobject = "*"
+r-cowplot = "*"
 
 # R packages - analysis and visualization
 bioconductor-enhancedvolcano = "*"
