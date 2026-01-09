@@ -76,7 +76,7 @@ rule all:
 
 rule generate_zslice_groovy:
     output:
-        "Z_slice_script.groovy"
+        "scripts/Z_slice_script.groovy"
     params:
         z_slice_csv=z_slice_csv,
         export_dir=export_dir
@@ -121,7 +121,7 @@ print "Done!"
 rule run_zslice_script:
     input:
         image=config["INPUT_TIFF"],
-        script="Z_slice_script.groovy"
+        script="scripts/Z_slice_script.groovy"
     output:
         zslice = z_slice_csv
     shell:
@@ -175,7 +175,7 @@ rule process_tiff:
 
 rule generate_groovy_script:
     output:
-        "QuPath_script.groovy"
+        "scripts/QuPath_script.groovy"
     run:
         with open(output[0], "w") as f:
             f.write(f"""// QuPath_script.groovy
@@ -188,7 +188,7 @@ saveDetectionMeasurements('{csv_QuPath_output}')
 rule run_qupath_analysis:
     input:
         image=image_output,
-        script="QuPath_script.groovy"
+        script="scripts/QuPath_script.groovy"
     output:
         csv_QuPath_output
     shell:
@@ -212,9 +212,9 @@ rule run_cellpose:
         seg_npy = seg_npy_output
     params:
         diameter = lambda wildcards, input: pd.read_csv(input.diameter_csv)["Average_Diameter"].iloc[0],
-        use_gpu = "--use_gpu" if config["cellpose_use_gpu"] else ""
-
-    shell: 
+        use_gpu = "--use_gpu" if config["cellpose_use_gpu"] else "",
+        do_3D = "--do_3D" if config.get("cellpose_do_3D", False) else ""
+    shell:
         """
         python -m cellpose \
             --dir {config[directory]} \
@@ -223,7 +223,7 @@ rule run_cellpose:
             --chan2 0 \
             --img_filter {config[cellpose_img_filter]} \
             --diameter {params.diameter} \
-            --do_3D \
+            {params.do_3D} \
             --save_tif \
             --verbose \
             {params.use_gpu}
@@ -244,7 +244,8 @@ rule cell_to_transcript:
         nuc_exp_pixel = lambda wildcards, input: pd.read_csv(input.average_nuclear_expansion_csv)["Average_Nuclear_Expansion"].iloc[0] / config["PIXEL_SIZE"],
         nuc_exp_slice = lambda wildcards, input: pd.read_csv(input.average_nuclear_expansion_csv)["Average_Nuclear_Expansion"].iloc[0] / config["Z_SLICE_MICRON"]
     script:
-        "scripts/cell_to_transcript.py"
+        "scripts/cell_to_transcript.py" if config.get("cellpose_do_3D", False) \
+        else "scripts/cell_to_transcript_2D.py"
 
 rule gzip_outputs:
     input:
@@ -262,7 +263,7 @@ rule gzip_outputs:
         gzip -c {input.barcodes} > {output.barcodes_gz}
         """
 
-# Define valid celldex references 
+		# Define valid celldex references 
 VALID_REFS = [
     "HumanPrimaryCellAtlasData",
     "BlueprintEncodeData",
@@ -293,4 +294,4 @@ rule seurat_spatial_object_automatic_annotation:
         pdf_qc = os.path.join(directory, "QC.pdf"),
         pdf_qc_predictions = os.path.join(directory, "SingleR_predictions_QC.pdf")
     script:
-        "scripts/seurat_spatial_object.R"
+        "scripts/seurat_spatial_object.R" if config.get("cellpose_do_3D", False) else "scripts/seurat_spatial_object_2D.R"
