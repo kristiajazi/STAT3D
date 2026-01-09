@@ -90,8 +90,6 @@ dev.off()
 
 #Analysis and annotation
 
-sp_obj<- subset(sp_obj , subset = nCount_RNA > 0)
-
 sp_obj
 
 sp_obj <- SCTransform(sp_obj)
