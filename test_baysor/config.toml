@@ -1,0 +1,29 @@
+[data]
+# Force 2D segmentation
+force_2d = true
+
+# Column names in your transcripts.parquet file
+x = "x_location"
+y = "y_location"
+z = "z_location"
+gene = "feature_name"
+
+# Filtering parameters
+min_molecules_per_cell = 10
+min_molecules_per_gene = 0
+min_molecules_per_segment = 3
+
+[segmentation]
+# Cell radius in microns
+scale = 7.0
+scale_std = "25%"
+
+# Segmentation parameters
+n_clusters = 4
+iters = 500
+prior_segmentation_confidence = 0.0
+estimate_scale_from_centers = false
+
+# Gene lists (empty = use all genes)
+nuclei_genes = ""
+cyto_genes = ""
