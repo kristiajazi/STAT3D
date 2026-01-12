@@ -1,1 +1,3 @@
+Run command : baysor run transcripts.parquet --config config.toml -m 10 -o baysor_segmentation -p
+Terminal : Ubuntu
 
