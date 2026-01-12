@@ -62,7 +62,7 @@ ls -lh /absolute/path/to/my_sample
 
 ``` python
 import pyarrow.parquet as pq
-tbl = pq.read_table("transcripts.parquet", columns=["x","y","z","gene"] )
+tbl = pq.read_table("transcripts.parquet", columns=["x","y","z","feature_name"] )
 print(tbl.to_pandas().head())
 ```
 
