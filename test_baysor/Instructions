@@ -51,21 +51,4 @@ cd /mnt/c/Users/Kristi/miniconda3/envs/Kidney_STAT3D_all_outputs_GPU/sopa_KCP_di
 #+ the file needed is the transcripts.parquet and the config.toml saved in the same file
 baysor run transcripts.parquet --config config.toml -m 10 -o baysor_segmentation -p
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Run command : baysor run transcripts.parquet --config config.toml -m 10 -o baysor_segmentation -p
-Terminal : Ubuntu
-
+#Other versions of Baysor are problematic, while this one actually does not recognizes the .zarr files such as the sopa .zarr output.
