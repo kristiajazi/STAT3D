@@ -1,0 +1,21 @@
+#Instruction for uploading a big file such as "TC70_cropped" (54MB) in folder toy_dataset to GitHub repo
+
+#Just uploading fromExplorer will not work, these steps are mandatory
+
+1.Open conda and Go to the folder where the image is "cd …."
+2.clone the repo stat3d : git clone https://github.com/kristiajazi/stat3d.git
+3.enter stat3d : cd stat3d
+4.Check status : git status #it should show "on branch main"
+5.Initialize Git LFS (Large File Storage for versioning large files) : git lfs install # if it is not installed, this command does not work, so it is needed to download it and install via explorer 
+#see this web page https://git-lfs.com/ 
+6.Tell Git LFS to focus on the specific file you want e.g. ".tif" : git lfs track "*.tif" #this creates/updates .gitattributes, which might take time, thus it is better to open another terminal while the updates are ongoing and
+#go on with point 7
+7.Copy the image in the folder ("toy_dataset" in stat3d cloned repo , at the desired folder, use classic copy-paste in explorer 
+8.Make sure .gitattributes is tracked : git add .gitattributes
+9.run : git add toy_dataset/TC70_cropped.ome.tif
+10. check : git status
+11. Commit : git commit -m "Add TC70_cropped OME TIFF via Git LFS"
+12. Push : git push origin main
+13. Check : git lfs ls-files
+
+
