@@ -1,4 +1,4 @@
-#Instruction for uploading a big file such as "TC70_cropped" (54MB) in folder toy_dataset to GitHub repo
+#Instruction for uploading a big file such as "TC70_cropped" (54MB) in folder "toy_dataset" to GitHub repo
 
 #Just uploading from Explorer will not work, these steps are mandatory
 
@@ -18,6 +18,7 @@
 11. Commit : git commit -m "Add TC70_cropped OME TIFF via Git LFS"
 12. Push : git push origin main
 13. Check : git lfs ls-files
+
 
 
 
