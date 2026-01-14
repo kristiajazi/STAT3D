@@ -1,7 +1,7 @@
 #Instruction on how to crop the OME TIFF image with QuPath
 
 1.Upload .ome.tif image
-2.Draw ROI and select >Lock
+2.Draw ROI and select > click on Lock #ensures QuPath focuses on that annotation (ROI)
 3.File>Export images> OME TIFF
 4.When in OME TIFF choose : Compression LZW (lossless) , Pyramidal downsample = 2 ( same as Level parameter of config.yaml file ), Tile size = 256,
 Parallelize export OK, All z-slices  OK
