@@ -80,6 +80,12 @@ STAT3D produces two main output files:
 | UMAP_SingleR.pdf |  This file displays the spatial UMAP plot with the SingleR labelled clusters. |
 | QC_predictions.pdf | Heatmap displaying the predictions scores of each cell type assigned to each cluster by SingleR annotation. |
 
+## Intermediate outputs
+STAT3D produces the following intermediate output files:
+
+| File | Description
+|------------------------|------------------------|
+
 
 ## Parameters
 
