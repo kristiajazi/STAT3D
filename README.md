@@ -84,9 +84,8 @@ STAT3D produces two main output files:
 ## Intermediate outputs
 STAT3D produces the following intermediate output files:
 
-| File | Description |
-|---------------|-------------|
-
+| File | Description
+|------------------------|------------------------|
 | z_slice_measurement.csv | This file identifies how many z-stacks are in each level of the image pyramid. |
 | export | This folder contains images of every z-stack in the `morphology.ome.tif` image. The images can be inspected with software such as QuPath and help the user choose the most accurate two z-stacks to consider as `Z_stack_A` and `Z_stack_B`. The image resolution quantification is provided in `Laplacian_score.csv`. |
 | Laplacian_score.csv | This file indicates the level of sharpness of the first 10 images (`z0, z1, z2, … z9`) forming the z-stack in the `morphology.ome.tif` image. |
