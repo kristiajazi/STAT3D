@@ -1,0 +1,41 @@
+#STAT3D configuration file
+
+# Set working directory
+directory: /stat3d
+
+#z extraction for image reduction
+INPUT_TIFF: /stat3d/TC70_cropped.ome.tif
+#Z_SLICE_A: 6
+#Z_SLICE_B: 7
+LEVEL: 2
+
+# QuPath parameters
+CELL_EXPANSION: 2.0
+SIGMA: 1.0
+THRESHOLD: 30.0
+MIN_AREA: 10.0
+MAX_AREA: 1000.0
+BACKGROUND_RADIUS: 10.0
+MEDIAN_RADIUS: 0.0
+
+#Image measurements 
+sample_size: 15000
+
+#Cellpose
+cellpose_use_gpu: true
+cellpose_img_filter : TC70_cropped.ome_STAT3D
+cellpose_do_3D: true
+
+#Cell-to-transcript files and parameters
+transcripts_df: /stat3d/transcriptsTC070.parquet
+
+#SingleR Annotation
+ref : HumanPrimaryCellAtlasData
+label_column: label.main
+
+#Level 2 pixel size 
+PIXEL_SIZE: 0.85
+
+#Z slice spacing 
+Z_SLICE_MICRON: 3
+
