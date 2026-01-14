@@ -12,7 +12,7 @@
 #see this web page https://git-lfs.com/ 
 6.Tell Git LFS to focus on the specific file you want e.g. ".tif" : git lfs track "*.tif" #this creates/updates .gitattributes, which might take time, thus it is better to open another terminal while the updates are ongoing and
 #go on with point 7
-7.1 Copy the image in the folder ("toy_dataset" in stat3d cloned repo , at the desired folder, use classic copy-paste in explorer
+7.1 Copy the image in the folder ("toy_dataset" in stat3d cloned repo , at the desired folder, use classic copy-paste in explorer)
 7.2 In the new terminal enter again cd stat3d folder and check git status
 8.Make sure .gitattributes is tracked : git add .gitattributes
 9.run : git add toy_dataset/TC70_cropped.ome.tif
@@ -20,6 +20,7 @@
 11. Commit : git commit -m "Add TC70_cropped OME TIFF via Git LFS"
 12. Push : git push origin main
 13. Check : git lfs ls-files
+
 
 
 
