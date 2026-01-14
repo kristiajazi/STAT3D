@@ -5,4 +5,4 @@
 3.File>Export images> OME TIFF
 4.When in OME TIFF choose : Compression LZW (lossless) , Pyramidal downsample = 2 ( same as Level parameter of config.yaml file ), Tile size = 256,
 Parallelize export OK, All z-slices  OK
-5. Save the image and rename WITHOUT writing ".ome.tif". They are already included by QuPath. "tif" will never show up but it is there. Important : rename using "cropped" in the name , e.g. "TC70_cropped".
+5. Save the image and rename WITHOUT writing ".ome.tif". They are already included by QuPath. "tif" will never show up but it is there. Important : rename using "cropped" , e.g. "TC70_cropped".
