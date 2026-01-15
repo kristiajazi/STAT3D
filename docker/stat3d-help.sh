@@ -15,23 +15,34 @@ DESCRIPTION:
 BASIC USAGE:
     Run the pipeline directly from outside the container:
     
-    docker run --platform linux/amd64 --gpus all --rm \\
-            -v /path/to/outputs:/stat3d \\
-            -v /path/to/inputs:/data:ro \\
-            ghcr.io/kristiajazi/stat3d:latest --configfile /data/config.yaml --cores 4
+        docker run --platform linux/amd64 --rm \\
+            -v /path/to/test_run:/test \\
+            -v /path/to/toy_dataset:/data:ro \\
+            -v /path/to/configs/toy_dataset_2D_CPU_config.yaml:/config.yaml:ro \\
+            ghcr.io/kristiajazi/stat3d:latest --configfile /config.yaml --cores 4
+
+        Notes:
+        - Replace the image tag with your local one if needed (e.g. stat3d:local).
+        - Do NOT mount anything on /stat3d inside the container, otherwise you will
+            hide the embedded workflow at /stat3d/workflow.
 
 CUSTOM CONFIGURATION:
-        Option 1 - Pass a config file explicitly:
-            docker run --gpus all --rm -v \$(pwd)/outputs:/stat3d -v \$(pwd)/toy_dataset:/data:ro stat3d:latest \\
-                --configfile /data/config.yaml --cores 4
+        Example using repo layout (configs/ + toy_dataset/ + test_run/):
 
-        Option 2 - Use an environment variable:
-            docker run --gpus all --rm -e STAT3D_CONFIG=/data/config.yaml \\
-                -v \$(pwd)/outputs:/stat3d -v \$(pwd)/toy_dataset:/data:ro stat3d:latest --cores 4
+        docker run --platform linux/amd64 --rm \\
+            -v \$(pwd)/test_run:/test \\
+            -v \$(pwd)/toy_dataset:/data:ro \\
+            -v \$(pwd)/configs/toy_dataset_2D_CPU_config.yaml:/config.yaml:ro \\
+            ghcr.io/kristiajazi/stat3d:latest --configfile /config.yaml --cores 4
     
-    Option 3 - Override parameters:
-      docker run --gpus all --rm -v \$(pwd):/stat3d stat3d:latest \\
-        --config Z_SLICES=15 CELLPOSE_DIAMETER=30 --cores 4
+        Override parameters:
+            
+        docker run --rm \\
+            -v \$(pwd)/test_run:/test \\
+            -v \$(pwd)/toy_dataset:/data:ro \\
+            -v \$(pwd)/configs/toy_dataset_2D_CPU_config.yaml:/config.yaml:ro \\
+            ghcr.io/kristiajazi/stat3d:latest --configfile /config.yaml \\
+            --config Z_SLICES=15 CELLPOSE_DIAMETER=30 --cores 4
 
 CONFIG PARAMETERS:
     Required in config.yaml:
@@ -78,26 +89,32 @@ WORKFLOW OUTPUTS:
 
 CONTAINER STRUCTURE:
     /etc/stat3d/                   Pixi environment (internal, do not mount)
-    /stat3d/                       Mount your project directory here
     /stat3d/workflow/              Pipeline scripts (use yours or default)
+    /data/                         Suggested input mount point (read-only)
+    /test/                         Suggested output mount point (read-write)
     /tools/                        QuPath and other tools
 
 INTERACTIVE MODE:
     For debugging or development:
     
-    docker run --platform linux/amd64 --gpus all -it --rm \\
-      -v \$(pwd):/stat3d \\
-      ghcr.io/kristiajazi/stat3d:latest bash
+        docker run --platform linux/amd64 -it --rm \\
+            -v \$(pwd)/test_run:/test \\
+            -v \$(pwd)/toy_dataset:/data:ro \\
+            -v \$(pwd)/configs/toy_dataset_2D_CPU_config.yaml:/config.yaml:ro \\
+            ghcr.io/kristiajazi/stat3d:latest bash
     
     Inside container:
     $ cd /stat3d/workflow
-    $ snakemake --cores 4
-    $ snakemake -n              # Dry-run
+        $ snakemake --configfile /config.yaml --cores 4
+        $ snakemake --configfile /config.yaml -n              # Dry-run
     $ snakemake --dag | dot     # View workflow graph
 
 GPU SUPPORT:
-    Cellpose segmentation requires GPU. Always run with --gpus all flag.
-    Check GPU access: docker run --gpus all --rm stat3d:latest bash -c "nvidia-smi"
+        GPU is optional but recommended for Cellpose.
+        If you set cellpose_use_gpu: true in the config, run on an NVIDIA host with:
+            docker run --gpus all ...
+        Check GPU access:
+            docker run --gpus all --rm ghcr.io/kristiajazi/stat3d:latest bash -c "nvidia-smi"
 
 ENVIRONMENT:
     - Python: 3.10 (PyTorch 2.6.0 + CUDA 12.6, Cellpose, NumPy, Pandas)
@@ -107,16 +124,34 @@ ENVIRONMENT:
 ADVANCED USAGE:
     View installed packages and system info:
         docker run --rm stat3d:latest sysinfo
+
+        Optional config via environment variable (advanced):
+                docker run --rm -e STAT3D_CONFIG=/config.yaml \\
+                    -v \$(pwd)/test_run:/test \\
+                    -v \$(pwd)/toy_dataset:/data:ro \\
+                    -v \$(pwd)/configs/toy_dataset_2D_CPU_config.yaml:/config.yaml:ro \\
+                    stat3d:latest --cores 4
     
     Check workflow status:
-        docker run --rm -v \$(pwd):/stat3d stat3d:latest --detailed-summary
+                docker run --rm \\
+                    -v \$(pwd)/test_run:/test \\
+                    -v \$(pwd)/toy_dataset:/data:ro \\
+                    -v \$(pwd)/configs/toy_dataset_2D_CPU_config.yaml:/config.yaml:ro \\
+                    stat3d:latest --configfile /config.yaml --detailed-summary
     
     Clean up intermediate files:
-        docker run --rm -v \$(pwd):/stat3d stat3d:latest --cleanup-all
+                docker run --rm \\
+                    -v \$(pwd)/test_run:/test \\
+                    -v \$(pwd)/toy_dataset:/data:ro \\
+                    -v \$(pwd)/configs/toy_dataset_2D_CPU_config.yaml:/config.yaml:ro \\
+                    stat3d:latest --configfile /config.yaml --cleanup-all
     
     Run specific rule:
-        docker run --rm -v \$(pwd):/stat3d stat3d:latest \\
-          --forcerun compute_laplacian --cores 1
+                docker run --rm \\
+                    -v \$(pwd)/test_run:/test \\
+                    -v \$(pwd)/toy_dataset:/data:ro \\
+                    -v \$(pwd)/configs/toy_dataset_2D_CPU_config.yaml:/config.yaml:ro \\
+                    stat3d:latest --configfile /config.yaml --forcerun compute_laplacian --cores 1
 
 DOCUMENTATION:
     GitHub: https://github.com/kristiajazi/STAT3D
