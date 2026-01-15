@@ -1,11 +1,11 @@
-Cellpose Model:
-Downloading: "https://www.cellpose.org/models/nucleitorch_0" to /root/.cellpose/models/nucleitorch_0
-
-Python 10 Warning:
+- Solve Python 10 Warning:
 /etc/stat3d/.pixi/envs/default/lib/python3.10/site-packages/stopit/__init__.py:10: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
   import pkg_resources
 
-R Warnings:
+- find pixi.lock
+- refactoring of the output
+
+- Solve R timezone warning:
 Warning: Your system is mis-configured: '/var/db/timezone/localtime' is not a symlink
 Warning: '/var/db/timezone/localtime' is not identical to any known timezone file
 ── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──

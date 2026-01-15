@@ -18,7 +18,7 @@ BASIC USAGE:
         docker run --platform linux/amd64 --rm \\
             -v /path/to/test_run:/test \\
             -v /path/to/toy_dataset:/data:ro \\
-            -v /path/to/configs/toy_dataset_2D_CPU_config.yaml:/config.yaml:ro \\
+            -v /path/to/configs/config_toy_dataset_2D_CPU.yaml:/config.yaml:ro \\
             ghcr.io/kristiajazi/stat3d:latest --configfile /config.yaml --cores 4
 
         Notes:
@@ -32,7 +32,7 @@ CUSTOM CONFIGURATION:
         docker run --platform linux/amd64 --rm \\
             -v \$(pwd)/test_run:/test \\
             -v \$(pwd)/toy_dataset:/data:ro \\
-            -v \$(pwd)/configs/toy_dataset_2D_CPU_config.yaml:/config.yaml:ro \\
+            -v \$(pwd)/configs/config_toy_dataset_2D_CPU.yaml:/config.yaml:ro \\
             ghcr.io/kristiajazi/stat3d:latest --configfile /config.yaml --cores 4
     
         Override parameters:
@@ -40,7 +40,7 @@ CUSTOM CONFIGURATION:
         docker run --rm \\
             -v \$(pwd)/test_run:/test \\
             -v \$(pwd)/toy_dataset:/data:ro \\
-            -v \$(pwd)/configs/toy_dataset_2D_CPU_config.yaml:/config.yaml:ro \\
+            -v \$(pwd)/configs/config_toy_dataset_2D_CPU.yaml:/config.yaml:ro \\
             ghcr.io/kristiajazi/stat3d:latest --configfile /config.yaml \\
             --config Z_SLICES=15 CELLPOSE_DIAMETER=30 --cores 4
 
@@ -100,7 +100,7 @@ INTERACTIVE MODE:
         docker run --platform linux/amd64 -it --rm \\
             -v \$(pwd)/test_run:/test \\
             -v \$(pwd)/toy_dataset:/data:ro \\
-            -v \$(pwd)/configs/toy_dataset_2D_CPU_config.yaml:/config.yaml:ro \\
+            -v \$(pwd)/configs/config_toy_dataset_2D_CPU.yaml:/config.yaml:ro \\
             ghcr.io/kristiajazi/stat3d:latest bash
     
     Inside container:
@@ -129,28 +129,28 @@ ADVANCED USAGE:
                 docker run --rm -e STAT3D_CONFIG=/config.yaml \\
                     -v \$(pwd)/test_run:/test \\
                     -v \$(pwd)/toy_dataset:/data:ro \\
-                    -v \$(pwd)/configs/toy_dataset_2D_CPU_config.yaml:/config.yaml:ro \\
+                    -v \$(pwd)/configs/config_toy_dataset_2D_CPU.yaml:/config.yaml:ro \\
                     stat3d:latest --cores 4
     
     Check workflow status:
                 docker run --rm \\
                     -v \$(pwd)/test_run:/test \\
                     -v \$(pwd)/toy_dataset:/data:ro \\
-                    -v \$(pwd)/configs/toy_dataset_2D_CPU_config.yaml:/config.yaml:ro \\
+                    -v \$(pwd)/configs/config_toy_dataset_2D_CPU.yaml:/config.yaml:ro \\
                     stat3d:latest --configfile /config.yaml --detailed-summary
     
     Clean up intermediate files:
                 docker run --rm \\
                     -v \$(pwd)/test_run:/test \\
                     -v \$(pwd)/toy_dataset:/data:ro \\
-                    -v \$(pwd)/configs/toy_dataset_2D_CPU_config.yaml:/config.yaml:ro \\
+                    -v \$(pwd)/configs/config_toy_dataset_2D_CPU.yaml:/config.yaml:ro \\
                     stat3d:latest --configfile /config.yaml --cleanup-all
     
     Run specific rule:
                 docker run --rm \\
                     -v \$(pwd)/test_run:/test \\
                     -v \$(pwd)/toy_dataset:/data:ro \\
-                    -v \$(pwd)/configs/toy_dataset_2D_CPU_config.yaml:/config.yaml:ro \\
+                    -v \$(pwd)/configs/config_toy_dataset_2D_CPU.yaml:/config.yaml:ro \\
                     stat3d:latest --configfile /config.yaml --forcerun compute_laplacian --cores 1
 
 DOCUMENTATION:
