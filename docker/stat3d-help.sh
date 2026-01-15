@@ -16,27 +16,18 @@ BASIC USAGE:
     Run the pipeline directly from outside the container:
     
     docker run --platform linux/amd64 --gpus all --rm \\
-      -v /path/to/your/project:/stat3d \\
-      ghcr.io/kristiajazi/stat3d:latest --cores 4
-    
-    Your project directory should contain:
-      workflow/config.yaml    # Pipeline configuration (required)
-      data/                   # Input data
-      output/                 # Results (created by pipeline)
+            -v /path/to/outputs:/stat3d \\
+            -v /path/to/inputs:/data:ro \\
+            ghcr.io/kristiajazi/stat3d:latest --configfile /data/config.yaml --cores 4
 
 CUSTOM CONFIGURATION:
-    Option 1 - Standard structure (recommended):
-      my-project/
-        ├── workflow/
-        │   └── config.yaml      # Your custom config
-        ├── data/
-        └── output/
-      
-      Run: docker run --gpus all --rm -v \$(pwd):/stat3d stat3d:latest --cores 4
-    
-    Option 2 - Config anywhere:
-      docker run --gpus all --rm -v \$(pwd):/stat3d stat3d:latest \\
-        --configfile /stat3d/my-config.yaml --cores 4
+        Option 1 - Pass a config file explicitly:
+            docker run --gpus all --rm -v \$(pwd)/outputs:/stat3d -v \$(pwd)/toy_dataset:/data:ro stat3d:latest \\
+                --configfile /data/config.yaml --cores 4
+
+        Option 2 - Use an environment variable:
+            docker run --gpus all --rm -e STAT3D_CONFIG=/data/config.yaml \\
+                -v \$(pwd)/outputs:/stat3d -v \$(pwd)/toy_dataset:/data:ro stat3d:latest --cores 4
     
     Option 3 - Override parameters:
       docker run --gpus all --rm -v \$(pwd):/stat3d stat3d:latest \\
