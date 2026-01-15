@@ -7,7 +7,7 @@ directory: /test
 INPUT_TIFF: /data/TC70_cropped.ome.tif
 #Z_SLICE_A: 6
 #Z_SLICE_B: 7
-LEVEL: 2
+LEVEL: 0
 
 # QuPath parameters
 CELL_EXPANSION: 2.0

@@ -35,6 +35,11 @@ COPY pixi.toml pixi.lock* /stat3d/
 # Initialize pixi environment and install dependencies
 RUN pixi install
 
+# Pre-install Bioconductor packages that some workflows try to install at runtime.
+# Under pixi/rattler, some Bioconductor "data packages" are shipped as noarch metapackages and
+# are not automatically available as regular R libraries, so we install them explicitly here.
+RUN /etc/stat3d/.pixi/envs/default/bin/R -q -e 'pkgs <- c("GenomeInfoDbData","celldex","scRNAseq"); if (!requireNamespace("BiocManager", quietly=TRUE)) install.packages("BiocManager", repos="https://cloud.r-project.org"); BiocManager::install(pkgs, update=FALSE, ask=FALSE); stopifnot(all(sapply(pkgs, requireNamespace, quietly=TRUE)))'
+
 # Install PyTorch with CUDA 12.6 support via pip (conda resolves CPU-only versions)
 # This matches the working configuration from the original Dockerfile
 RUN /etc/stat3d/.pixi/envs/default/bin/pip install --no-cache-dir \
