@@ -137,6 +137,7 @@ import numpy as np
 import pandas as pd
 import scipy.sparse as sparse
 import scipy.io as sio
+from scipy.sparse import lil_matrix
 from pathlib import Path
 
 # Configure logging
@@ -155,8 +156,9 @@ barcodes_out = snakemake.output["barcodes"]
 # Parameters
 PIXEL_SIZE = snakemake.params["pixel_size"]
 Z_SLICE_MICRON = snakemake.params["z_slice_micron"]
-NUC_EXP_PIXEL = snakemake.params["nuc_exp_pixel"]
-NUC_EXP_SLICE = snakemake.params["nuc_exp_slice"]
+# Note: Nuclear expansion parameters available if needed for future enhancement
+# NUC_EXP_PIXEL = snakemake.params["nuc_exp_pixel"]
+# NUC_EXP_SLICE = snakemake.params["nuc_exp_slice"]
 
 # Validate inputs exist
 for path_name, path_val in [("seg_data", seg_data_path), 
@@ -203,7 +205,6 @@ cell_to_col_index = {cell_id: idx for idx, cell_id in enumerate(cells)}
 logging.info(f"Found {len(features)} unique features and {len(cells)} cells")
 
 # Initialize sparse matrix (LIL format for incremental updates)
-from scipy.sparse import lil_matrix
 matrix = lil_matrix((len(features), len(cells)), dtype=np.int32)
 
 # Process transcripts in batches for memory efficiency
@@ -217,9 +218,10 @@ for batch_start in range(0, len(transcripts_df), BATCH_SIZE):
     batch_end = min(batch_start + BATCH_SIZE, len(transcripts_df))
     batch = transcripts_df.iloc[batch_start:batch_end]
     
-    for _, row in batch.iterrows():
-        feature = row["feature_name"]
-        x, y, z = row["x_location"], row["y_location"], row["z_location"]
+    # Use .values for much faster iteration (10-100x vs .iterrows)
+    batch_values = batch[["feature_name", "x_location", "y_location", "z_location"]].values
+    
+    for feature, x, y, z in batch_values:
         
         # Convert to pixel coordinates
         try:
