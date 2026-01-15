@@ -3,7 +3,7 @@
 # Build: docker build -f docker/Dockerfile-pixi -t stat3d:pixi .
 # Run: docker run --platform linux/amd64 --gpus all -it -v /path/to/data:/stat3d stat3d:pixi
 
-# Build trigger version: 2025-12-02-001
+# Build trigger version: 2026-15-01-001
 # Update this version to trigger a new Docker image build in GitHub Actions
 
 FROM nvidia/cuda:12.6.0-base-ubuntu22.04
@@ -47,6 +47,13 @@ RUN /etc/stat3d/.pixi/envs/default/bin/pip install --no-cache-dir \
     torchvision==0.21.0 \
     torchaudio==2.6.0 \
     --index-url https://download.pytorch.org/whl/cu126
+
+# Pre-download Cellpose model to avoid runtime downloads.
+# Cellpose will otherwise fetch this to ~/.cellpose/models on first run.
+ARG CELLPOSE_MODEL_DIR=/root/.cellpose/models
+RUN mkdir -p "${CELLPOSE_MODEL_DIR}" && \
+    curl -fsSL -o "${CELLPOSE_MODEL_DIR}/nucleitorch_0" "https://www.cellpose.org/models/nucleitorch_0" && \
+    test -s "${CELLPOSE_MODEL_DIR}/nucleitorch_0"
 
 # Install QuPath (not available via conda, so install manually)
 ARG QUPATH_VERSION=0.5.1
