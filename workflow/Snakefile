@@ -4,14 +4,28 @@ import yaml
 import os
 import pandas as pd
 
-configfile: "config.yaml"
+# NOTE: Do not load a default configfile here.
+# Users must provide a config explicitly via `--configfile ...` (or via the
+# container wrapper which may inject one).
 
 # Use configured working directory
+if "directory" not in config:
+    raise ValueError(
+        "Missing required config key 'directory'. "
+        "Run with --configfile /path/to/config.yaml (see stat3d --help)."
+    )
+
 directory = config["directory"]
 
 # Define output to image filename
 z_a = config.get("Z_SLICE_A", "STAT3D_A")
 z_b = config.get("Z_SLICE_B", "STAT3D_B")
+if "INPUT_TIFF" not in config:
+    raise ValueError(
+        "Missing required config key 'INPUT_TIFF'. "
+        "Run with --configfile /path/to/config.yaml (see stat3d --help)."
+    )
+
 input_tiff_basename = os.path.splitext(os.path.basename(config["INPUT_TIFF"]))[0]
 image_output = os.path.join(directory, f"{input_tiff_basename}_STAT3D.tif")
 seg_npy_output = os.path.join(directory, f"{input_tiff_basename}_STAT3D_seg.npy")

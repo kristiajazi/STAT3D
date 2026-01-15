@@ -57,10 +57,12 @@ r-remotes = "*"
 r-matrix = "*"
 
 # R packages - Bioconductor (data structures and utilities)
+r-biocmanager = "*"
 bioconductor-iranges = "*"
 bioconductor-summarizedexperiment = "*"
 bioconductor-biobase = "*"
 bioconductor-s4vectors = "*"
+bioconductor-genomeinfodbdata = "*"
 r-seuratobject = "*"
 r-cowplot = "*"
 
@@ -73,6 +75,7 @@ bioconductor-scuttle = "*"
 bioconductor-singler = "*"
 bioconductor-celldex = "*"
 bioconductor-scrnaseq = "*"
+bioconductor-glmgampoi = "*"
 
 # R packages - utilities
 r-geosphere = "*"

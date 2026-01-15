@@ -33,11 +33,26 @@ if [ ! -f "$WORKFLOW_DIR/Snakefile" ]; then
     exit 1
 fi
 
-# Verify config.yaml exists
-if [ ! -f "$WORKFLOW_DIR/config.yaml" ]; then
-    echo "Error: config.yaml not found in $WORKFLOW_DIR/"
-    echo "Your project directory should contain: workflow/config.yaml"
-    exit 1
+# Require a config via --configfile or STAT3D_CONFIG
+has_configfile=0
+for arg in "$@"; do
+    if [[ "$arg" == "--configfile"* ]]; then
+        has_configfile=1
+        break
+    fi
+done
+
+if [[ $has_configfile -eq 0 ]]; then
+    if [[ -n "${STAT3D_CONFIG:-}" ]]; then
+        # Inject configfile if provided via environment variable
+        set -- --configfile "$STAT3D_CONFIG" "$@"
+    else
+        echo "Error: No config provided."
+        echo "Provide one via: --configfile /path/to/config.yaml"
+        echo "Or set STAT3D_CONFIG=/path/to/config.yaml"
+        echo "Run: stat3d --help"
+        exit 2
+    fi
 fi
 
 # Navigate to workflow directory and execute snakemake
