@@ -12,8 +12,20 @@ def main():
     output_filename = sys.argv[5]
 
     with tifffile.TiffFile(input_tiff) as tif:
-        level_series = tif.series[0].levels[LEVEL]
-        level_array = level_series.asarray()
+        series0 = tif.series[0]
+        levels = getattr(series0, "levels", None)
+
+        # Some OME-TIFFs have no pyramid levels; in that case we must read level 0.
+        if not levels:
+            level_array = series0.asarray()
+        else:
+            if LEVEL < 0 or LEVEL >= len(levels):
+                print(
+                    f"Warning: requested LEVEL={LEVEL} but available levels are 0..{len(levels)-1}. "
+                    "Falling back to LEVEL=0."
+                )
+                LEVEL = 0
+            level_array = levels[LEVEL].asarray()
 
         z_slice_A = level_array[Z_SLICE_A, :, :]
         z_slice_B = level_array[Z_SLICE_B, :, :]
@@ -27,7 +39,7 @@ def main():
         dtype='uint16',
         tile=(1024, 1024),
         compression='JPEG2000',
-        metadata={'axes': 'ZYCX'}
+        metadata={'axes': 'ZYX'}
     )
     print(f"Saved {output_filename}")
 
