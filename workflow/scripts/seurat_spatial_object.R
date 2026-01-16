@@ -19,7 +19,7 @@ suppressPackageStartupMessages({
 })
 
 # Snakemake I/O
-input_dir <- snakemake@input[["input_dir"]]
+input_dir <- dirname(snakemake@input[["matrix"]])
 barcodes_file <- snakemake@input[["barcodes"]]
 output_rds <- snakemake@output[["rds"]]
 ref_name <- snakemake@params[["ref"]]

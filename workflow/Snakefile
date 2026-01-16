@@ -16,6 +16,14 @@ if "directory" not in config:
     )
 
 directory = config["directory"]
+results_dir = os.path.join(directory, "results")
+
+# Subdirectories for organized output
+preproc_dir = os.path.join(results_dir, "preprocessing")
+segmentation_dir = os.path.join(results_dir, "segmentation")
+counts_dir = os.path.join(results_dir, "counts")
+analysis_dir = os.path.join(results_dir, "analysis")
+plots_dir = os.path.join(results_dir, "plots")
 
 # Define output to image filename
 z_a = config.get("Z_SLICE_A", "STAT3D_A")
@@ -27,42 +35,43 @@ if "INPUT_TIFF" not in config:
     )
 
 input_tiff_basename = os.path.splitext(os.path.basename(config["INPUT_TIFF"]))[0]
-image_output = os.path.join(directory, f"{input_tiff_basename}_STAT3D.tif")
-seg_npy_output = os.path.join(directory, f"{input_tiff_basename}_STAT3D_seg.npy")
+image_output = os.path.join(preproc_dir, f"{input_tiff_basename}_STAT3D.tif")
+seg_npy_output = os.path.join(segmentation_dir, f"{input_tiff_basename}_STAT3D_seg.npy")
 
 
 # Define path to CSV measurement files
-csv_QuPath_output = os.path.join(directory, "QuPath_measurements.csv")
-average_min_distance_csv = os.path.join(directory, "average_min_distance.csv")
-average_nuclear_expansion_csv = os.path.join(directory, "average_nuclear_expansion.csv")
-nuclei_diameter_csv = os.path.join(directory, "nuclei_diameter.csv")
+csv_QuPath_output = os.path.join(segmentation_dir, "QuPath_measurements.csv")
+average_min_distance_csv = os.path.join(segmentation_dir, "average_min_distance.csv")
+average_nuclear_expansion_csv = os.path.join(segmentation_dir, "average_nuclear_expansion.csv")
+nuclei_diameter_csv = os.path.join(segmentation_dir, "nuclei_diameter.csv")
 
 
 # Define path to output CSV for Z slice and export folder
-z_slice_csv = os.path.join(directory, "z_slice_measurements.csv")
-export_dir  = os.path.join(directory, "export")
+z_slice_csv = os.path.join(preproc_dir, "z_slice_measurements.csv")
+export_dir  = os.path.join(preproc_dir, "export")
 
 
 # Define path for Laplacian score
-Laplacian_score_csv = os.path.join(directory, "Laplacian_score.csv")
+Laplacian_score_csv = os.path.join(preproc_dir, "Laplacian_score.csv")
 
 
 def get_seg_output(wildcards, input):
     basename = os.path.splitext(os.path.basename(input.image))[0]
-    return os.path.join(directory, f"{basename}_seg.npy")
+    return os.path.join(segmentation_dir, f"{basename}_seg.npy")
 
 
 # Define paths for cell-feature-matrix and Seurat objects
-matrix_gz = os.path.join(directory, "matrix.mtx.gz")
-features_gz = os.path.join(directory, "features.tsv.gz")
-barcodes_gz = os.path.join(directory, "barcodes.tsv.gz")
-QC_pdf = os.path.join(directory, "QC.pdf")
-sp_obj_rds = os.path.join(directory, "sp_obj.rds")
-spatialobj_plot_pdf = os.path.join(directory, "spatialobj_plot.pdf")
-singler_rds = os.path.join(directory, "singler.rds")
-Spatial_SingleR_pdf = os.path.join(directory, "Spatial_SingleR.pdf")
-UMAP_SingleR_pdf = os.path.join(directory, "UMAP_SingleR.pdf")
-QC_predictions_pdf = os.path.join(directory, "SingleR_predictions_QC.pdf")
+matrix_gz = os.path.join(counts_dir, "matrix.mtx.gz")
+features_gz = os.path.join(counts_dir, "features.tsv.gz")
+barcodes_gz = os.path.join(counts_dir, "barcodes.tsv.gz")
+
+QC_pdf = os.path.join(plots_dir, "QC.pdf")
+sp_obj_rds = os.path.join(analysis_dir, "sp_obj.rds")
+spatialobj_plot_pdf = os.path.join(plots_dir, "spatialobj_plot.pdf")
+singler_rds = os.path.join(analysis_dir, "singler.rds")
+Spatial_SingleR_pdf = os.path.join(plots_dir, "Spatial_SingleR.pdf")
+UMAP_SingleR_pdf = os.path.join(plots_dir, "UMAP_SingleR.pdf")
+QC_predictions_pdf = os.path.join(plots_dir, "SingleR_predictions_QC.pdf")
 
 # Rule all dispaying each sequential STAT3D output 
 rule all:
@@ -211,12 +220,14 @@ rule run_qupath_analysis:
 rule image_measurements:
     input:
         csv = csv_QuPath_output
+    params:
+        sample_size = config.get("sample_size", 15000)
     output:
         min_distance = average_min_distance_csv,
         nuclear_expansion = average_nuclear_expansion_csv,
         nuclei_diameter = nuclei_diameter_csv
     shell:
-        "Rscript scripts/image_measurements.R {input.csv} {output.min_distance} {output.nuclear_expansion} {output.nuclei_diameter}"
+        "Rscript scripts/image_measurements.R {input.csv} {output.min_distance} {output.nuclear_expansion} {output.nuclei_diameter} {params.sample_size}"
 
 rule run_cellpose:
     input:
@@ -231,7 +242,7 @@ rule run_cellpose:
     shell:
         """
         python -m cellpose \
-            --dir {config[directory]} \
+            --dir {preproc_dir} \
             --pretrained_model nuclei \
             --chan 0 \
             --chan2 0 \
@@ -241,6 +252,11 @@ rule run_cellpose:
             --save_tif \
             --verbose \
             {params.use_gpu}
+
+        mv {preproc_dir}/{config[cellpose_img_filter]}_seg.npy {output.seg_npy}
+        if [ -f {preproc_dir}/{config[cellpose_img_filter]}_cp_out.tif ]; then
+            mv {preproc_dir}/{config[cellpose_img_filter]}_cp_out.tif {segmentation_dir}/
+        fi
         """
 
 rule cell_to_transcript:
@@ -249,9 +265,9 @@ rule cell_to_transcript:
         transcripts = config["transcripts_df"],
         average_nuclear_expansion_csv = average_nuclear_expansion_csv
     output:
-        matrix = os.path.join(directory, "matrix.mtx"),
-        features = os.path.join(directory, "features.tsv"),
-        barcodes = os.path.join(directory, "barcodes.tsv")
+        matrix = os.path.join(counts_dir, "matrix.mtx"),
+        features = os.path.join(counts_dir, "features.tsv"),
+        barcodes = os.path.join(counts_dir, "barcodes.tsv")
     params:
         pixel_size = config["PIXEL_SIZE"],
         z_slice_micron = config["Z_SLICE_MICRON"],
@@ -267,9 +283,9 @@ rule gzip_outputs:
         features = rules.cell_to_transcript.output.features,
         barcodes = rules.cell_to_transcript.output.barcodes
     output:
-        matrix_gz = os.path.join(directory, "matrix.mtx.gz"),
-        features_gz = os.path.join(directory, "features.tsv.gz"),
-        barcodes_gz = os.path.join(directory, "barcodes.tsv.gz")
+        matrix_gz = matrix_gz,
+        features_gz = features_gz,
+        barcodes_gz = barcodes_gz
     shell:
         """
         gzip -c {input.matrix} > {output.matrix_gz}
@@ -294,18 +310,19 @@ if config["ref"] not in VALID_REFS:
 
 rule seurat_spatial_object_automatic_annotation:
     input:
-        input_dir = directory,
-        barcodes = os.path.join(directory, "barcodes.tsv.gz")
+        matrix = matrix_gz,
+        features = features_gz,
+        barcodes = barcodes_gz
     params:
         ref = config["ref"],
         label_column = config["label_column"]
     output:
-        rds = os.path.join(directory, "sp_obj.rds"),
-        pdf = os.path.join(directory, "spatialobj_plot.pdf"),
-        rds_singler = os.path.join(directory, "singler.rds"),
-        pdf_umap_singler = os.path.join(directory, "UMAP_SingleR.pdf"),
-        pdf_spatial_singler = os.path.join(directory, "Spatial_SingleR.pdf"),
-        pdf_qc = os.path.join(directory, "QC.pdf"),
-        pdf_qc_predictions = os.path.join(directory, "SingleR_predictions_QC.pdf")
+        rds = sp_obj_rds,
+        pdf = spatialobj_plot_pdf,
+        rds_singler = singler_rds,
+        pdf_umap_singler = UMAP_SingleR_pdf,
+        pdf_spatial_singler = Spatial_SingleR_pdf,
+        pdf_qc = QC_pdf,
+        pdf_qc_predictions = QC_predictions_pdf
     script:
         "scripts/seurat_spatial_object.R" if config.get("cellpose_do_3D", False) else "scripts/seurat_spatial_object_2D.R"
