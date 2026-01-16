@@ -5,6 +5,7 @@ input_csv <- args[1]
 output_min_distance <- args[2]
 output_nuclear_expansion <- args[3]
 output_nuclei_diameter <- args[4]
+desired_sample_size <- as.numeric(args[5])
 
 # Loading libraries quietly
 suppressPackageStartupMessages({
@@ -13,12 +14,6 @@ suppressPackageStartupMessages({
   library(readr, quietly = TRUE)
   library(yaml, quietly = TRUE)
 })
-
-# Load config
-config <- yaml.load_file("config.yaml")
-
-# Get sample size from config
-desired_sample_size <- config$sample_size
 
 # Load from Snakemake-passed CSV path
 data <- read_delim(input_csv, delim = "\t", escape_double = FALSE, trim_ws = TRUE)
