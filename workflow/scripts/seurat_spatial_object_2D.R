@@ -2,38 +2,21 @@
 
 #Snakemake script _seurat_object
 
-if (!requireNamespace("BiocManager", quietly = TRUE)) {
-  install.packages("BiocManager")
-}
-
-if (!requireNamespace("GenomeInfoDbData", quietly = TRUE)) {
-  BiocManager::install("GenomeInfoDbData", update = FALSE, ask = FALSE)
-}
-
-
-if (!requireNamespace("celldex", quietly = TRUE)) {
-  BiocManager::install("celldex", update = FALSE, ask = FALSE)
-}
-
-if (!requireNamespace("SingleR", quietly = TRUE)) {
-  BiocManager::install("SingleR", update = FALSE, ask = FALSE)
-}
-
-if (!requireNamespace("scRNAseq", quietly = TRUE)) {
-  BiocManager::install("scRNAseq", update = FALSE, ask = FALSE)
-}
-
-library(Seurat)
-library(dplyr)
-library(Matrix)
-library(readr)
-library(SingleR)  
-library(celldex)
-library(tidyverse)
-library(pheatmap)
-library(scuttle)
-library(scRNAseq)
-library(cowplot)
+# Loading libraries quietly
+suppressPackageStartupMessages({
+  library(Seurat, quietly = TRUE)
+  library(dplyr, quietly = TRUE)
+  library(Matrix, quietly = TRUE)
+  library(readr, quietly = TRUE)
+  library(SingleR, quietly = TRUE)
+  library(celldex, quietly = TRUE)
+  library(tidyverse, quietly = TRUE)
+  library(pheatmap, quietly = TRUE)
+  library(scuttle, quietly = TRUE)
+  library(scRNAseq, quietly = TRUE)
+  library(cowplot, quietly = TRUE)
+  library(GenomeInfoDbData, quietly = TRUE)
+})
 
 # Snakemake I/O
 input_dir <- snakemake@input[["input_dir"]]

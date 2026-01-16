@@ -6,10 +6,13 @@ output_min_distance <- args[2]
 output_nuclear_expansion <- args[3]
 output_nuclei_diameter <- args[4]
 
-library(geosphere)
-library(dplyr)
-library(readr)
-library(yaml)
+# Loading libraries quietly
+suppressPackageStartupMessages({
+  library(geosphere, quietly = TRUE)
+  library(dplyr, quietly = TRUE)
+  library(readr, quietly = TRUE)
+  library(yaml, quietly = TRUE)
+})
 
 # Load config
 config <- yaml.load_file("config.yaml")
