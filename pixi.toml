@@ -87,7 +87,7 @@ tifffile = ">=2023.0"
 
 [pypi-dependencies]
 # Add any PyPI-only packages here if needed
-# setuptools = ">=65.0"
+setuptools = "<81"
 # pyqtgraph = ">=0.13"
 # PyQt5 = ">=5.15"
 
