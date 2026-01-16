@@ -1,4 +1,3 @@
 - test the other reference databases
-- refactoring of the output
-- can we include the toy_dataset inside the docker image?
+- embedding toy_dataset inside the docker image or automatic download of the files (?)
 - look into the copilot code review (pull request #3)
