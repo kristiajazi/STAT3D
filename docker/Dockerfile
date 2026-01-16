@@ -14,10 +14,12 @@ LABEL version="0.1.0"
 
 WORKDIR /etc/stat3d
 
-# Install system essentials and git
+# Ensure the Pixi default environment is always at the front of the PATH
+ENV PATH="/etc/stat3d/.pixi/envs/default/bin:$PATH"
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/UTC
 ENV PYTHONWARNINGS="ignore"
+ENV R_CRAN_WEB="https://cloud.r-project.org"
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \

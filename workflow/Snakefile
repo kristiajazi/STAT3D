@@ -4,6 +4,9 @@ import yaml
 import os
 import pandas as pd
 
+# This ensures all shell commands run inside the pixi environment
+shell.prefix("export PATH=/etc/stat3d/.pixi/envs/default/bin:$PATH && ")
+
 # NOTE: Do not load a default configfile here.
 # Users must provide a config explicitly via `--configfile ...` (or via the
 # container wrapper which may inject one).
