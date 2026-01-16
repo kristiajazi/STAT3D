@@ -1,4 +1,4 @@
-[project]
+[workspace]
 name = "stat3d"
 version = "0.1.0"
 description = "Spatial Transcriptomics Analysis Tool 3D"
@@ -13,11 +13,12 @@ curl = "*"
 pkg-config = "*"
 
 # NVIDIA/CUDA (for GPU support)
-cuda-version = "12.6"
+cuda-version = "12.6.*"
 
 # Core scientific computing
-python = "3.10"
+python = "3.10.*"
 pip = "*"
+setuptools = "<81"
 numpy = ">=1.24"
 scipy = ">=1.10"
 
@@ -81,13 +82,12 @@ bioconductor-glmgampoi = "*"
 r-geosphere = "*"
 
 # Python packages for image processing
-cellpose = "3.1.0"
+cellpose = "3.1.0.*"
 scikit-image = ">=0.20"
 tifffile = ">=2023.0"
 
 [pypi-dependencies]
 # Add any PyPI-only packages here if needed
-setuptools = "<81"
 # pyqtgraph = ">=0.13"
 # PyQt5 = ">=5.15"
 

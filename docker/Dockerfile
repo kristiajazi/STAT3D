@@ -17,6 +17,7 @@ WORKDIR /etc/stat3d
 # Install system essentials and git
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/UTC
+ENV PYTHONWARNINGS="ignore"
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
