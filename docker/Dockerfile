@@ -8,9 +8,16 @@
 
 FROM nvidia/cuda:12.6.0-base-ubuntu22.04
 
+LABEL maintainer="Kristi Ajazi <kristi.ajazi@immun.lth.se>, Massimiliano Volpe <massimiliano.volpe@scilifelab.se>"
+LABEL description="STAT3D: Spatial Transcriptomics Analysis Tool 3D"
+LABEL version="0.1.0"
+
 WORKDIR /etc/stat3d
 
 # Install system essentials and git
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Etc/UTC
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     curl \
@@ -20,20 +27,24 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     git \
     libgl1 \
     libglib2.0-0 \
+    tzdata \
+    && ln -fs /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone \
+    && dpkg-reconfigure --frontend noninteractive tzdata \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Pixi
-ENV PIXI_VERSION=0.24.2
+ENV PIXI_VERSION=0.63.1
 RUN curl -fsSL https://github.com/prefix-dev/pixi/releases/download/v${PIXI_VERSION}/pixi-x86_64-unknown-linux-musl -o /usr/local/bin/pixi && \
     chmod +x /usr/local/bin/pixi && \
     pixi --version
 
 # Copy pixi configuration to both /etc/stat3d and /stat3d
-COPY pixi.toml pixi.lock* /etc/stat3d/
-COPY pixi.toml pixi.lock* /stat3d/
+# Without the wildcard (*), pixi.lock is now mandatory for reproducibility
+COPY pixi.toml pixi.lock /etc/stat3d/
+COPY pixi.toml pixi.lock /stat3d/
 
-# Initialize pixi environment and install dependencies
-RUN pixi install
+# Initialize pixi environment and install dependencies using the lock file
+RUN pixi install --frozen
 
 # Pre-install Bioconductor packages that some workflows try to install at runtime.
 # Under pixi/rattler, some Bioconductor "data packages" are shipped as noarch metapackages and
