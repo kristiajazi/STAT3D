@@ -110,7 +110,7 @@ STAT3D organizes all its outputs in a `results/` folder within your specified wo
 | `export` | `preprocessing/` | This folder contains images of every z-stack in the `morphology.ome.tif` image. The images can be inspected with software such as QuPath and help the user choose the most accurate two z-stacks to consider as `Z_stack_A` and `Z_stack_B`. The image resolution quantification is provided in `Laplacian_score.csv`. |
 | `Laplacian_score.csv` | `preprocessing/` | This file indicates the level of sharpness of the first 10 images (`z0, z1, z2, … z9`) forming the z-stack in the `morphology.ome.tif` image. |
 | `QuPath_measurements.csv` | `segmentation/` | This file contains information about the size and area of nuclei detected in the tissue biopsy. It serves as the basis for calculating the nuclei average diameter and average nuclear expansion.|
-| `nuclei_diameter.csv` | `segmentation/` | This file contains the average diameter of nuclei in the tissue biopsy. It is automatically used in the Cellpose segmentation. |
+| `nuclei_diameter.csv` | `segmentation/` | Image-tailored calculation of cell diameters for Cellpose. This file contains the average diameter of nuclei in the tissue biopsy. |
 | `average_min_distance.csv` | `segmentation/` | This file contains the average minimum distance between nuclei, used in calculating the average nuclear expansion value. |
 | `average_nuclear_expansion.csv` | `segmentation/` | This file represents the expansion of each nucleus to ensure correct transcript assignment and avoid overlap with nearby cells. |
 | `features.tsv` | `counts/` | TSV file containing the gene list needed to generate Seurat objects. It is subsequently gzipped (`features.tsv.gz`) by the pipeline for use with the `Read10x` function. |
