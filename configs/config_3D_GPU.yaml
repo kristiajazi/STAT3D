@@ -4,7 +4,7 @@
 directory: /stat3d
 
 # Optional memory floor (MB). Use 0 for automatic sizing.
-memory_mb: 0
+memory_mb: 28000
 
 #z extraction for image reduction
 INPUT_TIFF: /stat3d/morphology.ome.tif

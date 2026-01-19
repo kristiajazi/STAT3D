@@ -117,31 +117,46 @@ STAT3D organizes all its outputs in a `results/` folder within your specified wo
 | `features.tsv` | `counts/` | TSV file containing the gene list needed to generate Seurat objects. It is subsequently gzipped (`features.tsv.gz`) by the pipeline for use with the `Read10x` function. |
 | `barcodes.tsv` | `counts/` | TSV file containing cell locations (`X, Y, Z`) for every `cell_id`. It is subsequently gzipped (`barcodes.tsv.gz`) by the pipeline for use with the `Read10x` function. |
 
+### Benchmark Files
+
+| File | Subfolder | Description |
+|------|-----------|-------------|
+| `compute_laplacian.tsv` | `benchmarks/` | Runtime and CPU usage for Laplacian score computation. |
+| `process_tiff.tsv` | `benchmarks/` | Runtime and CPU usage for TIFF downsampling/stacking. |
+| `run_qupath_analysis.tsv` | `benchmarks/` | Runtime and CPU usage for QuPath nucleus detection. |
+| `image_measurements.tsv` | `benchmarks/` | Runtime and CPU usage for the nuclear measurement summary. |
+| `run_cellpose.tsv` | `benchmarks/` | Runtime and CPU usage for Cellpose segmentation. |
+| `cell_to_transcript.tsv` | `benchmarks/` | Runtime and CPU usage for matrix generation from transcripts. |
+| `seurat_spatial_object.tsv` | `benchmarks/` | Runtime and CPU usage for Seurat/SingleR analysis. |
+| `workflow_resource_usage.txt` | `benchmarks/` | End-to-end wall-clock time and peak RAM usage for the full run. |
+| `run_cellpose_<image>.log` | `benchmarks/` | Per-image Cellpose settings, command line, and timestamps. |
+
+
 ## Parameters
 
 STAT3D supports several configuration parameters (defined in `config.yaml`) that control image extraction, filtering, and segmentation. Below is a compact reference table for the most commonly used parameters.
 
 | Parameter | Description | Example / Notes |
 |------------------------|------------------------|------------------------|
-| INPUT_TIFF | name of your image in the stat3d container | e.g. stst3d/name_of_your_morphology.ome.tiff image / Recommended path : ´stat3d/morphology_X.ome.tif´|
-| Level | determine the level that will be extracted from the pyramydal image (morphology.ome.tif) | Integer (e.g. `0`, `1`) / Recommended level: 2 |
-| Z_SLICE_A and Z_SLICE_B | determine the two z-stacks that will be extracted from the single pyramidal level | Integer z indices (e.g. `4`, `5`). The optimal z_A and z_B are automatically calculated by STAT3D, dispalyed as message in the Docker terminal and inputed in the wrokflow. However, they can be overwritten with this parameter |
-| CELL_EXPANSION | define cell size, based on detected nucleus objects  | Integer (pixels) |
-| SIGMA | control /reduce the noise effect | Float (e.g. `1.0`) |
-| THRESHOLD | intensity parameter | Float or int |
-| MIN_AREA | define the range of nucleus size | Integer |
-| MAX_AREA | define the range of nucleus size | Integer |
-| BACKGROUND_RADIUS | if background subtraction is considered, 0 equals no background subtraction | Integer (pixels) |
-| MEDIAN_RADIUS | reduce image texture | Integer (pixels) |
-| sample_size | number of nuclei used to calculate all the parameters | Integer (e.g. `2000`) / Recommended number : 15000 |
-| cellpose_use_gpu | enable of GPU during 3D Cellpose segmentation. If set as flase the segmentation runs in CPU | Boolean (e.g. ´true´ or ´false´) / Recommended : ´true´ for morphology.ome.tiff images smaller than 3 GB |
-| cellpose_img_filter|  name the image processed by Cellpose and produced after z-stack extractions. This name must be written before the pipeline starts. | e.g. ´morphology_X.ome_STAT3D´ / If the INPUT_TIFF is ´morphology_X.ome.tif´, the parameter needed in this slot is ´morphology_X.ome_STAT3D´ |
-| transcripts_df | name of the transcripts.parquet file provided by 10x. This name must be written before the pipeline starts. | e.g. ´/stat3d/transcripts.parquet´ |
-| PIXEL_SIZE | pixel size at various levels of the image pyramid | Integer (e.g. `0.85` for level 2)/ Recommended pixel sizes by 10x are listed in Table 1 |
-| Z_SLICE_MICRON | spacing size between each z-slice | Integer (e.g. `3` )/ 10x uses 3 microns. Do not change it if 10x hasn't released a new image format |
-| label_column | Granularity of SingleR annotation it can be set as label.main or label.fine | label.main annotates the main cells function and phenotypes (e.g. CD8 T cells); label.fine defines specifically cells functions and phenotypes (e.g. Ehxausted CD8 T cells) |
-| ref | Name of the "celldex" reference dataset  | e.g. ´HumanPrimaryCellAtlasData´ / Datasets supported : HumanPrimaryCellAtlasData, BlueprintEncodeData, DatabaseImmuneCellExpressionData, MonacoImmuneData, NovershternHematopoieticData, MouseRNAseqData |
-| memory_mb | Optional memory floor (MB) applied to all rules. Set to 0 to use automatic sizing. | Example: `memory_mb: 32000` |
+| `INPUT_TIFF` | name of your image in the stat3d container | e.g. stst3d/name_of_your_morphology.ome.tiff image / Recommended path : ´stat3d/morphology_X.ome.tif´|
+| `Level` | determine the level that will be extracted from the pyramydal image (morphology.ome.tif) | Integer (e.g. `0`, `1`) / Recommended level: 2 |
+| `Z_SLICE_A` and `Z_SLICE_B` | determine the two z-stacks that will be extracted from the single pyramidal level | Integer z indices (e.g. `4`, `5`). The optimal z_A and z_B are automatically calculated by STAT3D, dispalyed as message in the Docker terminal and inputed in the wrokflow. However, they can be overwritten with this parameter |
+| `CELL_EXPANSION` | define cell size, based on detected nucleus objects  | Integer (pixels) |
+| `SIGMA` | control /reduce the noise effect | Float (e.g. `1.0`) |
+| `THRESHOLD` | intensity parameter | Float or int |
+| `MIN_AREA` | define the range of nucleus size | Integer |
+| `MAX_AREA` | define the range of nucleus size | Integer |
+| `BACKGROUND_RADIUS` | if background subtraction is considered, 0 equals no background subtraction | Integer (pixels) |
+| `MEDIAN_RADIUS` | reduce image texture | Integer (pixels) |
+| `sample_size` | number of nuclei used to calculate all the parameters | Integer (e.g. `2000`) / Recommended number : 15000 |
+| `cellpose_use_gpu` | enable of GPU during 3D Cellpose segmentation. If set as flase the segmentation runs in CPU | Boolean (e.g. ´true´ or ´false´) / Recommended : ´true´ for morphology.ome.tiff images smaller than 3 GB |
+| `cellpose_img_filter` |  name the image processed by Cellpose and produced after z-stack extractions. This name must be written before the pipeline starts. | e.g. ´morphology_X.ome_STAT3D´ / If the INPUT_TIFF is ´morphology_X.ome.tif´, the parameter needed in this slot is ´morphology_X.ome_STAT3D´ |
+| `transcripts_df` | name of the transcripts.parquet file provided by 10x. This name must be written before the pipeline starts. | e.g. ´/stat3d/transcripts.parquet´ |
+| `PIXEL_SIZE` | pixel size at various levels of the image pyramid | Integer (e.g. `0.85` for level 2)/ Recommended pixel sizes by 10x are listed in Table 1 |
+| `Z_SLICE_MICRON` | spacing size between each z-slice | Integer (e.g. `3` )/ 10x uses 3 microns. Do not change it if 10x hasn't released a new image format |
+| `label_column` | Granularity of SingleR annotation it can be set as label.main or label.fine | label.main annotates the main cells function and phenotypes (e.g. CD8 T cells); label.fine defines specifically cells functions and phenotypes (e.g. Ehxausted CD8 T cells) |
+| `ref` | Name of the "celldex" reference dataset  | e.g. ´HumanPrimaryCellAtlasData´ / Datasets supported : HumanPrimaryCellAtlasData, BlueprintEncodeData, DatabaseImmuneCellExpressionData, MonacoImmuneData, NovershternHematopoieticData, MouseRNAseqData |
+| `memory_mb` | Optional memory floor (MB) applied to all rules. Set to 0 to use automatic sizing. | Example: `memory_mb: 32000` | Cap for RAM usage in Megabytes (e.g. `28000` on 32GB RAM). Prevents system freeze on local machines. Set to `0` for auto-scaling on clusters. |
 
 To change these values, edit `config.yaml` in the `workflow` folder and re-run the pipeline (for example: `snakemake --cores 1`). For most parameters, start with conservative values and adjust based on the visual quality of segmentation on a small test region.
 
@@ -212,6 +227,29 @@ The datsets used for the validation of STAT3D piepline can be found in the webpa
 | KCP | https://www.10xgenomics.com/datasets/human-kidney-preview-data-xenium-human-multi-tissue-and-cancer-panel-1-standard|
 
 
+## Memory Management & Performance
+
+STAT3D implements an **adaptive memory system** designed to work efficiently on both personal laptops and HPC clusters.
+
+### Adaptive Tiling Strategy
+
+Processing large 3D images can require significant RAM. To handle this, the pipeline uses a smart retry mechanism:
+
+1. **Attempt 1 (Fast Mode):** The pipeline attempts to process the image in memory without tiling. This is the fastest method but requires high RAM.
+2. **Automatic Fallback (Safe Mode):** If the first attempt fails due to an "Out Of Memory" (OOM) error, STAT3D automatically detects the failure and restarts the job using a **tiled approach**. This method is slower but uses significantly less memory (approx. 4-12 GB), ensuring completion even on limited hardware.
+
+**Note:** It is normal to see a "Job failed" message in the logs during the first attempt. Snakemake will automatically display `(retry 1)` and proceed with the tiled method.
+
+### Configuring Memory Limits (`memory_mb`)
+
+To prevent system instability (especially on laptops), you can define a hard memory limit in your configuration file.
+
+* **For Laptops/Workstations:** Set `memory_mb` to approximately **85-90%** of your total physical RAM to leave space for the OS.
+* *Example (32GB Laptop):* `memory_mb: 28000`
+
+
+* **For HPC Clusters (Slurm/Dardel):** Set `memory_mb: 0`. This enables automatic scaling where the pipeline requests the exact amount of RAM needed based on the image file size.
+
 ## Known Issues
 
 ### Cellpose CUDA out-of-memory (GPU + 3D)
@@ -236,3 +274,5 @@ If the GPU is available but the error persists, consider running STAT3D without 
 ``` bash
 From config.yaml file : "cellpose_use_gpu: false"
 ```
+
+*Update:* While the pipeline now automatically handles system RAM (CPU) issues via the adaptive tiling strategy described above, GPU VRAM limits may still occur with very large 3D volumes. If CUDA errors persist, the pipeline allows switching to CPU-only mode by setting `cellpose_use_gpu: false` in the config.
