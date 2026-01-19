@@ -20,6 +20,37 @@ if "directory" not in config:
 
 directory = config["directory"]
 results_dir = os.path.join(directory, "results")
+benchmark_dir = os.path.join(results_dir, "benchmarks")
+
+memory_floor_mb = int(config.get("memory_mb", 0) or 0)
+
+
+def _file_mb(path: str) -> float:
+    try:
+        return os.path.getsize(path) / (1024 * 1024)
+    except OSError:
+        return 0.0
+
+
+def _with_floor(mem_mb: int) -> int:
+    if memory_floor_mb > 0:
+        return max(mem_mb, memory_floor_mb)
+    return mem_mb
+
+
+def _mem_mb_from_file(path: str, multiplier: float, minimum: int) -> int:
+    size_mb = _file_mb(path)
+    return max(minimum, int(size_mb * multiplier))
+
+
+def _cellpose_mem_mb(image_path: str, attempt: int) -> int:
+    is_3d = config.get("cellpose_do_3D", False)
+    multiplier = 8 if is_3d else 4
+    minimum = 16000 if is_3d else 6000
+    mem_mb = _mem_mb_from_file(image_path, multiplier, minimum)
+    if attempt and attempt > 1:
+        mem_mb = int(mem_mb * 1.5)
+    return mem_mb
 
 # Subdirectories for organized output
 preproc_dir = os.path.join(results_dir, "preprocessing")
@@ -158,6 +189,10 @@ rule compute_laplacian:
         tiff = config["INPUT_TIFF"]
     output:
         csv = Laplacian_score_csv
+    resources:
+        mem_mb=lambda wildcards, input: _with_floor(_mem_mb_from_file(input.tiff, 3, 2000))
+    benchmark:
+        os.path.join(benchmark_dir, "compute_laplacian.tsv")
     shell:
         """
         python scripts/Laplacian_score_script.py {input.tiff} {output.csv}
@@ -169,6 +204,10 @@ rule process_tiff:
         csv = Laplacian_score_csv
     output:
         image_output
+    resources:
+        mem_mb=lambda wildcards, input: _with_floor(_mem_mb_from_file(input.tiff, 4, 3000))
+    benchmark:
+        os.path.join(benchmark_dir, "process_tiff.tsv")
     run:
         import subprocess
         import pandas as pd
@@ -217,6 +256,10 @@ rule run_qupath_analysis:
         script="scripts/QuPath_script.groovy"
     output:
         csv_QuPath_output
+    resources:
+        mem_mb=lambda wildcards, input: _with_floor(_mem_mb_from_file(input.image, 4, 4000))
+    benchmark:
+        os.path.join(benchmark_dir, "run_qupath_analysis.tsv")
     shell:
         "QuPath script --image {input.image} {input.script}"
 
@@ -229,6 +272,10 @@ rule image_measurements:
         min_distance = average_min_distance_csv,
         nuclear_expansion = average_nuclear_expansion_csv,
         nuclei_diameter = nuclei_diameter_csv
+    resources:
+        mem_mb=lambda wildcards, input: _with_floor(_mem_mb_from_file(input.csv, 2, 1000))
+    benchmark:
+        os.path.join(benchmark_dir, "image_measurements.tsv")
     shell:
         "Rscript scripts/image_measurements.R {input.csv} {output.min_distance} {output.nuclear_expansion} {output.nuclei_diameter} {params.sample_size}"
 
@@ -238,27 +285,44 @@ rule run_cellpose:
         diameter_csv = nuclei_diameter_csv
     output:
         seg_npy = seg_npy_output
+    retries: 1
     params:
         diameter = lambda wildcards, input: pd.read_csv(input.diameter_csv)["Average_Diameter"].iloc[0],
         use_gpu = "--use_gpu" if config["cellpose_use_gpu"] else "",
-        do_3D = "--do_3D" if config.get("cellpose_do_3D", False) else ""
+        do_3D = "--do_3D" if config.get("cellpose_do_3D", False) else "",
+        image_base = lambda wildcards, input: os.path.splitext(os.path.basename(input.image))[0]
+    resources:
+        mem_mb=lambda wildcards, input, attempt: _with_floor(_cellpose_mem_mb(input.image, attempt))
+    benchmark:
+        os.path.join(benchmark_dir, "run_cellpose.tsv")
     shell:
         """
+        batch_size=8
+        tile=""
+        if [ "{attempt}" -gt 1 ]; then
+            batch_size=4
+            tile="--tile"
+        fi
+
         python -m cellpose \
-            --dir {preproc_dir} \
+            --image_path {input.image} \
+            --save_path {segmentation_dir} \
             --pretrained_model nuclei \
             --chan 0 \
             --chan2 0 \
-            --img_filter {config[cellpose_img_filter]} \
             --diameter {params.diameter} \
             {params.do_3D} \
+            --batch_size $batch_size \
+            $tile \
             --save_tif \
             --verbose \
             {params.use_gpu}
 
-        mv {preproc_dir}/{config[cellpose_img_filter]}_seg.npy {output.seg_npy}
-        if [ -f {preproc_dir}/{config[cellpose_img_filter]}_cp_out.tif ]; then
-            mv {preproc_dir}/{config[cellpose_img_filter]}_cp_out.tif {segmentation_dir}/
+        if [ ! -f {output.seg_npy} ] && [ -f {preproc_dir}/{params.image_base}_seg.npy ]; then
+            mv {preproc_dir}/{params.image_base}_seg.npy {output.seg_npy}
+        fi
+        if [ -f {preproc_dir}/{params.image_base}_cp_out.tif ]; then
+            mv {preproc_dir}/{params.image_base}_cp_out.tif {segmentation_dir}/
         fi
         """
 
@@ -276,6 +340,10 @@ rule cell_to_transcript:
         z_slice_micron = config["Z_SLICE_MICRON"],
         nuc_exp_pixel = lambda wildcards, input: pd.read_csv(input.average_nuclear_expansion_csv)["Average_Nuclear_Expansion"].iloc[0] / config["PIXEL_SIZE"],
         nuc_exp_slice = lambda wildcards, input: pd.read_csv(input.average_nuclear_expansion_csv)["Average_Nuclear_Expansion"].iloc[0] / config["Z_SLICE_MICRON"]
+    resources:
+        mem_mb=lambda wildcards, input: _with_floor(_mem_mb_from_file(input.transcripts, 6, 8000))
+    benchmark:
+        os.path.join(benchmark_dir, "cell_to_transcript.tsv")
     script:
         "scripts/cell_to_transcript.py" if config.get("cellpose_do_3D", False) \
         else "scripts/cell_to_transcript_2D.py"
@@ -327,5 +395,9 @@ rule seurat_spatial_object_automatic_annotation:
         pdf_spatial_singler = Spatial_SingleR_pdf,
         pdf_qc = QC_pdf,
         pdf_qc_predictions = QC_predictions_pdf
+    resources:
+        mem_mb=lambda wildcards, input: _with_floor(_mem_mb_from_file(input.matrix, 6, 12000))
+    benchmark:
+        os.path.join(benchmark_dir, "seurat_spatial_object.tsv")
     script:
         "scripts/seurat_spatial_object.R" if config.get("cellpose_do_3D", False) else "scripts/seurat_spatial_object_2D.R"
