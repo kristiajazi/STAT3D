@@ -289,37 +289,13 @@ rule run_cellpose:
     params:
         diameter = lambda wildcards, input: pd.read_csv(input.diameter_csv)["Average_Diameter"].iloc[0],
         use_gpu = "--use_gpu" if config["cellpose_use_gpu"] else "",
-        do_3D = "--do_3D" if config.get("cellpose_do_3D", False) else "",
-        image_base = lambda wildcards, input: os.path.splitext(os.path.basename(input.image))[0],
-        batch_size = lambda wildcards, input, attempt: 8 if attempt == 1 else 4,
-        tile = lambda wildcards, input, attempt: "" if attempt == 1 else "--tile"
+        do_3D = "--do_3D" if config.get("cellpose_do_3D", False) else ""
     resources:
         mem_mb=lambda wildcards, input, attempt: _with_floor(_cellpose_mem_mb(input.image, attempt))
     benchmark:
         os.path.join(benchmark_dir, "run_cellpose.tsv")
-    shell:
-        """
-        python -m cellpose \
-            --image_path {input.image} \
-            --save_path {segmentation_dir} \
-            --pretrained_model nuclei \
-            --chan 0 \
-            --chan2 0 \
-            --diameter {params.diameter} \
-            {params.do_3D} \
-            --batch_size {params.batch_size} \
-            {params.tile} \
-            --save_tif \
-            --verbose \
-            {params.use_gpu}
-
-        if [ ! -f {output.seg_npy} ] && [ -f {preproc_dir}/{params.image_base}_seg.npy ]; then
-            mv {preproc_dir}/{params.image_base}_seg.npy {output.seg_npy}
-        fi
-        if [ -f {preproc_dir}/{params.image_base}_cp_out.tif ]; then
-            mv {preproc_dir}/{params.image_base}_cp_out.tif {segmentation_dir}/
-        fi
-        """
+    script:
+        "scripts/run_cellpose.py"
 
 rule cell_to_transcript:
     input:

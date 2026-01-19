@@ -18,6 +18,37 @@ if "directory" not in config:
         "Run with --configfile /path/to/config.yaml (see stat3d --help)."
     )
 
+REQUIRED_CONFIG_KEYS = [
+    "INPUT_TIFF",
+    "LEVEL",
+    "CELL_EXPANSION",
+    "SIGMA",
+    "THRESHOLD",
+    "MIN_AREA",
+    "MAX_AREA",
+    "BACKGROUND_RADIUS",
+    "MEDIAN_RADIUS",
+    "transcripts_df",
+    "PIXEL_SIZE",
+    "Z_SLICE_MICRON",
+    "ref",
+    "label_column",
+]
+
+missing_keys = [key for key in REQUIRED_CONFIG_KEYS if key not in config]
+if missing_keys:
+    raise ValueError(
+        "Missing required config keys: " + ", ".join(missing_keys)
+    )
+
+if "memory_mb" in config:
+    try:
+        memory_mb_value = int(config.get("memory_mb", 0))
+    except (TypeError, ValueError):
+        raise ValueError("memory_mb must be an integer (MB).")
+    if memory_mb_value < 0:
+        raise ValueError("memory_mb must be >= 0 (0 means auto).")
+
 directory = config["directory"]
 results_dir = os.path.join(directory, "results")
 benchmark_dir = os.path.join(results_dir, "benchmarks")
@@ -289,42 +320,13 @@ rule run_cellpose:
     params:
         diameter = lambda wildcards, input: pd.read_csv(input.diameter_csv)["Average_Diameter"].iloc[0],
         use_gpu = "--use_gpu" if config["cellpose_use_gpu"] else "",
-        do_3D = "--do_3D" if config.get("cellpose_do_3D", False) else "",
-        image_base = lambda wildcards, input: os.path.splitext(os.path.basename(input.image))[0]
+        do_3D = "--do_3D" if config.get("cellpose_do_3D", False) else ""
     resources:
         mem_mb=lambda wildcards, input, attempt: _with_floor(_cellpose_mem_mb(input.image, attempt))
     benchmark:
         os.path.join(benchmark_dir, "run_cellpose.tsv")
-    shell:
-        """
-        batch_size=8
-        tile=""
-        if [ "{attempt}" -gt 1 ]; then
-            batch_size=4
-            tile="--tile"
-        fi
-
-        python -m cellpose \
-            --image_path {input.image} \
-            --save_path {segmentation_dir} \
-            --pretrained_model nuclei \
-            --chan 0 \
-            --chan2 0 \
-            --diameter {params.diameter} \
-            {params.do_3D} \
-            --batch_size $batch_size \
-            $tile \
-            --save_tif \
-            --verbose \
-            {params.use_gpu}
-
-        if [ ! -f {output.seg_npy} ] && [ -f {preproc_dir}/{params.image_base}_seg.npy ]; then
-            mv {preproc_dir}/{params.image_base}_seg.npy {output.seg_npy}
-        fi
-        if [ -f {preproc_dir}/{params.image_base}_cp_out.tif ]; then
-            mv {preproc_dir}/{params.image_base}_cp_out.tif {segmentation_dir}/
-        fi
-        """
+    script:
+        "scripts/run_cellpose.py"
 
 rule cell_to_transcript:
     input:

@@ -34,18 +34,25 @@ if [ ! -f "$WORKFLOW_DIR/Snakefile" ]; then
 fi
 
 # Require a config via --configfile or STAT3D_CONFIG
-has_configfile=0
-for arg in "$@"; do
-    if [[ "$arg" == "--configfile"* ]]; then
-        has_configfile=1
+args=("$@")
+report_default=0
+configfile_path=""
+for ((i=0; i<${#args[@]}; i++)); do
+    arg="${args[$i]}"
+    if [[ "$arg" == "--configfile" ]]; then
+        next_index=$((i+1))
+        configfile_path="${args[$next_index]:-}"
         break
+    elif [[ "$arg" == --configfile=* ]]; then
+        configfile_path="${arg#--configfile=}"; break
     fi
 done
 
-if [[ $has_configfile -eq 0 ]]; then
+if [[ -z "$configfile_path" ]]; then
     if [[ -n "${STAT3D_CONFIG:-}" ]]; then
         # Inject configfile if provided via environment variable
-        set -- --configfile "$STAT3D_CONFIG" "$@"
+        args=("--configfile" "$STAT3D_CONFIG" "${args[@]}")
+        configfile_path="$STAT3D_CONFIG"
     else
         echo "Error: No config provided."
         echo "Provide one via: --configfile /path/to/config.yaml"
@@ -55,6 +62,101 @@ if [[ $has_configfile -eq 0 ]]; then
     fi
 fi
 
+# Determine working directory from config and pass it to Snakemake.
+benchmark_dir=""
+if [[ -n "$configfile_path" ]]; then
+    config_dir=$(python - "$configfile_path" <<'PY'
+import sys
+import yaml
+
+path = sys.argv[1]
+try:
+    with open(path, "r", encoding="utf-8") as f:
+        cfg = yaml.safe_load(f) or {}
+    print(cfg.get("directory", ""))
+except Exception:
+    print("")
+PY
+)
+    if [[ -n "$config_dir" ]]; then
+        # Ensure report output folder exists if --report is used.
+        report_path=""
+        for ((i=0; i<${#args[@]}; i++)); do
+            arg="${args[$i]}"
+            if [[ "$arg" == "--report" ]]; then
+                next_index=$((i+1))
+                report_path="${args[$next_index]:-}"
+                break
+            elif [[ "$arg" == --report=* ]]; then
+                report_path="${arg#--report=}"; break
+            fi
+        done
+        # Support --report-default (no argument) to generate report to results/benchmarks
+        for ((i=0; i<${#args[@]}; i++)); do
+            if [[ "${args[$i]}" == "--report-default" ]]; then
+                report_default=1
+                unset 'args[$i]'
+            fi
+        done
+        # Re-pack args array after unset
+        args=("${args[@]}")
+
+        if [[ $report_default -eq 1 && -z "$report_path" ]]; then
+            report_path="$config_dir/results/benchmarks/stat3d-report.html"
+        fi
+        benchmark_dir="$config_dir/results/benchmarks"
+        mkdir -p "$benchmark_dir"
+
+        if [[ -n "$report_path" ]]; then
+            report_dir=$(dirname "$report_path")
+            mkdir -p "$report_dir"
+        fi
+    fi
+fi
+
+run_snakemake_with_metrics() {
+    local start_ts end_ts start_epoch end_epoch elapsed rc time_log max_rss
+    start_ts=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
+    start_epoch=$(date +%s)
+
+    if command -v /usr/bin/time >/dev/null 2>&1; then
+        time_log=$(mktemp)
+        /usr/bin/time -v -o "$time_log" snakemake "${args[@]}"
+        rc=$?
+    else
+        time_log=""
+        snakemake "${args[@]}"
+        rc=$?
+    fi
+
+    end_ts=$(date -u "+%Y-%m-%dT%H:%M:%SZ")
+    end_epoch=$(date +%s)
+    elapsed=$((end_epoch - start_epoch))
+
+    if [[ -n "$benchmark_dir" ]]; then
+        {
+            echo "start_ts=${start_ts}"
+            echo "end_ts=${end_ts}"
+            echo "elapsed_seconds=${elapsed}"
+            echo "exit_code=${rc}"
+            if [[ -n "$time_log" && -f "$time_log" ]]; then
+                max_rss=$(grep -i "Maximum resident set size" "$time_log" | awk -F: '{print $2}' | xargs)
+                if [[ -n "$max_rss" ]]; then
+                    echo "max_rss_kb=${max_rss}"
+                fi
+            fi
+        } > "$benchmark_dir/workflow_resource_usage.txt"
+    fi
+
+    return $rc
+}
+
 # Navigate to workflow directory and execute snakemake
 cd "$WORKFLOW_DIR"
-exec snakemake "$@"
+if [[ $report_default -eq 1 ]]; then
+    run_snakemake_with_metrics
+    snakemake "${args[@]}" --report "$report_path"
+    exit $?
+fi
+run_snakemake_with_metrics
+exit $?

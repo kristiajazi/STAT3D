@@ -87,6 +87,7 @@ STAT3D organizes all its outputs in a `results/` folder within your specified wo
 | `results/counts/`        | Gene expression matrices in 10x-compatible format (`matrix.mtx.gz`, etc.). |
 | `results/analysis/`      | Downstream analysis objects (`Seurat` and `SingleR` objects in `.rds` format). |
 | `results/plots/`         | All generated QC plots and spatial visualizations in `.pdf` format. |
+| `results/benchmarks/`    | Per-rule runtime/CPU benchmark TSV files and tool logs for profiling. |
 
 ### Key Output Files
 
@@ -140,6 +141,7 @@ STAT3D supports several configuration parameters (defined in `config.yaml`) that
 | Z_SLICE_MICRON | spacing size between each z-slice | Integer (e.g. `3` )/ 10x uses 3 microns. Do not change it if 10x hasn't released a new image format |
 | label_column | Granularity of SingleR annotation it can be set as label.main or label.fine | label.main annotates the main cells function and phenotypes (e.g. CD8 T cells); label.fine defines specifically cells functions and phenotypes (e.g. Ehxausted CD8 T cells) |
 | ref | Name of the "celldex" reference dataset  | e.g. ´HumanPrimaryCellAtlasData´ / Datasets supported : HumanPrimaryCellAtlasData, BlueprintEncodeData, DatabaseImmuneCellExpressionData, MonacoImmuneData, NovershternHematopoieticData, MouseRNAseqData |
+| memory_mb | Optional memory floor (MB) applied to all rules. Set to 0 to use automatic sizing. | Example: `memory_mb: 32000` |
 
 To change these values, edit `config.yaml` in the `workflow` folder and re-run the pipeline (for example: `snakemake --cores 1`). For most parameters, start with conservative values and adjust based on the visual quality of segmentation on a small test region.
 
@@ -186,6 +188,20 @@ docker run --platform linux/amd64 --gpus all -it -v C:/your/directory/path:/stat
 cd /stat3d/workflow
 snakemake --cores 1
 ```
+
+## Benchmarking and Reports
+
+STAT3D writes per-rule benchmarks to `results/benchmarks/` for computationally intensive steps (e.g., Cellpose, QuPath, and Seurat). To generate a full HTML report with runtime summaries, run:
+
+```bash
+# ensure the folder exists
+mkdir -p /path/to/workdir/results/benchmarks
+
+# use an absolute path for the report
+snakemake --cores 4 --report /path/to/workdir/results/benchmarks/stat3d-report.html
+```
+
+The HTML report includes execution times, rule graphs, and the benchmark tables for profiling and reproducibility.
 
 ## STAT3D validation datasets
 The datsets used for the validation of STAT3D piepline can be found in the webpages listed below.
