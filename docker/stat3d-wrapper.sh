@@ -143,6 +143,8 @@ run_snakemake_with_metrics() {
                 max_rss=$(grep -i "Maximum resident set size" "$time_log" | awk -F: '{print $2}' | xargs)
                 if [[ -n "$max_rss" ]]; then
                     echo "max_rss_kb=${max_rss}"
+                    max_rss_mb=$(awk -v kb="$max_rss" 'BEGIN {printf "%.2f", kb/1024}')
+                    echo "max_rss_mb=${max_rss_mb}"
                 fi
             fi
         } > "$benchmark_dir/workflow_resource_usage.txt"
