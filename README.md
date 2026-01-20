@@ -19,11 +19,11 @@ STAT3D is a tool designed for the analysis of spatial transcriptomics data in 3D
 
 ## Installation
 
-0.  Download the folder named "workflow" from STAT3D repository and save it in the same direcotry path which contains the morphology.ome image and transcript.parquet file
+STAT3D is typically run via the Docker container. Provide your own config file (YAML) to run the workflow; example configs are in `./configs/`.
 
 1.  Install Docker Desktop through the official webpage: https://docs.docker.com/desktop/
 
-2.  Download STAT3D docker image by running the following command in the docker desktop terminal:\
+2.  Download STAT3D docker image by running the following command in the Docker terminal:
 
 ``` bash
 docker pull ghcr.io/kristiajazi/stat3d:latest
@@ -34,10 +34,28 @@ docker pull ghcr.io/kristiajazi/stat3d:latest
 To run the pipeline with a configuration file:
 
 ``` bash
-docker run --platform linux/amd64 --gpus all -it \
-  -v C:/your/directory/path:/stat3d \
+docker run --platform linux/amd64 --rm \
+  -v /path/to/my_data:/data \
   ghcr.io/kristiajazi/stat3d:latest \
-  --configfile workflow/config.yaml
+  --configfile /data/config.yaml --cores 4
+```
+
+Notes:
+
+- The workflow is embedded in the container. You only need to mount your input/output folder and pass a config via `--configfile`.
+- Use one of the example configs in `./configs/` as a starting point (including toy dataset configs).
+
+### Quickstart (toy dataset, fresh clone)
+
+From the repository root:
+
+```bash
+docker run --platform linux/amd64 --rm \
+  -v $(pwd)/test_run:/test \
+  -v $(pwd)/toy_dataset:/data:ro \
+  -v $(pwd)/configs/config_toy_dataset_2D_CPU.yaml:/config.yaml:ro \
+  ghcr.io/kristiajazi/stat3d:latest \
+  --configfile /config.yaml --cores 4
 ```
 
 ### Interactive mode
@@ -134,7 +152,7 @@ STAT3D organizes all its outputs in a `results/` folder within your specified wo
 
 ## Parameters
 
-STAT3D supports several configuration parameters (defined in `config.yaml`) that control image extraction, filtering, and segmentation. Below is a compact reference table for the most commonly used parameters.
+STAT3D supports several configuration parameters (defined in your user-provided YAML config file) that control image extraction, filtering, and segmentation. Below is a compact reference table for the most commonly used parameters.
 
 | Parameter | Description | Example / Notes |
 |------------------------|------------------------|------------------------|
@@ -159,7 +177,7 @@ STAT3D supports several configuration parameters (defined in `config.yaml`) that
 | `memory_mb` | Optional memory floor (MB) applied to all rules. Set to 0 to use automatic sizing. | Example: `memory_mb: 32000` | Cap for RAM usage in Megabytes (e.g. `28000` on 32GB RAM). Prevents system freeze on local machines. Set to `0` for auto-scaling on clusters. |
 | `fallback_to_cpu` | If true, switches to CPU inference if GPU fails with "Out Of Memory" (OOM) error. | Recommended value: `true` |
 
-To change these values, edit `config.yaml` in the `workflow` folder and re-run the pipeline (for example: `snakemake --cores 1`). For most parameters, start with conservative values and adjust based on the visual quality of segmentation on a small test region.
+To change these values, edit your own YAML config file (start from one of the examples in `./configs/`) and re-run the pipeline with `--configfile /path/to/your_config.yaml`. For most parameters, start with conservative values and adjust based on the visual quality of segmentation on a small test region.
 
 ## Table 1. Pixel Size at various level (by 10x Genomics)
 The table displays the pixel sizes associated with each pyramidal level in images generated with Xenium platform.
@@ -173,12 +191,12 @@ The table displays the pixel sizes associated with each pyramidal level in image
 4 | 3.4
 5 | 6.8
 
-### Example `config.yaml` snippet
+### Example config snippet
 
-Below is a minimal example of `config.yaml` showing the most commonly tuned parameters. Copy this into `workflow/config.yaml` and adjust the values to your dataset and microscope settings.
+Below is a minimal example showing the most commonly tuned parameters. Save it as a new YAML file (for example `my_config.yaml`) and adjust the values to your dataset and microscope settings.
 
 ``` yaml
-# workflow/config.yaml (example)
+# my_config.yaml (example)
 Level: 0
 Z_SLICE_A: 10
 Z_SLICE_B: 12
@@ -198,11 +216,14 @@ Tip: change a few parameters and run the pipeline to first to visually inspect s
 
 To run STAT3D, use the following commands:
 
-```bash=
+```bash
 docker pull ghcr.io/kristiajazi/stat3d:latest # only once when using STAT3D for the first time
-docker run --platform linux/amd64 --gpus all -it -v C:/your/directory/path:/stat3d ghcr.io/kristiajazi/stat3d:latest
-cd /stat3d/workflow
-snakemake --cores 1
+
+# Run with an explicit config file
+docker run --platform linux/amd64 --rm \
+  -v /path/to/my_data:/data \
+  ghcr.io/kristiajazi/stat3d:latest \
+  --configfile /data/config.yaml --cores 4
 ```
 
 ## Benchmarking and Reports
