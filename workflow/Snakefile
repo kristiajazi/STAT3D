@@ -33,6 +33,8 @@ REQUIRED_CONFIG_KEYS = [
     "Z_SLICE_MICRON",
     "ref",
     "label_column",
+    "memory_mb",
+    "fallback_to_cpu",
 ]
 
 missing_keys = [key for key in REQUIRED_CONFIG_KEYS if key not in config]
@@ -113,6 +115,17 @@ def _cellpose_mem_mb(image_path: str, attempt: int) -> int:
         return min(estimated_ram, system_limit)
         
     return estimated_ram
+
+
+def _get_cellpose_retries(wildcards):
+    use_gpu = config.get("cellpose_use_gpu", False)
+    fallback = config.get("fallback_to_cpu", True)
+    if use_gpu and fallback:
+        return 2
+    return 1
+
+
+cellpose_retries = _get_cellpose_retries(None)
 
 
 # Subdirectories for organized output
@@ -348,7 +361,7 @@ rule run_cellpose:
         diameter_csv = nuclei_diameter_csv
     output:
         seg_npy = seg_npy_output
-    retries: 1
+    retries: cellpose_retries
     params:
         diameter = lambda wildcards, input: pd.read_csv(input.diameter_csv)["Average_Diameter"].iloc[0],
         use_gpu = "--use_gpu" if config["cellpose_use_gpu"] else "",

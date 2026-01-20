@@ -23,26 +23,12 @@ if "diameter" in snakemake.params:
 else:
     diameter = pd.read_csv(diameter_csv)["Average_Diameter"].iloc[0]
 
-use_gpu_config = bool(snakemake.config.get("cellpose_use_gpu", False))
+use_gpu = bool(snakemake.config.get("cellpose_use_gpu", False))
 do_3d = bool(snakemake.config.get("cellpose_do_3D", False))
-fallback_to_cpu = bool(snakemake.config.get("fallback_to_cpu", True))
 
 batch_size = "8"
 tile = False
-use_gpu = use_gpu_config
-
-if attempt == 1:
-    print(f"[cellpose] Attempt 1: Fast mode. GPU={use_gpu}")
-elif attempt == 2:
-    print(f"[cellpose] Attempt 2: Tiled mode. GPU={use_gpu}")
-    batch_size = "4"
-    tile = True
-elif attempt >= 3:
-    if use_gpu_config and fallback_to_cpu:
-        print(f"[cellpose] Attempt {attempt}: CPU Fallback activated.")
-        use_gpu = False
-    else:
-        print(f"[cellpose] Attempt {attempt}: Tiled mode. GPU={use_gpu}")
+if attempt > 1:
     batch_size = "4"
     tile = True
 

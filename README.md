@@ -1,4 +1,4 @@
-# STAT3D
+# STAT3Dß
 
 Spatial Trancriptomics Analysis Tool 3D.
 
@@ -157,6 +157,7 @@ STAT3D supports several configuration parameters (defined in `config.yaml`) that
 | `label_column` | Granularity of SingleR annotation it can be set as label.main or label.fine | label.main annotates the main cells function and phenotypes (e.g. CD8 T cells); label.fine defines specifically cells functions and phenotypes (e.g. Ehxausted CD8 T cells) |
 | `ref` | Name of the "celldex" reference dataset  | e.g. ´HumanPrimaryCellAtlasData´ / Datasets supported : HumanPrimaryCellAtlasData, BlueprintEncodeData, DatabaseImmuneCellExpressionData, MonacoImmuneData, NovershternHematopoieticData, MouseRNAseqData |
 | `memory_mb` | Optional memory floor (MB) applied to all rules. Set to 0 to use automatic sizing. | Example: `memory_mb: 32000` | Cap for RAM usage in Megabytes (e.g. `28000` on 32GB RAM). Prevents system freeze on local machines. Set to `0` for auto-scaling on clusters. |
+| `fallback_to_cpu` | If true, switches to CPU inference if GPU fails with "Out Of Memory" (OOM) error. | Recommended value: `true` |
 
 To change these values, edit `config.yaml` in the `workflow` folder and re-run the pipeline (for example: `snakemake --cores 1`). For most parameters, start with conservative values and adjust based on the visual quality of segmentation on a small test region.
 
@@ -228,27 +229,30 @@ The datsets used for the validation of STAT3D piepline can be found in the webpa
 
 
 ## Memory Management & Performance
+Quale fase é migliore?
 
-STAT3D implements an **adaptive memory system** designed to work efficiently on both personal laptops and HPC clusters.
+- STAT3D implements an adaptive hardware-aware system designed to maximize performance on HPC clusters while maintaining stability on personal laptops.
 
-### Adaptive Tiling Strategy
+- STAT3D implements an **adaptive memory system** designed to work efficiently on both personal laptops and HPC clusters.
 
-Processing large 3D images can require significant RAM. To handle this, the pipeline uses a smart retry mechanism:
+### Smart Retry Strategy
 
-1. **Attempt 1 (Fast Mode):** The pipeline attempts to process the image in memory without tiling. This is the fastest method but requires high RAM.
-2. **Automatic Fallback (Safe Mode):** If the first attempt fails due to an "Out Of Memory" (OOM) error, STAT3D automatically detects the failure and restarts the job using a **tiled approach**. This method is slower but uses significantly less memory (approx. 4-12 GB), ensuring completion even on limited hardware.
+The pipeline automatically adjusts its strategy if a job fails due to memory constraints:
+
+1. **Attempt 1 (Fast Mode):** Tries to process the full image in memory. Fastest, but high RAM/VRAM usage.
+2. **Attempt 2 (Safe Mode):** If Attempt 1 fails, it retries using a **Tiled** approach (significantly lower memory footprint).
+3. **Attempt 3 (CPU Fallback):** If GPU memory is insufficient even with tiling, the pipeline can automatically switch to **CPU inference** (if `fallback_to_cpu: true`), guaranteeing that your analysis finishes regardless of GPU limitations.
+
+*Note: You can track exact memory usage and execution time for each rule in the `results/benchmarks/` folder (TSV files).*
+
+### Configuration Guide
+To prevent system instability (especially on laptops), you can define a hard memory limit in your configuration file.
+
+* **On Laptops:** Set `memory_mb` in `config.yaml` to ~85% of your physical RAM (e.g., `28000` for a 32GB machine) to prevent system instability.
+* **On Clusters (Slurm):** Set `memory_mb: 0`. The pipeline will calculate requirements dynamically based on image size.
 
 **Note:** It is normal to see a "Job failed" message in the logs during the first attempt. Snakemake will automatically display `(retry 1)` and proceed with the tiled method.
 
-### Configuring Memory Limits (`memory_mb`)
-
-To prevent system instability (especially on laptops), you can define a hard memory limit in your configuration file.
-
-* **For Laptops/Workstations:** Set `memory_mb` to approximately **85-90%** of your total physical RAM to leave space for the OS.
-* *Example (32GB Laptop):* `memory_mb: 28000`
-
-
-* **For HPC Clusters (Slurm/Dardel):** Set `memory_mb: 0`. This enables automatic scaling where the pipeline requests the exact amount of RAM needed based on the image file size.
 
 ## Known Issues
 

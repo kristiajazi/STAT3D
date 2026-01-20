@@ -33,6 +33,8 @@ REQUIRED_CONFIG_KEYS = [
     "Z_SLICE_MICRON",
     "ref",
     "label_column",
+    "memory_mb",
+    "fallback_to_cpu",
 ]
 
 missing_keys = [key for key in REQUIRED_CONFIG_KEYS if key not in config]
@@ -74,14 +76,46 @@ def _mem_mb_from_file(path: str, multiplier: float, minimum: int) -> int:
     return max(minimum, int(size_mb * multiplier))
 
 
+#def _cellpose_mem_mb(image_path: str, attempt: int) -> int:
+#    is_3d = config.get("cellpose_do_3D", False)
+#    multiplier = 8 if is_3d else 4
+#    minimum = 16000 if is_3d else 6000
+#    mem_mb = _mem_mb_from_file(image_path, multiplier, minimum)
+#    if attempt and attempt > 1:
+#        mem_mb = int(mem_mb * 1.5)
+#    return mem_mb
+
+
 def _cellpose_mem_mb(image_path: str, attempt: int) -> int:
+    # 1. Retrieve parameters and physical limit from the config
     is_3d = config.get("cellpose_do_3D", False)
+    system_limit = int(config.get("memory_mb", 0)) # 0 significa "nessun limite/automatico"
+    
+    # 2. Logic Attempt 2+ (Tiling ON - Low Memory)
+    if attempt > 1:
+        # Cellpose in tile mode uses very little RAM (physically ~4GB).
+        # We ask for 12GB to be generous (Python overhead + library loading).
+        safe_ram = 12000 
+        
+        # BUT, if the user said "I only have 8GB" (system_limit=8000),
+        # we must honor that, otherwise the job will never start.
+        if system_limit > 0:
+            return min(safe_ram, system_limit)
+        return safe_ram
+
+    # 3. Logic Attempt 1 (Tiling OFF - High Memory)
+    # Ideal calculation based on file size
     multiplier = 8 if is_3d else 4
     minimum = 16000 if is_3d else 6000
-    mem_mb = _mem_mb_from_file(image_path, multiplier, minimum)
-    if attempt and attempt > 1:
-        mem_mb = int(mem_mb * 1.5)
-    return mem_mb
+    estimated_ram = _mem_mb_from_file(image_path, multiplier, minimum)
+    
+    # If there's a system limit, we try to ask for the maximum possible,
+    # hoping that's enough. If it's not enough, it will crash and go to attempt 2.
+    if system_limit > 0:
+        return min(estimated_ram, system_limit)
+        
+    return estimated_ram
+
 
 # Subdirectories for organized output
 preproc_dir = os.path.join(results_dir, "preprocessing")
