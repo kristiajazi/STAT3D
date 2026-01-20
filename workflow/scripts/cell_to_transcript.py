@@ -3,12 +3,8 @@
 import csv
 import numpy as np
 import pandas as pd
-import re
 import scipy.sparse as sparse
 import scipy.io as sio
-import subprocess
-import gzip
-import io
 
 # Inputs from Snakemake
 seg_data_path = snakemake.input["seg_data"]
@@ -29,87 +25,105 @@ NUC_EXP_SLICE = snakemake.params["nuc_exp_slice"]
 seg_data = np.load(seg_data_path, allow_pickle=True).item()
 mask_array = seg_data['masks']
 
-# Extract dimensions using regex
-m = re.match(r"\((?P<z_size>\d+), (?P<y_size>\d+), (?P<x_size>\d+)", str(mask_array.shape))
-mask_dims = {key: int(m.groupdict()[key]) for key in m.groupdict()}
+# Extract dimensions
+z_size, y_size, x_size = mask_array.shape
 
 # Load transcripts
 transcripts_df = pd.read_parquet(path=transcripts_path, columns=["feature_name", "x_location", "y_location", "z_location", "qv"])
 features = np.unique(transcripts_df["feature_name"])
 
-# Create lookup dictionary for feature indices
-feature_to_index = {val.encode('utf-8'): idx for idx, val in enumerate(features)}
-
 #Find the distinct labels in the array (extract cell IDs) and drop first row which is 0
 cells = np.unique(mask_array)[1:]
 
-#Create a result table with rows for features and cell IDs as columns 
-matrix = pd.DataFrame(0, index=range(len(features)), columns=cells, dtype=np.int32)
+# Map cell_id -> column index in the counts matrix
+max_cell_id = int(cells.max()) if len(cells) else 0
+cell_id_to_col = np.full(max_cell_id + 1, -1, dtype=np.int32)
+cell_id_to_col[cells] = np.arange(len(cells), dtype=np.int32)
 
-coordinates = []
+# Convert transcript columns to numpy arrays (preserve row order)
+feature_names = transcripts_df["feature_name"].to_numpy()
+x = transcripts_df["x_location"].to_numpy(dtype=np.float64, copy=False)
+y = transcripts_df["y_location"].to_numpy(dtype=np.float64, copy=False)
+z = transcripts_df["z_location"].to_numpy(dtype=np.float64, copy=False)
+qv = transcripts_df["qv"].to_numpy(dtype=np.float64, copy=False)
 
-# Main loop
-for idx, row in transcripts_df.iterrows():
-    if idx % 10000 == 0:
-        print(f"{idx} transcripts processed.")
+# QV filter matches the original behavior (skip < 20)
+keep = qv >= 20
+if not np.any(keep):
+    counts = np.zeros((len(features), len(cells)), dtype=np.int32)
+    last_x = np.zeros(max_cell_id + 1, dtype=np.int64)
+    last_y = np.zeros(max_cell_id + 1, dtype=np.int64)
+    last_z = np.zeros(max_cell_id + 1, dtype=np.int64)
+    last_seen = np.zeros(max_cell_id + 1, dtype=bool)
+else:
+    feature_names = feature_names[keep]
+    x = x[keep]
+    y = y[keep]
+    z = z[keep]
 
-    feature = str(row['feature_name']).encode('utf-8')
-    x = row['x_location']
-    y = row['y_location']
-    z = row['z_location']
-    qv = row['qv']
-
-    if qv < 20:
-        continue
-
-    #Convert transcript locations from physical space to image space
+    # Convert transcript locations from physical space to image space
     x_pixel = x / PIXEL_SIZE
     y_pixel = y / PIXEL_SIZE
     z_slice = z / Z_SLICE_MICRON
 
-    #Add guard rails to make sure lookup falls within image boundaries
-    x_pixel = min(max(0, x_pixel), mask_dims["x_size"] - 1)
-    y_pixel = min(max(0, y_pixel), mask_dims["y_size"] - 1)
-    z_slice = min(max(0, z_slice), mask_dims["z_size"] - 1)
-    
-    # Look up cell_id assigned by Cellpose. Array is in ZYX order
-    cell_id = mask_array[round(z_slice)][round(y_pixel)][round(x_pixel)]
+    # Guard rails: clamp to image bounds
+    x_pixel = np.clip(x_pixel, 0, x_size - 1)
+    y_pixel = np.clip(y_pixel, 0, y_size - 1)
+    z_slice = np.clip(z_slice, 0, z_size - 1)
 
-    if cell_id == 0:
-        # Optionally implement neighborhood search here if desired
-        z_neighborhood_min_slice = max(0, round(z_slice-NUC_EXP_SLICE))
-        z_neighborhood_max_slice = min(mask_dims["z_size"], round(z_slice+NUC_EXP_SLICE+1))
-        y_neighborhood_min_pixel = max(0, round(y_pixel-NUC_EXP_PIXEL))
-        y_neighborhood_max_pixel = min(mask_dims["y_size"], round(y_pixel+NUC_EXP_PIXEL+1))
-        x_neighborhood_min_pixel = max(0, round(x_pixel-NUC_EXP_PIXEL))
-        x_neighborhood_max_pixel = min(mask_dims["x_size"], round(x_pixel+NUC_EXP_PIXEL+1))
+    # Match Python's round() (bankers rounding) via np.rint
+    x_round = np.rint(x_pixel).astype(np.int64)
+    y_round = np.rint(y_pixel).astype(np.int64)
+    z_round = np.rint(z_slice).astype(np.int64)
 
-    if cell_id != 0:
-        matrix.at[feature_to_index[feature], cell_id] += 1
-        coordinates.append((round(x_pixel), round(y_pixel), round(z_slice), cell_id))
+    # Look up cell_id assigned by Cellpose (ZYX)
+    cell_id = mask_array[z_round, y_round, x_round].astype(np.int64, copy=False)
+    valid = cell_id != 0
 
-# Extract coordinates 
-coordinates_df = pd.DataFrame(coordinates, columns=["x", "y", "z", "cell_id"])
-#coordinates_df.to_csv("cell_coordinates_new.tsv.gz", sep='\t', index=False, compression='gzip')
+    # Counts matrix
+    counts = np.zeros((len(features), len(cells)), dtype=np.int32)
+    if np.any(valid):
+        feat_idx = np.searchsorted(features, feature_names).astype(np.int64)
+        col_idx = cell_id_to_col[cell_id].astype(np.int64)
 
-# Write sparse matrix
-sparse_mat = sparse.coo_matrix(matrix.values)
-sio.mmwrite(matrix_out, sparse_mat)
+        feat_idx = feat_idx[valid]
+        col_idx = col_idx[valid]
+        np.add.at(counts, (feat_idx, col_idx), 1)
 
-# Build coordinate map for barcodes
-cell_coordinates = {
-    row['cell_id']: (row['x'], row['y'], row['z']) for _, row in coordinates_df.iterrows()
-}
+    # Barcode coordinates: preserve "last transcript encountered" semantics.
+    last_x = np.zeros(max_cell_id + 1, dtype=np.int64)
+    last_y = np.zeros(max_cell_id + 1, dtype=np.int64)
+    last_z = np.zeros(max_cell_id + 1, dtype=np.int64)
+    last_seen = np.zeros(max_cell_id + 1, dtype=bool)
+    if np.any(valid):
+        valid_pos = np.nonzero(valid)[0].astype(np.int64)
+        valid_cell = cell_id[valid]
+
+        last_pos = np.full(max_cell_id + 1, -1, dtype=np.int64)
+        np.maximum.at(last_pos, valid_cell, valid_pos)
+
+        present = last_pos >= 0
+        last_seen[present] = True
+        present_cells = np.nonzero(present)[0]
+        last_x[present_cells] = x_round[last_pos[present_cells]]
+        last_y[present_cells] = y_round[last_pos[present_cells]]
+        last_z[present_cells] = z_round[last_pos[present_cells]]
 
 # Write barcodes.tsv
 with open(barcodes_out, 'w', newline='') as tsvfile:
     writer = csv.writer(tsvfile, delimiter='\t', lineterminator='\n')
     for cell in cells:
-        if cell in cell_coordinates:
-            x, y, z = cell_coordinates[cell]
+        if last_seen[cell]:
+            x = last_x[cell]
+            y = last_y[cell]
+            z = last_z[cell]
             writer.writerow([f"cell_{cell}", x, y, z])
         else:
             writer.writerow([f"cell_{cell}", "NA", "NA", "NA"])
+
+# Write sparse matrix
+sparse_mat = sparse.coo_matrix(counts)
+sio.mmwrite(matrix_out, sparse_mat)
 
 # Write features.tsv
 with open(features_out, 'w', newline='') as tsvfile:

@@ -23,3 +23,26 @@ Make the README quickstart run the toy dataset end-to-end (CPU) using config_toy
 Replace any “download via LSF” with a portable downloader (curl/wget) + checksums, ideally pointing to Zenodo/OSF (DOI) even if you keep the 241 MB toy data in-repo.
 Add a small CI job that runs a short CPU test and asserts a handful of output files exist.
 Add a citation/release/archival story (GitHub release + Zenodo DOI; container tag/digest referenced in the paper).
+
+Badges are useful; big “banner” images are usually unnecessary.
+
+Worth adding (high signal, low noise):
+
+GitHub Actions badge for the new smoke test (proves “fresh-clone DAG builds”).
+GitHub Actions badge for your Docker build/push workflow.
+License badge.
+Optional: container image badge (GHCR) and a “latest release” badge once you start tagging releases.
+Usually not worth it:
+
+Large header banners/hero images: they add scroll, can look promotional, and don’t help reproducibility. For Nature CS reviewers, “can I run it?” beats branding.
+If you want, add a small badge block right under the title in README.md. Example pattern:
+
+Smoke Test (Dry Run) badge → points to smoke-dry-run.yml
+Docker Build and Push badge → points to docker-build.yml
+License badge → points to LICENSE
+If you tell me your GitHub org/repo name (and whether it’s public yet), I can generate the exact badge URLs and patch README.md cleanly.
+
+Data availability + “no LSF required” download/prepare flow.
+Add code/data availability statements + pin the “paper container” identifier.
+Address cell_to_transcript.py scalability (sparse + vectorized counting).
+Optional: promote CI from dry-run → minimal real run (maybe scheduled, not per-PR).
