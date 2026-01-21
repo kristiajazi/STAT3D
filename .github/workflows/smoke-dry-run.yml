@@ -1,0 +1,82 @@
+name: Smoke Test (Dry Run)
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'workflow/**'
+      - 'configs/**'
+      - 'toy_dataset/**'
+      - '.github/workflows/smoke-dry-run.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'workflow/**'
+      - 'configs/**'
+      - 'toy_dataset/**'
+      - '.github/workflows/smoke-dry-run.yml'
+
+jobs:
+  snakemake-dry-run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install Snakemake (minimal)
+        run: |
+          python -m pip install --upgrade pip
+          # Pin snakemake + PuLP to avoid solver API mismatches on GitHub runners.
+          # Snakemake 7 expects `pulp.list_solvers`, which was removed in PuLP >= 2.8.
+          python -m pip install 'snakemake==7.32.4' 'PuLP==2.7.0' pandas pyyaml
+
+      - name: Create CI config
+        run: |
+          cat > ci_config.yaml <<'YAML'
+          # CI-only config: uses repo-relative toy dataset paths
+          directory: test_run
+
+          # Required keys
+          INPUT_TIFF: toy_dataset/TC70_cropped.ome.tif
+          LEVEL: 0
+
+          CELL_EXPANSION: 2.0
+          SIGMA: 1.0
+          THRESHOLD: 30.0
+          MIN_AREA: 10.0
+          MAX_AREA: 1000.0
+          BACKGROUND_RADIUS: 10.0
+          MEDIAN_RADIUS: 0.0
+
+          transcripts_df: toy_dataset/transcriptsTC070.parquet
+
+          PIXEL_SIZE: 0.85
+          Z_SLICE_MICRON: 3
+
+          ref: HumanPrimaryCellAtlasData
+          label_column: label.main
+
+          # New required parameters
+          memory_mb: 0
+          fallback_to_cpu: true
+          cellpose_use_gpu: false
+
+          # Optional parameters used by some rules
+          sample_size: 15000
+          cellpose_do_3D: false
+          YAML
+
+      - name: Snakemake dry-run
+        run: |
+          snakemake \
+            --snakefile workflow/Snakefile \
+            --configfile ci_config.yaml \
+            --cores 1 \
+            -n

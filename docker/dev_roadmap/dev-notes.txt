@@ -1,3 +1,48 @@
 - test the other reference databases
 - embedding toy_dataset inside the docker image or automatic download of the files (?)
-- look into the copilot code review (pull request #3)
+
+Standards:
+- Benchmark artifacts: include a small table or summary in the README (or docs/) linking to benchmark TSVs and how to generate the Snakemake HTML report.
+- Reproducibility: ensure pixi.lock is committed and Docker build uses --frozen.
+- Config schema: add a lightweight validation (YAML schema or explicit checks) so invalid configs fail fast.
+- Tests: one end‑to‑end toy dataset run in CI (or a documented local test) with expected outputs.
+- Resource reporting: document --report usage and where results/benchmarks are produced.
+
+To be deleted:
+- `Z_SLICE_A` and `Z_SLICE_B` 
+- `cellpose_img_filter`
+
+Fresh-clone reproducibility is currently brittle: the README encourages running with config.yaml, but your Snakefile requires memory_mb + fallback_to_cpu and that config file doesn’t define them, and it also points to input files not shipped with the repo. A reviewer trying the “obvious” path will hit a config error or missing inputs (bad first impression).
+Toy/test data acquisition must not depend on site infrastructure (LSF): anything requiring bsub/cluster access is a major red flag for journals because reviewers/editors expect a “works anywhere” validation path. You do have a toy dataset in-repo (≈241 MB total), but the public-facing quickstart doesn’t clearly use it.
+Missing explicit Code/Data availability packaging: Nature-family papers typically expect (in the manuscript + ideally in the repo) a clear “Code availability” and “Data availability” statement with stable identifiers (release tag + archived DOI for code, DOI for data, and ideally the container digest/tag used for the paper). Right now README has validation dataset links, but not a reproducibility package story.
+No automated “smoke test” CI beyond Docker build: not always mandatory, but for computational pipelines it’s an easy reason for a reviewer to doubt reproducibility. A minimal CPU-only workflow run on the toy dataset that checks a few key outputs would help a lot.
+Scalability risk in transcript→matrix step: cell_to_transcript.py constructs a dense pandas matrix and iterates row-by-row; if the manuscript claims scalability to large Xenium 3D datasets, this can be a reviewer attack point (memory/time blow-ups).
+Scope clarity (Xenium-only): this isn’t inherently rejection-worthy, but the manuscript must be very explicit about supported formats (your README already frames inputs as Xenium OME-TIFF + Xenium parquet). Reviewers will push back if claims sound general but implementation is platform-specific.
+
+Make the README quickstart run the toy dataset end-to-end (CPU) using config_toy_dataset_2D_CPU.yaml, and either update config.yaml to be valid or stop recommending it.
+Replace any “download via LSF” with a portable downloader (curl/wget) + checksums, ideally pointing to Zenodo/OSF (DOI) even if you keep the 241 MB toy data in-repo.
+Add a small CI job that runs a short CPU test and asserts a handful of output files exist.
+Add a citation/release/archival story (GitHub release + Zenodo DOI; container tag/digest referenced in the paper).
+
+Badges are useful; big “banner” images are usually unnecessary.
+
+Worth adding (high signal, low noise):
+
+GitHub Actions badge for the new smoke test (proves “fresh-clone DAG builds”).
+GitHub Actions badge for your Docker build/push workflow.
+License badge.
+Optional: container image badge (GHCR) and a “latest release” badge once you start tagging releases.
+Usually not worth it:
+
+Large header banners/hero images: they add scroll, can look promotional, and don’t help reproducibility. For Nature CS reviewers, “can I run it?” beats branding.
+If you want, add a small badge block right under the title in README.md. Example pattern:
+
+Smoke Test (Dry Run) badge → points to smoke-dry-run.yml
+Docker Build and Push badge → points to docker-build.yml
+License badge → points to LICENSE
+If you tell me your GitHub org/repo name (and whether it’s public yet), I can generate the exact badge URLs and patch README.md cleanly.
+
+Data availability + “no LSF required” download/prepare flow.
+Add code/data availability statements + pin the “paper container” identifier.
+Address cell_to_transcript.py scalability (sparse + vectorized counting).
+Optional: promote CI from dry-run → minimal real run (maybe scheduled, not per-PR).

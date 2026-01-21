@@ -41,19 +41,20 @@ CUSTOM CONFIGURATION:
             -v \$(pwd)/toy_dataset:/data:ro \\
             -v \$(pwd)/configs/config_toy_dataset_2D_CPU.yaml:/config.yaml:ro \\
             ghcr.io/kristiajazi/stat3d:latest --configfile /config.yaml \\
-            --config Z_SLICES=15 CELLPOSE_DIAMETER=30 --cores 4
+            --config LEVEL=1 cellpose_use_gpu=false --cores 4
 
 CONFIG PARAMETERS:
     Required in config.yaml:
     - INPUT_TIFF: Path to morphology image (OME-TIFF)
     - transcripts_df: Path to transcript data (Parquet)
     - directory: Working directory for outputs
+    - memory_mb: Memory floor (MB). Use 0 for automatic sizing.
+    - fallback_to_cpu: If true, attempt CPU fallback on GPU OOM.
+    - cellpose_use_gpu: Enable GPU usage for Cellpose (requires NVIDIA host).
     
     Optional:
     - ref: SingleR reference dataset (see SINGLER REFERENCES below)
     - label_column: "label.main" or "label.fine" for annotation granularity
-    - Z_SLICES: Number of focal planes to process
-    - CELLPOSE_DIAMETER: Expected cell diameter in pixels
 
 SingleR REFERENCES:
     STAT3D supports 6 celldex reference datasets for cell type annotation:

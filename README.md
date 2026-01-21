@@ -19,11 +19,11 @@ STAT3D is a tool designed for the analysis of spatial transcriptomics data in 3D
 
 ## Installation
 
-0.  Download the folder named "workflow" from STAT3D repository and save it in the same direcotry path which contains the morphology.ome image and transcript.parquet file
+STAT3D is typically run via the Docker container. Provide your own config file (YAML) to run the workflow; example configs are in `./configs/`.
 
 1.  Install Docker Desktop through the official webpage: https://docs.docker.com/desktop/
 
-2.  Download STAT3D docker image by running the following command in the docker desktop terminal:\
+2.  Download STAT3D docker image by running the following command in the Docker terminal:
 
 ``` bash
 docker pull ghcr.io/kristiajazi/stat3d:latest
@@ -34,10 +34,28 @@ docker pull ghcr.io/kristiajazi/stat3d:latest
 To run the pipeline with a configuration file:
 
 ``` bash
-docker run --platform linux/amd64 --gpus all -it \
-  -v C:/your/directory/path:/stat3d \
+docker run --platform linux/amd64 --rm \
+  -v /path/to/my_data:/data \
   ghcr.io/kristiajazi/stat3d:latest \
-  --configfile workflow/config.yaml
+  --configfile /data/config.yaml --cores 4
+```
+
+Notes:
+
+- The workflow is embedded in the container. You only need to mount your input/output folder and pass a config via `--configfile`.
+- Use one of the example configs in `./configs/` as a starting point (including toy dataset configs).
+
+### Quickstart (toy dataset, fresh clone)
+
+From the repository root:
+
+```bash
+docker run --platform linux/amd64 --rm \
+  -v $(pwd)/test_run:/test \
+  -v $(pwd)/toy_dataset:/data:ro \
+  -v $(pwd)/configs/config_toy_dataset_2D_CPU.yaml:/config.yaml:ro \
+  ghcr.io/kristiajazi/stat3d:latest \
+  --configfile /config.yaml --cores 4
 ```
 
 ### Interactive mode
@@ -87,6 +105,7 @@ STAT3D organizes all its outputs in a `results/` folder within your specified wo
 | `results/counts/`        | Gene expression matrices in 10x-compatible format (`matrix.mtx.gz`, etc.). |
 | `results/analysis/`      | Downstream analysis objects (`Seurat` and `SingleR` objects in `.rds` format). |
 | `results/plots/`         | All generated QC plots and spatial visualizations in `.pdf` format. |
+| `results/benchmarks/`    | Per-rule runtime/CPU benchmark TSV files and tool logs for profiling. |
 
 ### Key Output Files
 
@@ -116,32 +135,49 @@ STAT3D organizes all its outputs in a `results/` folder within your specified wo
 | `features.tsv` | `counts/` | TSV file containing the gene list needed to generate Seurat objects. It is subsequently gzipped (`features.tsv.gz`) by the pipeline for use with the `Read10x` function. |
 | `barcodes.tsv` | `counts/` | TSV file containing cell locations (`X, Y, Z`) for every `cell_id`. It is subsequently gzipped (`barcodes.tsv.gz`) by the pipeline for use with the `Read10x` function. |
 
+### Benchmark Files
+
+| File | Subfolder | Description |
+|------|-----------|-------------|
+| `compute_laplacian.tsv` | `benchmarks/` | Runtime and CPU usage for Laplacian score computation. |
+| `process_tiff.tsv` | `benchmarks/` | Runtime and CPU usage for TIFF downsampling/stacking. |
+| `run_qupath_analysis.tsv` | `benchmarks/` | Runtime and CPU usage for QuPath nucleus detection. |
+| `image_measurements.tsv` | `benchmarks/` | Runtime and CPU usage for the nuclear measurement summary. |
+| `run_cellpose.tsv` | `benchmarks/` | Runtime and CPU usage for Cellpose segmentation. |
+| `cell_to_transcript.tsv` | `benchmarks/` | Runtime and CPU usage for matrix generation from transcripts. |
+| `seurat_spatial_object.tsv` | `benchmarks/` | Runtime and CPU usage for Seurat/SingleR analysis. |
+| `workflow_resource_usage.txt` | `benchmarks/` | End-to-end wall-clock time and peak RAM usage for the full run. |
+| `run_cellpose_<image>.log` | `benchmarks/` | Per-image Cellpose settings, command line, and timestamps. |
+
+
 ## Parameters
 
-STAT3D supports several configuration parameters (defined in `config.yaml`) that control image extraction, filtering, and segmentation. Below is a compact reference table for the most commonly used parameters.
+STAT3D supports several configuration parameters (defined in your user-provided YAML config file) that control image extraction, filtering, and segmentation. Below is a compact reference table for the most commonly used parameters.
 
 | Parameter | Description | Example / Notes |
 |------------------------|------------------------|------------------------|
-| INPUT_TIFF | name of your image in the stat3d container | e.g. stst3d/name_of_your_morphology.ome.tiff image / Recommended path : ´stat3d/morphology_X.ome.tif´|
-| Level | determine the level that will be extracted from the pyramydal image (morphology.ome.tif) | Integer (e.g. `0`, `1`) / Recommended level: 2 |
-| Z_SLICE_A and Z_SLICE_B | determine the two z-stacks that will be extracted from the single pyramidal level | Integer z indices (e.g. `4`, `5`). The optimal z_A and z_B are automatically calculated by STAT3D, dispalyed as message in the Docker terminal and inputed in the wrokflow. However, they can be overwritten with this parameter |
-| CELL_EXPANSION | define cell size, based on detected nucleus objects  | Integer (pixels) |
-| SIGMA | control /reduce the noise effect | Float (e.g. `1.0`) |
-| THRESHOLD | intensity parameter | Float or int |
-| MIN_AREA | define the range of nucleus size | Integer |
-| MAX_AREA | define the range of nucleus size | Integer |
-| BACKGROUND_RADIUS | if background subtraction is considered, 0 equals no background subtraction | Integer (pixels) |
-| MEDIAN_RADIUS | reduce image texture | Integer (pixels) |
-| sample_size | number of nuclei used to calculate all the parameters | Integer (e.g. `2000`) / Recommended number : 15000 |
-| cellpose_use_gpu | enable of GPU during 3D Cellpose segmentation. If set as flase the segmentation runs in CPU | Boolean (e.g. ´true´ or ´false´) / Recommended : ´true´ for morphology.ome.tiff images smaller than 3 GB |
-| cellpose_img_filter|  name the image processed by Cellpose and produced after z-stack extractions. This name must be written before the pipeline starts. | e.g. ´morphology_X.ome_STAT3D´ / If the INPUT_TIFF is ´morphology_X.ome.tif´, the parameter needed in this slot is ´morphology_X.ome_STAT3D´ |
-| transcripts_df | name of the transcripts.parquet file provided by 10x. This name must be written before the pipeline starts. | e.g. ´/stat3d/transcripts.parquet´ |
-| PIXEL_SIZE | pixel size at various levels of the image pyramid | Integer (e.g. `0.85` for level 2)/ Recommended pixel sizes by 10x are listed in Table 1 |
-| Z_SLICE_MICRON | spacing size between each z-slice | Integer (e.g. `3` )/ 10x uses 3 microns. Do not change it if 10x hasn't released a new image format |
-| label_column | Granularity of SingleR annotation it can be set as label.main or label.fine | label.main annotates the main cells function and phenotypes (e.g. CD8 T cells); label.fine defines specifically cells functions and phenotypes (e.g. Ehxausted CD8 T cells) |
-| ref | Name of the "celldex" reference dataset  | e.g. ´HumanPrimaryCellAtlasData´ / Datasets supported : HumanPrimaryCellAtlasData, BlueprintEncodeData, DatabaseImmuneCellExpressionData, MonacoImmuneData, NovershternHematopoieticData, MouseRNAseqData |
+| `INPUT_TIFF` | name of your image in the stat3d container | e.g. stst3d/name_of_your_morphology.ome.tiff image / Recommended path : ´stat3d/morphology_X.ome.tif´|
+| `Level` | determine the level that will be extracted from the pyramydal image (morphology.ome.tif) | Integer (e.g. `0`, `1`) / Recommended level: 2 |
+| `Z_SLICE_A` and `Z_SLICE_B` | determine the two z-stacks that will be extracted from the single pyramidal level | Integer z indices (e.g. `4`, `5`). The optimal z_A and z_B are automatically calculated by STAT3D, dispalyed as message in the Docker terminal and inputed in the wrokflow. However, they can be overwritten with this parameter |
+| `CELL_EXPANSION` | define cell size, based on detected nucleus objects  | Integer (pixels) |
+| `SIGMA` | control /reduce the noise effect | Float (e.g. `1.0`) |
+| `THRESHOLD` | intensity parameter | Float or int |
+| `MIN_AREA` | define the range of nucleus size | Integer |
+| `MAX_AREA` | define the range of nucleus size | Integer |
+| `BACKGROUND_RADIUS` | if background subtraction is considered, 0 equals no background subtraction | Integer (pixels) |
+| `MEDIAN_RADIUS` | reduce image texture | Integer (pixels) |
+| `sample_size` | number of nuclei used to calculate all the parameters | Integer (e.g. `2000`) / Recommended number : 15000 |
+| `cellpose_use_gpu` | enable of GPU during 3D Cellpose segmentation. If set as flase the segmentation runs in CPU | Boolean (e.g. ´true´ or ´false´) / Recommended : ´true´ for morphology.ome.tiff images smaller than 3 GB |
+| `cellpose_img_filter` |  name the image processed by Cellpose and produced after z-stack extractions. This name must be written before the pipeline starts. | e.g. ´morphology_X.ome_STAT3D´ / If the INPUT_TIFF is ´morphology_X.ome.tif´, the parameter needed in this slot is ´morphology_X.ome_STAT3D´ |
+| `transcripts_df` | name of the transcripts.parquet file provided by 10x. This name must be written before the pipeline starts. | e.g. ´/stat3d/transcripts.parquet´ |
+| `PIXEL_SIZE` | pixel size at various levels of the image pyramid | Integer (e.g. `0.85` for level 2)/ Recommended pixel sizes by 10x are listed in Table 1 |
+| `Z_SLICE_MICRON` | spacing size between each z-slice | Integer (e.g. `3` )/ 10x uses 3 microns. Do not change it if 10x hasn't released a new image format |
+| `label_column` | Granularity of SingleR annotation it can be set as label.main or label.fine | label.main annotates the main cells function and phenotypes (e.g. CD8 T cells); label.fine defines specifically cells functions and phenotypes (e.g. Ehxausted CD8 T cells) |
+| `ref` | Name of the "celldex" reference dataset  | e.g. ´HumanPrimaryCellAtlasData´ / Datasets supported : HumanPrimaryCellAtlasData, BlueprintEncodeData, DatabaseImmuneCellExpressionData, MonacoImmuneData, NovershternHematopoieticData, MouseRNAseqData |
+| `memory_mb` | Optional memory floor (MB) applied to all rules. Set to 0 to use automatic sizing. | Example: `memory_mb: 32000` | Cap for RAM usage in Megabytes (e.g. `28000` on 32GB RAM). Prevents system freeze on local machines. Set to `0` for auto-scaling on clusters. |
+| `fallback_to_cpu` | If true, switches to CPU inference if GPU fails with "Out Of Memory" (OOM) error. | Recommended value: `true` |
 
-To change these values, edit `config.yaml` in the `workflow` folder and re-run the pipeline (for example: `snakemake --cores 1`). For most parameters, start with conservative values and adjust based on the visual quality of segmentation on a small test region.
+To change these values, edit your own YAML config file (start from one of the examples in `./configs/`) and re-run the pipeline with `--configfile /path/to/your_config.yaml`. For most parameters, start with conservative values and adjust based on the visual quality of segmentation on a small test region.
 
 ## Table 1. Pixel Size at various level (by 10x Genomics)
 The table displays the pixel sizes associated with each pyramidal level in images generated with Xenium platform.
@@ -155,12 +191,12 @@ The table displays the pixel sizes associated with each pyramidal level in image
 4 | 3.4
 5 | 6.8
 
-### Example `config.yaml` snippet
+### Example config snippet
 
-Below is a minimal example of `config.yaml` showing the most commonly tuned parameters. Copy this into `workflow/config.yaml` and adjust the values to your dataset and microscope settings.
+Below is a minimal example showing the most commonly tuned parameters. Save it as a new YAML file (for example `my_config.yaml`) and adjust the values to your dataset and microscope settings.
 
 ``` yaml
-# workflow/config.yaml (example)
+# my_config.yaml (example)
 Level: 0
 Z_SLICE_A: 10
 Z_SLICE_B: 12
@@ -180,12 +216,29 @@ Tip: change a few parameters and run the pipeline to first to visually inspect s
 
 To run STAT3D, use the following commands:
 
-```bash=
+```bash
 docker pull ghcr.io/kristiajazi/stat3d:latest # only once when using STAT3D for the first time
-docker run --platform linux/amd64 --gpus all -it -v C:/your/directory/path:/stat3d ghcr.io/kristiajazi/stat3d:latest
-cd /stat3d/workflow
-snakemake --cores 1
+
+# Run with an explicit config file
+docker run --platform linux/amd64 --rm \
+  -v /path/to/my_data:/data \
+  ghcr.io/kristiajazi/stat3d:latest \
+  --configfile /data/config.yaml --cores 4
 ```
+
+## Benchmarking and Reports
+
+STAT3D writes per-rule benchmarks to `results/benchmarks/` for computationally intensive steps (e.g., Cellpose, QuPath, and Seurat). To generate a full HTML report with runtime summaries, run:
+
+```bash
+# ensure the folder exists
+mkdir -p /path/to/workdir/results/benchmarks
+
+# use an absolute path for the report
+snakemake --cores 4 --report /path/to/workdir/results/benchmarks/stat3d-report.html
+```
+
+The HTML report includes execution times, rule graphs, and the benchmark tables for profiling and reproducibility.
 
 ## STAT3D validation datasets
 The datsets used for the validation of STAT3D piepline can be found in the webpages listed below.
@@ -194,6 +247,32 @@ The datsets used for the validation of STAT3D piepline can be found in the webpa
 |------------------------|------------------------|
 | HCP | https://www.10xgenomics.com/datasets/pancreatic-cancer-with-xenium-human-multi-tissue-and-cancer-panel-1-standard |
 | KCP | https://www.10xgenomics.com/datasets/human-kidney-preview-data-xenium-human-multi-tissue-and-cancer-panel-1-standard|
+
+
+## Memory Management & Performance
+Quale fase é migliore?
+
+- STAT3D implements an adaptive hardware-aware system designed to maximize performance on HPC clusters while maintaining stability on personal laptops.
+
+- STAT3D implements an **adaptive memory system** designed to work efficiently on both personal laptops and HPC clusters.
+
+### Smart Retry Strategy
+
+The pipeline automatically adjusts its strategy if a job fails due to memory constraints:
+
+1. **Attempt 1 (Fast Mode):** Tries to process the full image in memory. Fastest, but high RAM/VRAM usage.
+2. **Attempt 2 (Safe Mode):** If Attempt 1 fails, it retries using a **Tiled** approach (significantly lower memory footprint).
+3. **Attempt 3 (CPU Fallback):** If GPU memory is insufficient even with tiling, the pipeline can automatically switch to **CPU inference** (if `fallback_to_cpu: true`), guaranteeing that your analysis finishes regardless of GPU limitations.
+
+*Note: You can track exact memory usage and execution time for each rule in the `results/benchmarks/` folder (TSV files).*
+
+### Configuration Guide
+To prevent system instability (especially on laptops), you can define a hard memory limit in your configuration file.
+
+* **On Laptops:** Set `memory_mb` in `config.yaml` to ~85% of your physical RAM (e.g., `28000` for a 32GB machine) to prevent system instability.
+* **On Clusters (Slurm):** Set `memory_mb: 0`. The pipeline will calculate requirements dynamically based on image size.
+
+**Note:** It is normal to see a "Job failed" message in the logs during the first attempt. Snakemake will automatically display `(retry 1)` and proceed with the tiled method.
 
 
 ## Known Issues
@@ -220,3 +299,5 @@ If the GPU is available but the error persists, consider running STAT3D without 
 ``` bash
 From config.yaml file : "cellpose_use_gpu: false"
 ```
+
+*Update:* While the pipeline now automatically handles system RAM (CPU) issues via the adaptive tiling strategy described above, GPU VRAM limits may still occur with very large 3D volumes. If CUDA errors persist, the pipeline allows switching to CPU-only mode by setting `cellpose_use_gpu: false` in the config.
