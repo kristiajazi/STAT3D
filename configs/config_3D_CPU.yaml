@@ -40,7 +40,6 @@ sample_size: 15000
 
 #Cellpose
 cellpose_use_gpu: false
-cellpose_img_filter : morphology.ome_STAT3D
 cellpose_do_3D: true
 
 #Cell-to-transcript files and parameters
