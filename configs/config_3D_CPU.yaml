@@ -15,9 +15,16 @@ fallback_to_cpu: true
 
 #z extraction for image reduction
 INPUT_TIFF: /stat3d/morphology.ome.tif
-#Z_SLICE_A: 6
-#Z_SLICE_B: 7
 LEVEL: 2
+#Z_1: 
+#Z_2: 
+#Z_3: 
+#Z_4:
+#Z_5:
+#Z_6:
+#Z_STACK: ALL
+#Laplacian: HIGHEST 
+#NUCLEAR_EXPANSION_SET: 5.0 
 
 # QuPath parameters
 CELL_EXPANSION: 2.0
@@ -38,6 +45,7 @@ cellpose_do_3D: true
 
 #Cell-to-transcript files and parameters
 transcripts_df: /stat3d/transcripts.parquet
+#nuclei_diameter: 30
 
 #SingleR Annotation
 ref : HumanPrimaryCellAtlasData
