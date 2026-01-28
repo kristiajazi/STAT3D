@@ -4,10 +4,7 @@ import os
 import subprocess
 from datetime import datetime, timezone
 
-import pandas as pd
-
 image_path = snakemake.input["image"]
-diameter_csv = snakemake.input["diameter_csv"]
 seg_npy = snakemake.output["seg_npy"]
 
 attempt = int(os.environ.get("SNAKEMAKE_ATTEMPT", "1"))
@@ -18,10 +15,8 @@ segmentation_dir = os.path.dirname(seg_npy)
 results_dir = os.path.dirname(segmentation_dir)
 benchmark_dir = os.path.join(results_dir, "benchmarks")
 
-if "diameter" in snakemake.params:
-    diameter = snakemake.params["diameter"]
-else:
-    diameter = pd.read_csv(diameter_csv)["Average_Diameter"].iloc[0]
+# Diameter MUST come from Snakemake params
+diameter = float(snakemake.params["diameter"])
 
 use_gpu_config = bool(snakemake.config.get("cellpose_use_gpu", False))
 do_3d = bool(snakemake.config.get("cellpose_do_3D", False))
@@ -39,7 +34,7 @@ elif attempt == 2:
     tile = True
 elif attempt >= 3:
     if use_gpu_config and fallback_to_cpu:
-        print(f"[cellpose] Attempt {attempt}: CPU Fallback activated.")
+        print(f"[cellpose] Attempt {attempt}: CPU fallback activated.")
         use_gpu = False
     else:
         print(f"[cellpose] Attempt {attempt}: Tiled mode. GPU={use_gpu}")
@@ -49,7 +44,8 @@ elif attempt >= 3:
 print(
     f"[cellpose] attempt={attempt} "
     f"batch_size={batch_size} tile={tile} "
-    f"do_3D={do_3d} use_gpu={use_gpu}"
+    f"do_3D={do_3d} use_gpu={use_gpu} "
+    f"diameter={diameter}"
 )
 
 os.makedirs(benchmark_dir, exist_ok=True)
@@ -58,7 +54,8 @@ with open(log_path, "a", encoding="utf-8") as log_file:
     log_file.write(
         f"attempt={attempt} "
         f"batch_size={batch_size} tile={tile} "
-        f"do_3D={do_3d} use_gpu={use_gpu}\n"
+        f"do_3D={do_3d} use_gpu={use_gpu} "
+        f"diameter={diameter}\n"
     )
 
 cmd = [

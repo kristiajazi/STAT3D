@@ -15,7 +15,7 @@ fallback_to_cpu: true
 
 #z extraction for image reduction
 INPUT_TIFF: /stat3d/TC70_cropped.ome.tif
-LEVEL: 2
+LEVEL: 0
 #Z_1: 
 #Z_2: 
 #Z_3: 

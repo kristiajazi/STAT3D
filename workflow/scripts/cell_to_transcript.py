@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import scipy.sparse as sparse
 import scipy.io as sio
+import scipy.ndimage as ndimage
 
 # Inputs from Snakemake
 seg_data_path = snakemake.input["seg_data"]
@@ -47,6 +48,9 @@ y = transcripts_df["y_location"].to_numpy(dtype=np.float64, copy=False)
 z = transcripts_df["z_location"].to_numpy(dtype=np.float64, copy=False)
 qv = transcripts_df["qv"].to_numpy(dtype=np.float64, copy=False)
 
+zero_before_search = 0
+zero_after_search = 0
+
 # QV filter matches the original behavior (skip < 20)
 keep = qv >= 20
 if not np.any(keep):
@@ -80,6 +84,26 @@ else:
     cell_id = mask_array[z_round, y_round, x_round].astype(np.int64, copy=False)
     valid = cell_id != 0
 
+    # Neighborhood rescue for unassigned transcripts (vectorized)
+    zero_before_search = int(np.count_nonzero(~valid))
+    if zero_before_search > 0 and NUC_EXP_PIXEL > 0:
+        slice_to_pixel = Z_SLICE_MICRON / PIXEL_SIZE
+        dist, indices = ndimage.distance_transform_edt(
+            mask_array == 0,
+            sampling=(slice_to_pixel, 1.0, 1.0),
+            return_indices=True,
+        )
+        dist_at = dist[z_round, y_round, x_round]
+        rescue = (~valid) & (dist_at < NUC_EXP_PIXEL)
+        if np.any(rescue):
+            z_nn = indices[0][z_round[rescue], y_round[rescue], x_round[rescue]]
+            y_nn = indices[1][z_round[rescue], y_round[rescue], x_round[rescue]]
+            x_nn = indices[2][z_round[rescue], y_round[rescue], x_round[rescue]]
+            cell_id = cell_id.copy()
+            cell_id[rescue] = mask_array[z_nn, y_nn, x_nn]
+            valid = cell_id != 0
+    zero_after_search = int(np.count_nonzero(~valid))
+
     # Counts matrix
     counts = np.zeros((len(features), len(cells)), dtype=np.int32)
     if np.any(valid):
@@ -108,6 +132,11 @@ else:
         last_x[present_cells] = x_round[last_pos[present_cells]]
         last_y[present_cells] = y_round[last_pos[present_cells]]
         last_z[present_cells] = z_round[last_pos[present_cells]]
+
+if zero_before_search > 0:
+    print(f"Points with cell_id == 0 before neighborhood search: {zero_before_search}")
+    print(f"Points with cell_id == 0 after neighborhood search: {zero_after_search}")
+    print(f"Points rescued by neighborhood search: {zero_before_search - zero_after_search}")
 
 # Write barcodes.tsv
 with open(barcodes_out, 'w', newline='') as tsvfile:
@@ -139,5 +168,3 @@ with open(features_out, 'w', newline='') as tsvfile:
         else:
             category = "Gene Expression"
         writer.writerow([feature, feature, category])
-
-
