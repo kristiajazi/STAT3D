@@ -3,8 +3,12 @@
 import csv
 import numpy as np
 import pandas as pd
+import re
 import scipy.sparse as sparse
 import scipy.io as sio
+import subprocess
+import gzip
+import io
 
 # Inputs from Snakemake
 seg_data_path = snakemake.input["seg_data"]
@@ -25,99 +29,133 @@ NUC_EXP_SLICE = snakemake.params["nuc_exp_slice"]
 seg_data = np.load(seg_data_path, allow_pickle=True).item()
 mask_array = seg_data['masks']
 
-# Extract dimensions
-y_size, x_size = mask_array.shape
+# Extract dimensions using regex
+m = re.match("\((?P<y_size>\d+), (?P<x_size>\d+)", str(mask_array.shape))
+mask_dims = {key: int(m.groupdict()[key]) for key in m.groupdict()}
 
 # Load transcripts
 transcripts_df = pd.read_parquet(path=transcripts_path, columns=["feature_name", "x_location", "y_location", "qv"])
 features = np.unique(transcripts_df["feature_name"])
 
+# Create lookup dictionary for feature indices
+feature_to_index = {val.encode('utf-8'): idx for idx, val in enumerate(features)}
+
 #Find the distinct labels in the array (extract cell IDs) and drop first row which is 0
 cells = np.unique(mask_array)[1:]
 
-# Map cell_id -> column index in the counts matrix
-max_cell_id = int(cells.max()) if len(cells) else 0
-cell_id_to_col = np.full(max_cell_id + 1, -1, dtype=np.int32)
-cell_id_to_col[cells] = np.arange(len(cells), dtype=np.int32)
+#Create a result table with rows for features and cell IDs as columns 
+matrix = pd.DataFrame(0, index=range(len(features)), columns=cells, dtype=np.int32)
 
-# Convert transcript columns to numpy arrays (preserve row order)
-feature_names = transcripts_df["feature_name"].to_numpy()
-x = transcripts_df["x_location"].to_numpy(dtype=np.float64, copy=False)
-y = transcripts_df["y_location"].to_numpy(dtype=np.float64, copy=False)
-qv = transcripts_df["qv"].to_numpy(dtype=np.float64, copy=False)
+coordinates = []
 
-# QV filter matches the original behavior (skip < 20)
-keep = qv >= 20
-if not np.any(keep):
-    counts = np.zeros((len(features), len(cells)), dtype=np.int32)
-    last_x = np.zeros(max_cell_id + 1, dtype=np.int64)
-    last_y = np.zeros(max_cell_id + 1, dtype=np.int64)
-    last_seen = np.zeros(max_cell_id + 1, dtype=bool)
-else:
-    feature_names = feature_names[keep]
-    x = x[keep]
-    y = y[keep]
+zero_before_search = 0
+zero_after_search = 0
 
+# Helper function definition
+def nearest_cell(x_pixel, y_pixel,
+                 x_neighborhood_min_pixel, y_neighborhood_min_pixel, neighborhood_mask):
+    """Check if nearest nucleus is within user-specified distance.
+    If function returns 0, it means no suitable nucleus was found."""
+    
+    # When we take a neighborhood slice of mask_array, all indices start at (0,0).
+    # This INDEX_SHIFT is necessary to reconstruct coordinates from original mask_array.
+    INDEX_SHIFT = np.array([y_neighborhood_min_pixel,
+                            x_neighborhood_min_pixel])
+    
+    min_dist = NUC_EXP_PIXEL
+    cell_id = 0
+    
+    # Enumerate through all points in the neighborhood
+    for index, cell in np.ndenumerate(neighborhood_mask):
+        # Current point is not assigned to a nucleus.
+        if cell == 0:
+            continue
+        # Current point IS assigned to a nucleus. But is it within NUC_EXP_PIXEL?
+        else:
+            img_loc = np.asarray(index, dtype=float) + INDEX_SHIFT
+            
+            transcript_loc = np.array([y_pixel, x_pixel])
+            # Calculate Euclidean distance between 2 points
+            dist = np.linalg.norm(transcript_loc - img_loc)
+            
+            if dist < min_dist:
+                min_dist = dist
+                cell_id = cell
+    
+    return cell_id
+
+
+# Main loop
+for idx, row in transcripts_df.iterrows():
+    if idx % 10000 == 0:
+        print(f"{idx} transcripts processed.")
+    feature = str(row['feature_name']).encode('utf-8')
+    x = row['x_location']
+    y = row['y_location']
+    qv = row['qv']
+    if qv < 20:
+        continue
+    
     # Convert transcript locations from physical space to image space
     x_pixel = x / PIXEL_SIZE
     y_pixel = y / PIXEL_SIZE
+    
+    # Add guard rails to make sure lookup falls within image boundaries
+    x_pixel = min(max(0, x_pixel), mask_dims["x_size"] - 1)
+    y_pixel = min(max(0, y_pixel), mask_dims["y_size"] - 1)
+    
+    # Look up cell_id assigned by Cellpose. Array is in YX order (2D)
+    cell_id = mask_array[round(y_pixel)][round(x_pixel)]
+    
+    if cell_id == 0:
+        zero_before_search += 1
+        # Implement neighborhood search
+        y_neighborhood_min_pixel = max(0, round(y_pixel - NUC_EXP_PIXEL))
+        y_neighborhood_max_pixel = min(mask_dims["y_size"], round(y_pixel + NUC_EXP_PIXEL + 1))
+        x_neighborhood_min_pixel = max(0, round(x_pixel - NUC_EXP_PIXEL))
+        x_neighborhood_max_pixel = min(mask_dims["x_size"], round(x_pixel + NUC_EXP_PIXEL + 1))
+        
+        # Call helper function to see if nearest nucleus is within user-specified distance
+        cell_id = nearest_cell(x_pixel, y_pixel,
+                               x_neighborhood_min_pixel,
+                               y_neighborhood_min_pixel,
+                               mask_array[y_neighborhood_min_pixel : y_neighborhood_max_pixel,
+                                          x_neighborhood_min_pixel : x_neighborhood_max_pixel])
+        
+        if cell_id == 0:
+            zero_after_search += 1
+    
+    if cell_id != 0:
+        matrix.at[feature_to_index[feature], cell_id] += 1
+        coordinates.append((round(x_pixel), round(y_pixel), cell_id))
 
-    # Guard rails: clamp to image bounds
-    x_pixel = np.clip(x_pixel, 0, x_size - 1)
-    y_pixel = np.clip(y_pixel, 0, y_size - 1)
+# Print final counts
+print(f"Points with cell_id == 0 before neighborhood search: {zero_before_search}")
+print(f"Points with cell_id == 0 after neighborhood search: {zero_after_search}")
+print(f"Points rescued by neighborhood search: {zero_before_search - zero_after_search}")
 
-    # Match Python's round() (bankers rounding) via np.rint
-    x_round = np.rint(x_pixel).astype(np.int64)
-    y_round = np.rint(y_pixel).astype(np.int64)
+# Extract coordinates 
+coordinates_df = pd.DataFrame(coordinates, columns=["x", "y", "cell_id"])
+#coordinates_df.to_csv("cell_coordinates_new.tsv.gz", sep='\t', index=False, compression='gzip')
 
-    # Look up cell_id assigned by Cellpose
-    cell_id = mask_array[y_round, x_round].astype(np.int64, copy=False)
+# Write sparse matrix
+sparse_mat = sparse.coo_matrix(matrix.values)
+sio.mmwrite(matrix_out, sparse_mat)
 
-    valid = cell_id != 0
-
-    # Counts matrix
-    counts = np.zeros((len(features), len(cells)), dtype=np.int32)
-    if np.any(valid):
-        # Feature index: features is sorted (np.unique), so searchsorted matches it
-        feat_idx = np.searchsorted(features, feature_names).astype(np.int64)
-        col_idx = cell_id_to_col[cell_id].astype(np.int64)
-
-        feat_idx = feat_idx[valid]
-        col_idx = col_idx[valid]
-        np.add.at(counts, (feat_idx, col_idx), 1)
-
-    # Barcode coordinates: preserve "last transcript encountered" semantics.
-    # (Do not rely on advanced-index assignment with repeated indices.)
-    last_x = np.zeros(max_cell_id + 1, dtype=np.int64)
-    last_y = np.zeros(max_cell_id + 1, dtype=np.int64)
-    last_seen = np.zeros(max_cell_id + 1, dtype=bool)
-    if np.any(valid):
-        valid_pos = np.nonzero(valid)[0].astype(np.int64)
-        valid_cell = cell_id[valid]
-
-        last_pos = np.full(max_cell_id + 1, -1, dtype=np.int64)
-        np.maximum.at(last_pos, valid_cell, valid_pos)
-
-        present = last_pos >= 0
-        last_seen[present] = True
-        present_cells = np.nonzero(present)[0]
-        last_x[present_cells] = x_round[last_pos[present_cells]]
-        last_y[present_cells] = y_round[last_pos[present_cells]]
+# Build coordinate map for barcodes
+cell_coordinates = {
+    row['cell_id']: (row['x'], row['y']) for _, row in coordinates_df.iterrows()
+}
 
 # Write barcodes.tsv
 with open(barcodes_out, 'w', newline='') as tsvfile:
     writer = csv.writer(tsvfile, delimiter='\t', lineterminator='\n')
     for cell in cells:
-        if last_seen[cell]:
-            x = last_x[cell]
-            y = last_y[cell]
+        if cell in cell_coordinates:
+            x, y = cell_coordinates[cell]
             writer.writerow([f"cell_{cell}", x, y])
         else:
             writer.writerow([f"cell_{cell}", "NA", "NA"])
-
-# Write sparse matrix
-sparse_mat = sparse.coo_matrix(counts)
-sio.mmwrite(matrix_out, sparse_mat)
 
 # Write features.tsv
 with open(features_out, 'w', newline='') as tsvfile:
