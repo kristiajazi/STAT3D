@@ -4,6 +4,8 @@ import yaml
 import os
 import pandas as pd
 
+print("CONFIG CONTENTS:", config)
+
 # This ensures all shell commands run inside the pixi environment
 shell.prefix("export PATH=/etc/stat3d/.pixi/envs/default/bin:$PATH && ")
 
@@ -278,10 +280,13 @@ rule compute_laplacian:
 rule process_tiff:
     input:
         tiff = config["INPUT_TIFF"],
-        csv = Laplacian_score_csv
+        csv = Laplacian_score_csv if (
+            config.get("Z_STACK", 0) != "ALL" and 
+            not any(f"Z_{i}" in config for i in range(1, 7))
+        ) else []
     output:
         image_output
-    resources:
+    resources: 
         mem_mb=lambda wildcards, input: _with_floor(_mem_mb_from_file(input.tiff, 4, 3000))
     benchmark:
         os.path.join(benchmark_dir, "process_tiff.tsv")
@@ -289,31 +294,65 @@ rule process_tiff:
         import subprocess
         import pandas as pd
         
-        # Read CSV and verify it has data
-        df = pd.read_csv(input.csv, delimiter=',')
-        if len(df) == 0:
-            raise ValueError("Laplacian score CSV is empty! No Z-slices were processed.")
+        # Get modes
+        z_stack_mode = config.get("Z_STACK", 0)
+        laplacian_mode = config.get("Laplacian", 0)
         
-        # Sort rows by sharpness score (descending)
-        df_sorted = df.sort_values(by=df.columns[1], ascending=False)
+        # Check if user specified Z-slices (Z_1 through Z_6)
+        user_z_slices = [config[f"Z_{i}"] for i in range(1, 7) if f"Z_{i}" in config]
         
-        # Get Z indices (first column) of the two sharpest slices
-        default_z_b = int(df_sorted.iloc[0, 0])
-        default_z_a = int(df_sorted.iloc[1, 0]) if len(df_sorted) > 1 else int(df_sorted.iloc[0, 0])
-        
-        # Config overrides
-        z_a = config.get("Z_SLICE_A", default_z_a)
-        z_b = config.get("Z_SLICE_B", default_z_b)
-        print(f"Using z_a={z_a}, z_b={z_b}")
-        
-        subprocess.run([
-            "python", "scripts/process_tiff.py",
-            input.tiff,
-            str(z_a),
-            str(z_b),
-            str(config["LEVEL"]),
-            output[0]
-        ], check=True)
+        if user_z_slices:
+            # User-specified mode (highest priority - overrides everything)
+            print(f"User-specified Z-slices: {user_z_slices}")
+            subprocess.run([
+                "python", "scripts/process_tiff.py",
+                input.tiff,
+                str(config["LEVEL"]),
+                str(z_stack_mode),
+                str(laplacian_mode),
+                output[0]
+            ] + [str(z) for z in user_z_slices])
+            
+        elif z_stack_mode == "ALL":
+            # MAX projection mode
+            print("Z_STACK=ALL: Performing MAX projection")
+            subprocess.run([
+                "python", "scripts/process_tiff.py",
+                input.tiff,
+                str(config["LEVEL"]),
+                str(z_stack_mode),
+                str(laplacian_mode),
+                output[0]
+            ])
+            
+        else:
+            # Laplacian-based mode: Read CSV and select top Z-slices
+            print("Laplacian-based mode: Selecting Z-slices from CSV")
+            df = pd.read_csv(input.csv, delimiter=',')
+            df_sorted = df.sort_values(by=df.columns[1], ascending=False)
+            
+            # Select default top 2 Z-slices
+            z_top1 = int(df_sorted.iloc[0, 0])
+            z_top2 = int(df_sorted.iloc[1, 0]) if len(df_sorted) > 1 else z_top1
+            
+            # Allow user override
+            z_slices = [z_top1, z_top2]
+            if laplacian_mode == "HIGHEST":
+                highest_z = max(z_top1, z_top2)
+                z_slices = [highest_z]
+                print(f"Laplacian=HIGHEST: using Z={highest_z}")
+            else:
+                print(f"Using Z-slices from CSV: {z_slices}")
+            
+            subprocess.run([
+                "python", "scripts/process_tiff.py",
+                input.tiff,
+                str(config["LEVEL"]),
+                str(z_stack_mode),
+                str(laplacian_mode),
+                output[0]
+            ] + [str(z) for z in z_slices])
+
 
 rule generate_groovy_script:
     output:
@@ -364,11 +403,17 @@ rule run_cellpose:
         seg_npy = seg_npy_output
     retries: cellpose_retries
     params:
-        diameter = lambda wildcards, input: pd.read_csv(input.diameter_csv)["Average_Diameter"].iloc[0],
+        diameter = lambda wildcards, input: (
+            float(config["nuclei_diameter"])
+            if "nuclei_diameter" in config
+            else float(pd.read_csv(input.diameter_csv)["Average_Diameter"].iloc[0])
+        ),
         use_gpu = "--use_gpu" if config["cellpose_use_gpu"] else "",
         do_3D = "--do_3D" if config.get("cellpose_do_3D", False) else ""
     resources:
-        mem_mb=lambda wildcards, input, attempt: _with_floor(_cellpose_mem_mb(input.image, attempt))
+        mem_mb=lambda wildcards, input, attempt: _with_floor(
+            _cellpose_mem_mb(input.image, attempt)
+        )
     benchmark:
         os.path.join(benchmark_dir, "run_cellpose.tsv")
     script:
@@ -378,7 +423,11 @@ rule cell_to_transcript:
     input:
         seg_data = seg_npy_output,
         transcripts = config["transcripts_df"],
-        average_nuclear_expansion_csv = average_nuclear_expansion_csv
+        average_nuclear_expansion_csv = (
+            average_nuclear_expansion_csv
+            if "NUCLEAR_EXPANSION_SET" not in config
+            else []
+        )
     output:
         matrix = os.path.join(counts_dir, "matrix.mtx"),
         features = os.path.join(counts_dir, "features.tsv"),
@@ -386,15 +435,31 @@ rule cell_to_transcript:
     params:
         pixel_size = config["PIXEL_SIZE"],
         z_slice_micron = config["Z_SLICE_MICRON"],
-        nuc_exp_pixel = lambda wildcards, input: pd.read_csv(input.average_nuclear_expansion_csv)["Average_Nuclear_Expansion"].iloc[0] / config["PIXEL_SIZE"],
-        nuc_exp_slice = lambda wildcards, input: pd.read_csv(input.average_nuclear_expansion_csv)["Average_Nuclear_Expansion"].iloc[0] / config["Z_SLICE_MICRON"]
+        nuc_exp_pixel = lambda wildcards, input: (
+            config["NUCLEAR_EXPANSION_SET"] / config["PIXEL_SIZE"]
+            if "NUCLEAR_EXPANSION_SET" in config
+            else pd.read_csv(input.average_nuclear_expansion_csv)[
+                "Average_Nuclear_Expansion"
+            ].iloc[0] / config["PIXEL_SIZE"]
+        ),
+        nuc_exp_slice = lambda wildcards, input: (
+            config["NUCLEAR_EXPANSION_SET"] / config["Z_SLICE_MICRON"]
+            if "NUCLEAR_EXPANSION_SET" in config
+            else pd.read_csv(input.average_nuclear_expansion_csv)[
+                "Average_Nuclear_Expansion"
+            ].iloc[0] / config["Z_SLICE_MICRON"]
+        )
     resources:
-        mem_mb=lambda wildcards, input: _with_floor(_mem_mb_from_file(input.transcripts, 6, 8000))
+        mem_mb=lambda wildcards, input: _with_floor(
+            _mem_mb_from_file(input.transcripts, 6, 8000)
+        )
     benchmark:
         os.path.join(benchmark_dir, "cell_to_transcript.tsv")
     script:
-        "scripts/cell_to_transcript.py" if config.get("cellpose_do_3D", False) \
+        "scripts/cell_to_transcript.py"
+        if config.get("cellpose_do_3D", False)
         else "scripts/cell_to_transcript_2D.py"
+
 
 rule gzip_outputs:
     input:
