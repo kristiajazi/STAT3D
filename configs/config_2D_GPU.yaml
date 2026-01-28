@@ -40,7 +40,6 @@ sample_size: 15000
 
 #Cellpose
 cellpose_use_gpu: true
-cellpose_img_filter : morphology.ome_STAT3D
 cellpose_do_3D: false
 #nuclei_diameter: 30
 
