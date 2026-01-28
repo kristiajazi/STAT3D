@@ -41,7 +41,6 @@ sample_size: 15000
 
 #Cellpose
 cellpose_use_gpu: false
-cellpose_img_filter : TC70_cropped.ome_STAT3D
 cellpose_do_3D: false
 #nuclei_diameter: 30
 
