@@ -1,0 +1,516 @@
+#Snakefile
+
+import yaml
+import os
+import pandas as pd
+
+print("CONFIG CONTENTS:", config)
+
+# This ensures all shell commands run inside the pixi environment
+shell.prefix("export PATH=/etc/stat3d/.pixi/envs/default/bin:$PATH && ")
+
+# NOTE: Do not load a default configfile here.
+# Users must provide a config explicitly via `--configfile ...` (or via the
+# container wrapper which may inject one).
+
+# Use configured working directory
+if "directory" not in config:
+    raise ValueError(
+        "Missing required config key 'directory'. "
+        "Run with --configfile /path/to/config.yaml (see stat3d --help)."
+    )
+
+REQUIRED_CONFIG_KEYS = [
+    "INPUT_TIFF",
+    "LEVEL",
+    "CELL_EXPANSION",
+    "SIGMA",
+    "THRESHOLD",
+    "MIN_AREA",
+    "MAX_AREA",
+    "BACKGROUND_RADIUS",
+    "MEDIAN_RADIUS",
+    "transcripts_df",
+    "PIXEL_SIZE",
+    "Z_SLICE_MICRON",
+    "ref",
+    "label_column",
+    "memory_mb",
+    "fallback_to_cpu",
+    "cellpose_use_gpu",
+]
+
+missing_keys = [key for key in REQUIRED_CONFIG_KEYS if key not in config]
+if missing_keys:
+    raise ValueError(
+        "Missing required config keys: " + ", ".join(missing_keys)
+    )
+
+if "memory_mb" in config:
+    try:
+        memory_mb_value = int(config.get("memory_mb", 0))
+    except (TypeError, ValueError):
+        raise ValueError("memory_mb must be an integer (MB).")
+    if memory_mb_value < 0:
+        raise ValueError("memory_mb must be >= 0 (0 means auto).")
+
+directory = config["directory"]
+results_dir = os.path.join(directory, "results")
+benchmark_dir = os.path.join(results_dir, "benchmarks")
+
+memory_floor_mb = int(config.get("memory_mb", 0) or 0)
+
+
+def _file_mb(path: str) -> float:
+    try:
+        return os.path.getsize(path) / (1024 * 1024)
+    except OSError:
+        return 0.0
+
+
+def _with_floor(mem_mb: int) -> int:
+    if memory_floor_mb > 0:
+        return max(mem_mb, memory_floor_mb)
+    return mem_mb
+
+
+def _mem_mb_from_file(path: str, multiplier: float, minimum: int) -> int:
+    size_mb = _file_mb(path)
+    return max(minimum, int(size_mb * multiplier))
+
+
+#def _cellpose_mem_mb(image_path: str, attempt: int) -> int:
+#    is_3d = config.get("cellpose_do_3D", False)
+#    multiplier = 8 if is_3d else 4
+#    minimum = 16000 if is_3d else 6000
+#    mem_mb = _mem_mb_from_file(image_path, multiplier, minimum)
+#    if attempt and attempt > 1:
+#        mem_mb = int(mem_mb * 1.5)
+#    return mem_mb
+
+
+def _cellpose_mem_mb(image_path: str, attempt: int) -> int:
+    # 1. Retrieve parameters and physical limit from the config
+    is_3d = config.get("cellpose_do_3D", False)
+    system_limit = int(config.get("memory_mb", 0)) # 0 significa "nessun limite/automatico"
+    
+    # 2. Logic Attempt 2+ (Tiling ON - Low Memory)
+    if attempt > 1:
+        # Cellpose in tile mode uses very little RAM (physically ~4GB).
+        # We ask for 12GB to be generous (Python overhead + library loading).
+        safe_ram = 12000 
+        
+        # BUT, if the user said "I only have 8GB" (system_limit=8000),
+        # we must honor that, otherwise the job will never start.
+        if system_limit > 0:
+            return min(safe_ram, system_limit)
+        return safe_ram
+
+    # 3. Logic Attempt 1 (Tiling OFF - High Memory)
+    # Ideal calculation based on file size
+    multiplier = 8 if is_3d else 4
+    minimum = 16000 if is_3d else 6000
+    estimated_ram = _mem_mb_from_file(image_path, multiplier, minimum)
+    
+    # If there's a system limit, we try to ask for the maximum possible,
+    # hoping that's enough. If it's not enough, it will crash and go to attempt 2.
+    if system_limit > 0:
+        return min(estimated_ram, system_limit)
+        
+    return estimated_ram
+
+
+def _get_cellpose_retries(wildcards):
+    use_gpu = config.get("cellpose_use_gpu", False)
+    fallback = config.get("fallback_to_cpu", True)
+    if use_gpu and fallback:
+        return 2
+    return 1
+
+
+cellpose_retries = _get_cellpose_retries(None)
+
+
+# Subdirectories for organized output
+preproc_dir = os.path.join(results_dir, "preprocessing")
+segmentation_dir = os.path.join(results_dir, "segmentation")
+counts_dir = os.path.join(results_dir, "counts")
+analysis_dir = os.path.join(results_dir, "analysis")
+plots_dir = os.path.join(results_dir, "plots")
+
+# Define output to image filename
+z_a = config.get("Z_SLICE_A", "STAT3D_A")
+z_b = config.get("Z_SLICE_B", "STAT3D_B")
+if "INPUT_TIFF" not in config:
+    raise ValueError(
+        "Missing required config key 'INPUT_TIFF'. "
+        "Run with --configfile /path/to/config.yaml (see stat3d --help)."
+    )
+
+input_tiff_basename = os.path.splitext(os.path.basename(config["INPUT_TIFF"]))[0]
+image_output = os.path.join(preproc_dir, f"{input_tiff_basename}_STAT3D.tif")
+seg_npy_output = os.path.join(segmentation_dir, f"{input_tiff_basename}_STAT3D_seg.npy")
+
+
+# Define path to CSV measurement files
+csv_QuPath_output = os.path.join(segmentation_dir, "QuPath_measurements.csv")
+average_min_distance_csv = os.path.join(segmentation_dir, "average_min_distance.csv")
+average_nuclear_expansion_csv = os.path.join(segmentation_dir, "average_nuclear_expansion.csv")
+nuclei_diameter_csv = os.path.join(segmentation_dir, "nuclei_diameter.csv")
+
+
+# Define path to output CSV for Z slice and export folder
+z_slice_csv = os.path.join(preproc_dir, "z_slice_measurements.csv")
+export_dir  = os.path.join(preproc_dir, "export")
+
+
+# Define path for Laplacian score
+Laplacian_score_csv = os.path.join(preproc_dir, "Laplacian_score.csv")
+
+
+def get_seg_output(wildcards, input):
+    basename = os.path.splitext(os.path.basename(input.image))[0]
+    return os.path.join(segmentation_dir, f"{basename}_seg.npy")
+
+
+# Define paths for cell-feature-matrix and Seurat objects
+matrix_gz = os.path.join(counts_dir, "matrix.mtx.gz")
+features_gz = os.path.join(counts_dir, "features.tsv.gz")
+barcodes_gz = os.path.join(counts_dir, "barcodes.tsv.gz")
+
+QC_pdf = os.path.join(plots_dir, "QC.pdf")
+sp_obj_rds = os.path.join(analysis_dir, "sp_obj.rds")
+spatialobj_plot_pdf = os.path.join(plots_dir, "spatialobj_plot.pdf")
+singler_rds = os.path.join(analysis_dir, "singler.rds")
+Spatial_SingleR_pdf = os.path.join(plots_dir, "Spatial_SingleR.pdf")
+UMAP_SingleR_pdf = os.path.join(plots_dir, "UMAP_SingleR.pdf")
+QC_predictions_pdf = os.path.join(plots_dir, "SingleR_predictions_QC.pdf")
+
+# Rule all dispaying each sequential STAT3D output 
+rule all:
+    input:
+        Laplacian_score_csv,
+        image_output,
+        csv_QuPath_output,
+        average_min_distance_csv,
+        average_nuclear_expansion_csv,
+        nuclei_diameter_csv,
+        z_slice_csv,
+        seg_npy_output,
+        matrix_gz,
+        features_gz,
+        barcodes_gz,
+        QC_pdf,
+        sp_obj_rds,
+        spatialobj_plot_pdf,
+        singler_rds,
+        Spatial_SingleR_pdf,
+        UMAP_SingleR_pdf,
+        QC_predictions_pdf
+
+
+
+rule generate_zslice_groovy:
+    output:
+        "scripts/Z_slice_script.groovy"
+    params:
+        z_slice_csv=z_slice_csv,
+        export_dir=export_dir
+    run:
+        with open(output[0], "w") as f:
+            f.write(f"""// Z_slice_script.groovy
+import qupath.lib.regions.RegionRequest
+
+// Create full-image annotations
+QP.createAllFullImageAnnotations(true)
+def hierarchy = getCurrentHierarchy()
+
+// Save measurements
+def z_slice_csv = "{params.z_slice_csv}"
+saveAnnotationMeasurements(z_slice_csv)
+
+// Export images for each annotation
+double downsample = 1.0
+def dir = buildFilePath("{params.export_dir}")
+mkdirs(dir)
+
+def server = getCurrentServer()
+def annotations = getAnnotationObjects()
+println annotations
+
+for (def annotation in annotations) {{
+    def request = RegionRequest.createInstance(
+        server.getPath(),
+        downsample,
+        annotation.getROI()
+    )
+    println annotation.getROI().getZ()
+    def name = getCurrentImageNameWithoutExtension()
+    def outputName = "${{name}}-${{request.x}}_${{request.y}}_${{request.width}}x${{request.height}}_${{request.z}}.tif"
+    def path = buildFilePath(dir, outputName)
+    println path
+    writeImageRegion(server, request, path)
+}}
+print "Done!"
+""")
+
+rule run_zslice_script:
+    input:
+        image=config["INPUT_TIFF"],
+        script="scripts/Z_slice_script.groovy"
+    output:
+        zslice = z_slice_csv
+    shell:
+        "QuPath script --image {input.image} {input.script}"
+
+rule compute_laplacian:
+    input:
+        tiff = config["INPUT_TIFF"]
+    output:
+        csv = Laplacian_score_csv
+    resources:
+        mem_mb=lambda wildcards, input: _with_floor(_mem_mb_from_file(input.tiff, 3, 2000))
+    benchmark:
+        os.path.join(benchmark_dir, "compute_laplacian.tsv")
+    shell:
+        """
+        python scripts/Laplacian_score_script.py {input.tiff} {output.csv}
+        """
+
+rule process_tiff:
+    input:
+        tiff = config["INPUT_TIFF"],
+        csv = Laplacian_score_csv if (
+            config.get("Z_STACK", 0) != "ALL" and 
+            not any(f"Z_{i}" in config for i in range(1, 7))
+        ) else []
+    output:
+        image_output
+    resources: 
+        mem_mb=lambda wildcards, input: _with_floor(_mem_mb_from_file(input.tiff, 4, 3000))
+    benchmark:
+        os.path.join(benchmark_dir, "process_tiff.tsv")
+    run:
+        import subprocess
+        import pandas as pd
+        
+        # Get modes
+        z_stack_mode = config.get("Z_STACK", 0)
+        laplacian_mode = config.get("Laplacian", 0)
+        
+        # Check if user specified Z-slices (Z_1 through Z_6)
+        user_z_slices = [config[f"Z_{i}"] for i in range(1, 7) if f"Z_{i}" in config]
+        
+        if user_z_slices:
+            # User-specified mode (highest priority - overrides everything)
+            print(f"User-specified Z-slices: {user_z_slices}")
+            subprocess.run([
+                "python", "scripts/process_tiff.py",
+                input.tiff,
+                str(config["LEVEL"]),
+                str(z_stack_mode),
+                str(laplacian_mode),
+                output[0]
+            ] + [str(z) for z in user_z_slices])
+            
+        elif z_stack_mode == "ALL":
+            # MAX projection mode
+            print("Z_STACK=ALL: Performing MAX projection")
+            subprocess.run([
+                "python", "scripts/process_tiff.py",
+                input.tiff,
+                str(config["LEVEL"]),
+                str(z_stack_mode),
+                str(laplacian_mode),
+                output[0]
+            ])
+            
+        else:
+            # Laplacian-based mode: Read CSV and select top Z-slices
+            print("Laplacian-based mode: Selecting Z-slices from CSV")
+            df = pd.read_csv(input.csv, delimiter=',')
+            df_sorted = df.sort_values(by=df.columns[1], ascending=False)
+            
+            # Select default top 2 Z-slices
+            z_top1 = int(df_sorted.iloc[0, 0])
+            z_top2 = int(df_sorted.iloc[1, 0]) if len(df_sorted) > 1 else z_top1
+            
+            # Allow user override
+            z_slices = [z_top1, z_top2]
+            if laplacian_mode == "HIGHEST":
+                highest_z = max(z_top1, z_top2)
+                z_slices = [highest_z]
+                print(f"Laplacian=HIGHEST: using Z={highest_z}")
+            else:
+                print(f"Using Z-slices from CSV: {z_slices}")
+            
+            subprocess.run([
+                "python", "scripts/process_tiff.py",
+                input.tiff,
+                str(config["LEVEL"]),
+                str(z_stack_mode),
+                str(laplacian_mode),
+                output[0]
+            ] + [str(z) for z in z_slices])
+
+
+rule generate_groovy_script:
+    output:
+        "scripts/QuPath_script.groovy"
+    run:
+        with open(output[0], "w") as f:
+            f.write(f"""// QuPath_script.groovy
+setImageType('FLUORESCENCE')
+createFullImageAnnotation(true)
+runPlugin('qupath.imagej.detect.cells.WatershedCellDetection', '{{"detectionImage":"Channel 1","backgroundByReconstruction":true,"backgroundRadius":{config["BACKGROUND_RADIUS"]},"medianRadius":{config["MEDIAN_RADIUS"]},"sigma":{config["SIGMA"]},"minArea":{config["MIN_AREA"]},"maxArea":{config["MAX_AREA"]},"threshold":{config["THRESHOLD"]},"watershedPostProcess":true,"cellExpansion":{config["CELL_EXPANSION"]},"includeNuclei":true,"smoothBoundaries":true,"makeMeasurements":true}}')
+saveDetectionMeasurements('{csv_QuPath_output}')
+""")
+
+rule run_qupath_analysis:
+    input:
+        image=image_output,
+        script="scripts/QuPath_script.groovy"
+    output:
+        csv_QuPath_output
+    resources:
+        mem_mb=lambda wildcards, input: _with_floor(_mem_mb_from_file(input.image, 4, 4000))
+    benchmark:
+        os.path.join(benchmark_dir, "run_qupath_analysis.tsv")
+    shell:
+        "QuPath script --image {input.image} {input.script}"
+
+rule image_measurements:
+    input:
+        csv = csv_QuPath_output
+    params:
+        sample_size = config.get("sample_size", 15000)
+    output:
+        min_distance = average_min_distance_csv,
+        nuclear_expansion = average_nuclear_expansion_csv,
+        nuclei_diameter = nuclei_diameter_csv
+    resources:
+        mem_mb=lambda wildcards, input: _with_floor(_mem_mb_from_file(input.csv, 2, 1000))
+    benchmark:
+        os.path.join(benchmark_dir, "image_measurements.tsv")
+    shell:
+        "Rscript scripts/image_measurements.R {input.csv} {output.min_distance} {output.nuclear_expansion} {output.nuclei_diameter} {params.sample_size}"
+
+rule run_cellpose:
+    input:
+        image = image_output,
+        diameter_csv = nuclei_diameter_csv
+    output:
+        seg_npy = seg_npy_output
+    retries: cellpose_retries
+    params:
+        diameter = lambda wildcards, input: (
+            float(config["nuclei_diameter"])
+            if "nuclei_diameter" in config
+            else float(pd.read_csv(input.diameter_csv)["Average_Diameter"].iloc[0])
+        ),
+        use_gpu = "--use_gpu" if config["cellpose_use_gpu"] else "",
+        do_3D = "--do_3D" if config.get("cellpose_do_3D", False) else ""
+    resources:
+        mem_mb=lambda wildcards, input, attempt: _with_floor(
+            _cellpose_mem_mb(input.image, attempt)
+        )
+    benchmark:
+        os.path.join(benchmark_dir, "run_cellpose.tsv")
+    script:
+        "scripts/run_cellpose.py"
+
+rule cell_to_transcript:
+    input:
+        seg_data = seg_npy_output,
+        transcripts = config["transcripts_df"],
+        average_nuclear_expansion_csv = (
+            average_nuclear_expansion_csv
+            if "NUCLEAR_EXPANSION_SET" not in config
+            else []
+        )
+    output:
+        matrix = os.path.join(counts_dir, "matrix.mtx"),
+        features = os.path.join(counts_dir, "features.tsv"),
+        barcodes = os.path.join(counts_dir, "barcodes.tsv")
+    params:
+        pixel_size = config["PIXEL_SIZE"],
+        z_slice_micron = config["Z_SLICE_MICRON"],
+        nuc_exp_pixel = lambda wildcards, input: (
+            config["NUCLEAR_EXPANSION_SET"] / config["PIXEL_SIZE"]
+            if "NUCLEAR_EXPANSION_SET" in config
+            else pd.read_csv(input.average_nuclear_expansion_csv)[
+                "Average_Nuclear_Expansion"
+            ].iloc[0] / config["PIXEL_SIZE"]
+        ),
+        nuc_exp_slice = lambda wildcards, input: (
+            config["NUCLEAR_EXPANSION_SET"] / config["Z_SLICE_MICRON"]
+            if "NUCLEAR_EXPANSION_SET" in config
+            else pd.read_csv(input.average_nuclear_expansion_csv)[
+                "Average_Nuclear_Expansion"
+            ].iloc[0] / config["Z_SLICE_MICRON"]
+        )
+    resources:
+        mem_mb=lambda wildcards, input: _with_floor(
+            _mem_mb_from_file(input.transcripts, 6, 8000)
+        )
+    benchmark:
+        os.path.join(benchmark_dir, "cell_to_transcript.tsv")
+    script:
+        "scripts/cell_to_transcript.py"
+        if config.get("cellpose_do_3D", False)
+        else "scripts/cell_to_transcript_2D.py"
+
+
+rule gzip_outputs:
+    input:
+        matrix = rules.cell_to_transcript.output.matrix,
+        features = rules.cell_to_transcript.output.features,
+        barcodes = rules.cell_to_transcript.output.barcodes
+    output:
+        matrix_gz = matrix_gz,
+        features_gz = features_gz,
+        barcodes_gz = barcodes_gz
+    shell:
+        """
+        gzip -c {input.matrix} > {output.matrix_gz}
+        gzip -c {input.features} > {output.features_gz}
+        gzip -c {input.barcodes} > {output.barcodes_gz}
+        """
+
+		# Define valid celldex references 
+VALID_REFS = [
+    "HumanPrimaryCellAtlasData",
+    "BlueprintEncodeData",
+    "DatabaseImmuneCellExpressionData",
+    "MonacoImmuneData",
+    "NovershternHematopoieticData",
+    "MouseRNAseqData"
+]
+
+# Validate celldex reference from config
+if config["ref"] not in VALID_REFS:
+    raise ValueError(f"Invalid reference: {config['ref']}. Must be one of {VALID_REFS}")
+
+
+rule seurat_spatial_object_automatic_annotation:
+    input:
+        matrix = matrix_gz,
+        features = features_gz,
+        barcodes = barcodes_gz
+    params:
+        ref = config["ref"],
+        label_column = config["label_column"]
+    output:
+        rds = sp_obj_rds,
+        pdf = spatialobj_plot_pdf,
+        rds_singler = singler_rds,
+        pdf_umap_singler = UMAP_SingleR_pdf,
+        pdf_spatial_singler = Spatial_SingleR_pdf,
+        pdf_qc = QC_pdf,
+        pdf_qc_predictions = QC_predictions_pdf
+    resources:
+        mem_mb=lambda wildcards, input: _with_floor(_mem_mb_from_file(input.matrix, 6, 12000))
+    benchmark:
+        os.path.join(benchmark_dir, "seurat_spatial_object.tsv")
+    script:
+        "scripts/seurat_spatial_object.R" if config.get("cellpose_do_3D", False) else "scripts/seurat_spatial_object_2D.R"
