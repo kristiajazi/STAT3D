@@ -150,6 +150,13 @@ run_snakemake_with_metrics() {
         } > "$benchmark_dir/workflow_resource_usage.txt"
     fi
 
+    copy_logs="${STAT3D_COPY_SNAKEMAKE_LOG:-1}"
+    if [[ "$copy_logs" != "0" && -n "$benchmark_dir" && -d ".snakemake/log" ]]; then
+        log_dest="$benchmark_dir/.snakemake-log"
+        mkdir -p "$log_dest"
+        rsync -a --delete ".snakemake/log/" "$log_dest/" || true
+    fi
+
     return $rc
 }
 
