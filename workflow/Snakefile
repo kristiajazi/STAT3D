@@ -185,6 +185,7 @@ singler_rds = os.path.join(analysis_dir, "singler.rds")
 Spatial_SingleR_pdf = os.path.join(plots_dir, "Spatial_SingleR.pdf")
 UMAP_SingleR_pdf = os.path.join(plots_dir, "UMAP_SingleR.pdf")
 QC_predictions_pdf = os.path.join(plots_dir, "SingleR_predictions_QC.pdf")
+report_html = os.path.join(results_dir, "stat3d-report.html")
 
 # Rule all dispaying each sequential STAT3D output 
 rule all:
@@ -206,7 +207,8 @@ rule all:
         singler_rds,
         Spatial_SingleR_pdf,
         UMAP_SingleR_pdf,
-        QC_predictions_pdf
+        QC_predictions_pdf,
+        report_html
 
 
 
@@ -475,6 +477,57 @@ rule gzip_outputs:
         gzip -c {input.matrix} > {output.matrix_gz}
         gzip -c {input.features} > {output.features_gz}
         gzip -c {input.barcodes} > {output.barcodes_gz}
+        """
+
+
+rule dump_config:
+    output:
+        yaml = os.path.join(results_dir, "run_config.yaml")
+    run:
+        with open(output.yaml, 'w') as f:
+            yaml.dump(config, f, default_flow_style=False)
+
+rule quarto_report:
+    input:
+        qmd = "scripts/report.qmd",
+        config_yaml = os.path.join(results_dir, "run_config.yaml"),
+        laplacian = Laplacian_score_csv,
+        z_slice = z_slice_csv,
+        qupath = csv_QuPath_output,
+        avg_min = average_min_distance_csv,
+        avg_exp = average_nuclear_expansion_csv,
+        nuclei_diam = nuclei_diameter_csv,
+        qc_pdf = QC_pdf,
+        qc_pred = QC_predictions_pdf,
+        spatial_pdf = spatialobj_plot_pdf,
+        umap_pdf = UMAP_SingleR_pdf,
+        singler_pdf = Spatial_SingleR_pdf
+    output:
+        report = report_html
+    params:
+        results_dir = results_dir
+    resources:
+        mem_mb=500
+    shell:
+        """
+        # Capture absolute path of the destination BEFORE changing directory via cd
+        # This handles cases where users provide relative paths in config directory
+        dest_path=$(realpath {output.report})
+
+        # Change directory to scripts/ to avoid relative path issues with Quarto resources
+        cd $(dirname {input.qmd})
+        
+        report_name=$(basename {output.report})
+        
+        # Render local file, outputting to local filename
+        quarto render $(basename {input.qmd}) \
+            --to html \
+            -P results_dir={params.results_dir} \
+            -P config_file={input.config_yaml} \
+            --output $report_name
+        
+        # Move the fully embedded report to the final destination using the absolute path
+        mv $report_name "$dest_path"
         """
 
 		# Define valid celldex references 

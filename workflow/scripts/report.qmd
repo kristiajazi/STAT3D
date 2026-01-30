@@ -1,0 +1,317 @@
+---
+title: "STAT3D Report"
+author: "STAT3D"
+date: "`r Sys.Date()`"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: show
+    theme: cosmo
+    embed-resources: true
+    fig-width: 8
+    fig-height: 6
+execute:
+  echo: false
+  eval: true
+  timeout: 300
+  startup_timeout: 300
+params:
+  results_dir: "results"
+  config_file: "run_config.yaml"
+---
+
+```{r}
+results_dir <- normalizePath(params$results_dir, winslash = "/", mustWork = FALSE)
+
+p <- function(rel_path) {
+  file.path(results_dir, rel_path)
+}
+
+rel_link <- function(path) {
+  sub(paste0("^", results_dir, "/?"), "", normalizePath(path, winslash = "/", mustWork = FALSE))
+}
+
+link_or_missing <- function(path) {
+  if (file.exists(path) || dir.exists(path)) {
+    sprintf("[%s](%s)", basename(path), rel_link(path))
+  } else {
+    sprintf("(missing) %s", basename(path))
+  }
+}
+
+markdown_list <- function(items) {
+  cat(paste0("- ", items, collapse = "\n"))
+}
+
+embed_plot <- function(path, height = 520) {
+  if (!file.exists(path)) {
+    return(sprintf("<em>Missing:</em> %s", basename(path)))
+  }
+  png_path <- sub("\\.pdf$", ".png", path)
+  if (file.exists(png_path)) {
+    return(sprintf(
+      "<img src=\"%s\" alt=\"%s\" style=\"max-width:100%%; height:auto; border:1px solid #eee;\"/>",
+      rel_link(png_path), basename(png_path)
+    ))
+  }
+  src <- rel_link(path)
+  sprintf(
+    "<object data=\"%s\" type=\"application/pdf\" width=\"100%%\" height=\"%s\" style=\"border:1px solid #eee;\">PDF: <a href=\"%s\">%s</a></object>",
+    src, height, src, basename(path)
+  )
+}
+```
+
+## Overview
+
+Results directory: `r results_dir`
+
+## Parameters
+
+```{r}
+if (file.exists(params$config_file)) {
+  # Requires r-yaml or just use base parsing for simple structures
+  # We assume yaml is installed as standard with rmarkdown
+  cfg <- yaml::read_yaml(params$config_file)
+  
+  # Helper to format values
+  fmt_val <- function(x) {
+    if (is.null(x)) return("NULL")
+    if (is.logical(x)) return(ifelse(x, "TRUE", "FALSE"))
+    if (is.list(x) || length(x) > 1) return(paste(x, collapse = ", "))
+    as.character(x)
+  }
+  
+  df_cfg <- data.frame(
+    Parameter = names(cfg),
+    Value = vapply(cfg, fmt_val, character(1)),
+    stringsAsFactors = FALSE
+  )
+  
+  # Sort alphabetically
+  df_cfg <- df_cfg[order(df_cfg$Parameter), ]
+  
+  knitr::kable(df_cfg, row.names = FALSE)
+} else {
+  cat("Configuration file not found.")
+}
+```
+
+## Effective Analysis Logic
+
+This section details how key parameters were determined (User-defined vs. Auto-calculated).
+
+```{r}
+# Function to safely read single value CSVs
+read_val <- function(fname, col_name) {
+  fpath <- p(fname)
+  if (file.exists(fpath)) {
+    df <- read.csv(fpath)
+    if (nrow(df) > 0 && col_name %in% names(df)) {
+      return(round(df[[col_name]][1], 2))
+    }
+  }
+  return(NA)
+}
+
+# --- 1. Slice Selection Logic ---
+slice_logic <- "Unknown"
+slice_details <- ""
+
+# Check Config priorities (consistent with pipeline logic)
+if (!is.null(cfg$Z_1)) {
+  slice_logic <- "Manual Selection (Config)"
+  # Collect all Z_n keys
+  z_keys <- grep("^Z_[0-9]+$", names(cfg), value = TRUE)
+  z_vals <- unlist(cfg[z_keys])
+  slice_details <- paste("Slices:", paste(z_vals, collapse = ", "))
+} else if (!is.null(cfg$Z_STACK) && cfg$Z_STACK == "ALL") {
+  slice_logic <- "Max Projection (All Slices)"
+  slice_details <- "Using entire Z-Stack"
+} else {
+  # Default: Laplacian Based
+  slice_logic <- "Auto-Selection (Laplacian)"
+  lap_file <- p("preprocessing/Laplacian_score.csv")
+  if (file.exists(lap_file)) {
+    lap_df <- read.csv(lap_file)
+    # Pipeline default logic: Sort by score desc, take top 2 (or top 1 if HIGHEST)
+    if (!is.null(cfg$Laplacian) && cfg$Laplacian == "HIGHEST") {
+       top_slices <- lap_df[order(lap_df$Sharpness_score, decreasing = TRUE), ][1, "Z_slice"]
+       slice_details <- paste("Top 1 Slice based on Sharpness:", top_slices)
+    } else {
+       # Default is usually top 2
+       top_slices <- lap_df[order(lap_df$Sharpness_score, decreasing = TRUE), ][1:min(2, nrow(lap_df)), "Z_slice"]
+       slice_details <- paste("Top 2 Slices based on Sharpness:", paste(top_slices, collapse = ", "))
+    }
+  }
+}
+
+# --- 2. Nuclei Diameter ---
+nuclei_logic <- "Unknown"
+nuclei_val <- NA
+
+if (!is.null(cfg$nuclei_diameter)) {
+  nuclei_logic <- "User Defined (Config)"
+  nuclei_val <- cfg$nuclei_diameter
+} else {
+  nuclei_logic <- "Auto-Calculated"
+  nuclei_val <- read_val("segmentation/nuclei_diameter.csv", "Average_Diameter")
+}
+
+# --- 3. Nuclear Expansion ---
+exp_logic <- "Unknown"
+exp_val <- NA
+# Check for NUCLEAR_EXPANSION_SET (as per your description)
+if (!is.null(cfg$NUCLEAR_EXPANSION_SET)) {
+  exp_logic <- "User Defined (Config)"
+  exp_val <- cfg$NUCLEAR_EXPANSION_SET
+} else {
+  exp_logic <- "Auto-Calculated"
+  exp_val <- read_val("segmentation/average_nuclear_expansion.csv", "Average_Nuclear_Expansion")
+}
+
+# Create Summary Table
+df_logic <- data.frame(
+  Parameter = c("Z-Slice Selection", "Nuclei Diameter", "Nuclear Expansion"),
+  Method = c(slice_logic, nuclei_logic, exp_logic),
+  Value = c(slice_details, paste(nuclei_val, "pixels"), paste(exp_val, "pixels")),
+  stringsAsFactors = FALSE
+)
+
+knitr::kable(df_logic, caption = "Key logical decisions made by the pipeline.")
+```
+
+## Preprocessing
+
+```{r, results="asis"}
+preprocessing_files <- list(
+  c("Laplacian score", p("preprocessing/Laplacian_score.csv")),
+  c("Z-slice measurements", p("preprocessing/z_slice_measurements.csv")),
+  c("Processed image", p("preprocessing/"))
+)
+markdown_list(vapply(preprocessing_files, function(item) {
+  paste0(item[1], ": ", link_or_missing(item[2]))
+}, character(1)))
+```
+
+```{r}
+laplacian_csv <- p("preprocessing/Laplacian_score.csv")
+if (file.exists(laplacian_csv)) {
+  head(read.csv(laplacian_csv), 10)
+}
+```
+
+## Segmentation
+
+```{r, results="asis"}
+segmentation_files <- list(
+  c("QuPath measurements", p("segmentation/QuPath_measurements.csv")),
+  c("Nuclei diameter", p("segmentation/nuclei_diameter.csv")),
+  c("Average min distance", p("segmentation/average_min_distance.csv")),
+  c("Average nuclear expansion", p("segmentation/average_nuclear_expansion.csv")),
+  c("Segmentation mask (NPY)", p("segmentation/"))
+)
+markdown_list(vapply(segmentation_files, function(item) {
+  paste0(item[1], ": ", link_or_missing(item[2]))
+}, character(1)))
+```
+
+```{r}
+expansion_csv <- p("segmentation/average_nuclear_expansion.csv")
+if (file.exists(expansion_csv)) {
+  head(read.csv(expansion_csv), 10)
+}
+```
+
+## Counts
+
+```{r, results="asis"}
+count_files <- list(
+  p("counts/matrix.mtx.gz"),
+  p("counts/features.tsv.gz"),
+  p("counts/barcodes.tsv.gz")
+)
+markdown_list(vapply(count_files, link_or_missing, character(1)))
+```
+
+```{r}
+features_tsv <- p("counts/features.tsv.gz")
+if (file.exists(features_tsv)) {
+  head(read.delim(features_tsv, header = FALSE), 10)
+}
+```
+
+```{r}
+barcodes_tsv <- p("counts/barcodes.tsv.gz")
+if (file.exists(barcodes_tsv)) {
+  head(read.delim(barcodes_tsv, header = FALSE), 10)
+}
+```
+
+## Analysis
+
+```{r, results="asis"}
+analysis_files <- list(
+  p("analysis/sp_obj.rds"),
+  p("analysis/singler.rds")
+)
+markdown_list(vapply(analysis_files, link_or_missing, character(1)))
+```
+
+## Plots
+
+```{r, results="asis"}
+plot_files <- list(
+  p("plots/QC.pdf"),
+  p("plots/spatialobj_plot.pdf"),
+  p("plots/SingleR_predictions_QC.pdf"),
+  p("plots/Spatial_SingleR.pdf"),
+  p("plots/UMAP_SingleR.pdf")
+)
+markdown_list(vapply(plot_files, link_or_missing, character(1)))
+```
+
+```{r, results="asis"}
+cat(paste0(
+  "<h3>Plot previews</h3>\n",
+  paste(vapply(plot_files, embed_plot, character(1)), collapse = "\n\n")
+))
+```
+
+## Benchmarks
+
+```{r}
+bench_file <- p("benchmarks/workflow_resource_usage.txt")
+
+if (file.exists(bench_file)) {
+  lines <- readLines(bench_file)
+  lines <- lines[grepl("=", lines)]
+  parts <- strsplit(lines, "=", fixed = TRUE)
+  
+  key <- vapply(parts, `[`, 1, FUN.VALUE = character(1))
+  val <- vapply(parts, `[`, 2, FUN.VALUE = character(1))
+  
+  df_bench <- data.frame(Metric = key, Value = val, stringsAsFactors = FALSE)
+  
+  # Remove max_rss_kb if max_rss_mb exists, to show only one memory metric
+  if ("max_rss_mb" %in% df_bench$Metric) {
+    df_bench <- df_bench[df_bench$Metric != "max_rss_kb", ]
+    df_bench$Metric[df_bench$Metric == "max_rss_mb"] <- "Max RSS (MB)"
+  }
+  
+  # Format other keys for better readability
+  df_bench$Metric[df_bench$Metric == "start_ts"] <- "Start Time"
+  df_bench$Metric[df_bench$Metric == "end_ts"] <- "End Time"
+  df_bench$Metric[df_bench$Metric == "elapsed_seconds"] <- "Duration (s)"
+  df_bench$Metric[df_bench$Metric == "exit_code"] <- "Exit Code"
+  
+  knitr::kable(df_bench, row.names = FALSE)
+} else {
+  cat("Benchmarks file not found.")
+}
+```
+
+## Notes
+
+This report is a lightweight summary of available outputs. We will expand it as we finalize the list of key deliverables.

@@ -24,7 +24,7 @@ scipy = ">=1.10"
 
 # Image processing and analysis
 openjdk = ">=11,<12"
-quarto = ">=1.3"
+deno = "*"
 
 # Workflow orchestration
 nextflow = ">=23.0"
@@ -45,6 +45,8 @@ natsort = "*"
 # R packages - core dependencies
 r-tidyverse = "*"
 r-seurat = "*"
+r-rmarkdown = "*"
+r-knitr = "*"
 r-pheatmap = "*"
 bioconductor-complexheatmap = "*"
 r-patchwork = "*"

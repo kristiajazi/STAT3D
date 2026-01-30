@@ -154,7 +154,11 @@ run_snakemake_with_metrics() {
     if [[ "$copy_logs" != "0" && -n "$benchmark_dir" && -d ".snakemake/log" ]]; then
         log_dest="$benchmark_dir/.snakemake-log"
         mkdir -p "$log_dest"
-        rsync -a --delete ".snakemake/log/" "$log_dest/" || true
+        if command -v rsync >/dev/null 2>&1; then
+            rsync -a --delete ".snakemake/log/" "$log_dest/" || true
+        else
+            cp -a ".snakemake/log/." "$log_dest/" || true
+        fi
     fi
 
     return $rc
