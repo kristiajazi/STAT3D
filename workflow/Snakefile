@@ -482,7 +482,7 @@ rule gzip_outputs:
 
 rule dump_config:
     output:
-        yaml = os.path.join(results_dir, "run_config.yaml")
+        yaml = os.path.join(benchmark_dir, "run_config.yaml")
     run:
         with open(output.yaml, 'w') as f:
             yaml.dump(config, f, default_flow_style=False)
@@ -490,7 +490,7 @@ rule dump_config:
 rule quarto_report:
     input:
         qmd = "scripts/report.qmd",
-        config_yaml = os.path.join(results_dir, "run_config.yaml"),
+        config_yaml = os.path.join(benchmark_dir, "run_config.yaml"),
         laplacian = Laplacian_score_csv,
         z_slice = z_slice_csv,
         qupath = csv_QuPath_output,
@@ -530,7 +530,7 @@ rule quarto_report:
         mv $report_name "$dest_path"
         """
 
-		# Define valid celldex references 
+# Define valid celldex references 
 VALID_REFS = [
     "HumanPrimaryCellAtlasData",
     "BlueprintEncodeData",
