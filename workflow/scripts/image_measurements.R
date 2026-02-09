@@ -25,8 +25,8 @@ if (ncol(data) < 11) {
 
 # Calculate average nucleus area (column 11)
 average_area <- mean(data[[11]], na.rm = TRUE)
-average_diameter <- average_area / 3.14
-nucleus_ray <- sqrt(average_diameter) 
+nucleus_ray<- sqrt(average_area / 3.14)
+average_diameter <- 2 * nucleus_ray
 
 # Sample 15000 nuclei or fewer if total rows < 15000
 #set.seed(123)

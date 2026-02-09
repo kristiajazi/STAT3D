@@ -93,7 +93,7 @@ def _mem_mb_from_file(path: str, multiplier: float, minimum: int) -> int:
 def _cellpose_mem_mb(image_path: str, attempt: int) -> int:
     # 1. Retrieve parameters and physical limit from the config
     is_3d = config.get("cellpose_do_3D", False)
-    system_limit = int(config.get("memory_mb", 0)) # 0 significa "nessun limite/automatico"
+    system_limit = int(config.get("memory_mb", 0)) 
     
     # 2. Logic Attempt 2+ (Tiling ON - Low Memory)
     if attempt > 1:
@@ -140,8 +140,6 @@ analysis_dir = os.path.join(results_dir, "analysis")
 plots_dir = os.path.join(results_dir, "plots")
 
 # Define output to image filename
-z_a = config.get("Z_SLICE_A", "STAT3D_A")
-z_b = config.get("Z_SLICE_B", "STAT3D_B")
 if "INPUT_TIFF" not in config:
     raise ValueError(
         "Missing required config key 'INPUT_TIFF'. "
@@ -426,14 +424,16 @@ rule run_cellpose:
     retries: cellpose_retries
     params:
         diameter = lambda wildcards, input: (
-            float(config["nuclei_diameter"])
+            float(config["nuclei_diameter"]) / float(config["PIXEL_SIZE"])
             if "nuclei_diameter" in config
-            else float(pd.read_csv(input.diameter_csv)["Average_Diameter"].iloc[0])
+            else float(
+                pd.read_csv(input.diameter_csv)["Average_Diameter"].iloc[0]
+            ) / float(config["PIXEL_SIZE"])
         ),
         use_gpu = "--use_gpu" if config["cellpose_use_gpu"] else "",
         do_3D = "--do_3D" if config.get("cellpose_do_3D", False) else ""
     resources:
-        mem_mb=lambda wildcards, input, attempt: _with_floor(
+        mem_mb = lambda wildcards, input, attempt: _with_floor(
             _cellpose_mem_mb(input.image, attempt)
         )
     benchmark:
