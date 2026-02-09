@@ -471,7 +471,7 @@ environments:
       - conda: https://conda.anaconda.org/conda-forge/linux-64/qhull-2020.2-h434a139_5.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/qt6-main-6.9.3-h5c1c036_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/qtpy-2.4.3-pyhd8ed1ab_1.conda
-      - conda: https://conda.anaconda.org/conda-forge/linux-64/quarto-1.8.26-hbf95b10_0.conda
+      - conda: https://conda.anaconda.org/conda-forge/linux-64/quarto-1.8.27-hbf95b10_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/r-abind-1.4_8-r44hc72bb7e_1.conda
       - conda: https://conda.anaconda.org/conda-forge/linux-64/r-askpass-1.2.1-r44h54b55ab_1.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/r-assertthat-0.2.1-r44hc72bb7e_6.conda
@@ -7156,21 +7156,21 @@ packages:
   license_family: MIT
   size: 63041
   timestamp: 1749167192680
-- conda: https://conda.anaconda.org/conda-forge/linux-64/quarto-1.8.26-hbf95b10_0.conda
-  sha256: 689be7409d56e66702a7bc0f32b31a9dd2d2f25975921a65fd4597adfadcb1aa
-  md5: 67fdefbee327dce7dfbf31b6925c3554
+- conda: https://conda.anaconda.org/conda-forge/linux-64/quarto-1.8.27-hbf95b10_0.conda
+  sha256: 329352caf0021d3ba77a8675ca06a9d0c98470f216595adf6df774ba83fef48c
+  md5: d43d80de63f428def49639a6d27326e5
   depends:
   - dart-sass
   - deno >=2.3.1,<2.3.2.0a0
   - deno-dom >=0.1.41,<0.1.42.0a0
   - esbuild
-  - nodejs >=22.19.0,<23.0a0
+  - nodejs >=22.21.1,<23.0a0
   - pandoc 3.6.3
   - typst 0.13.0
   license: MIT
   license_family: MIT
-  size: 22845502
-  timestamp: 1763140155483
+  size: 22964598
+  timestamp: 1768599719118
 - conda: https://conda.anaconda.org/conda-forge/noarch/r-abind-1.4_8-r44hc72bb7e_1.conda
   sha256: 1d83d808a9a52b1cb3919b110687d2fcb605e96143136745cca9bb7c44e4b06f
   md5: bc7c760b0b0ad2a6eb8970f56ef82971

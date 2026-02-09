@@ -14,8 +14,8 @@ LABEL version="0.1.0"
 
 WORKDIR /etc/stat3d
 
-# Ensure the Pixi default environment is always at the front of the PATH
-ENV PATH="/etc/stat3d/.pixi/envs/default/bin:$PATH"
+# Ensure Quarto and Pixi environment are on PATH (Quarto first)
+ENV PATH="/opt/quarto/bin:/etc/stat3d/.pixi/envs/default/bin:$PATH"
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/UTC
 ENV PYTHONWARNINGS="ignore"
@@ -28,6 +28,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     xz-utils \
     ca-certificates \
     git \
+    poppler-utils \
     libgl1 \
     libglib2.0-0 \
     time \
@@ -36,6 +37,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && ln -fs /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone \
     && dpkg-reconfigure --frontend noninteractive tzdata \
     && rm -rf /var/lib/apt/lists/*
+
+# Install Quarto from official release (conda package missing resources)
+ARG QUARTO_VERSION=1.5.57
+RUN mkdir -p /opt/quarto && \
+    curl -fsSL -o /tmp/quarto.tar.gz \
+    "https://github.com/quarto-dev/quarto-cli/releases/download/v${QUARTO_VERSION}/quarto-${QUARTO_VERSION}-linux-amd64.tar.gz" && \
+    tar -xzf /tmp/quarto.tar.gz -C /opt/quarto --strip-components=1 && \
+    rm /tmp/quarto.tar.gz
 
 # Install Pixi
 ENV PIXI_VERSION=0.63.1

@@ -1,0 +1,396 @@
+---
+title: "STAT3D Report"
+author: "STAT3D"
+date: "`r Sys.Date()`"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    code-fold: show
+    theme: cosmo
+    embed-resources: true
+    fig-width: 8
+    fig-height: 6
+execute:
+  echo: false
+  eval: true
+  timeout: 300
+  startup_timeout: 300
+params:
+  results_dir: "results"
+  config_file: "run_config.yaml"
+---
+
+```{r}
+results_dir <- normalizePath(params$results_dir, winslash = "/", mustWork = FALSE)
+
+p <- function(rel_path) {
+  file.path(results_dir, rel_path)
+}
+
+rel_link <- function(path) {
+  sub(paste0("^", results_dir, "/?"), "", normalizePath(path, winslash = "/", mustWork = FALSE))
+}
+
+link_or_missing <- function(path) {
+  if (file.exists(path) || dir.exists(path)) {
+    sprintf("[%s](%s)", basename(path), rel_link(path))
+  } else {
+    sprintf("(missing) %s", basename(path))
+  }
+}
+
+markdown_list <- function(items) {
+  cat(paste0("- ", items, collapse = "\n"))
+}
+
+embed_plot <- function(path, height = 520) {
+  if (!file.exists(path)) {
+    return(sprintf("<em>Missing:</em> %s", basename(path)))
+  }
+  png_path <- sub("\\.pdf$", ".png", path)
+  if (file.exists(png_path)) {
+    return(sprintf(
+      "<img src=\"%s\" alt=\"%s\" style=\"max-width:100%%; height:auto; border:1px solid #eee;\"/>",
+      rel_link(png_path), basename(png_path)
+    ))
+  }
+  src <- rel_link(path)
+  sprintf(
+    "<object data=\"%s\" type=\"application/pdf\" width=\"100%%\" height=\"%s\" style=\"border:1px solid #eee;\">PDF: <a href=\"%s\">%s</a></object>",
+    src, height, src, basename(path)
+  )
+}
+```
+
+## Preview
+
+Results directory: `r results_dir`
+
+## Overview
+
+STAT3D is a modular pipeline for the analysis of 3D spatial transcriptomics data. The following sections detail the results of the automated analysis.
+
+### Workflow Summary
+
+**Image pre-processing**
+
+1. STAT3D generates a `z_slice_measurements` CSV file to identify and assess the structural integrity of the z-stacks in the pyramidal image.
+2. STAT3D generates a TIF image for every z-slice of the z-stack. These images allow for visual inspection of the sharpness and quality of each slice. The images are stored in a folder named "export".
+3. STAT3D computes the Laplacian score for every image in the z-stacks. The results are displayed during the pipeline execution and stored in a CSV file named "Laplacian score".
+4. STAT3D selects the two sharpest z-slices based on the Laplacian score calculation and creates a new, reduced OME.TIFF image which serves as the base for downstream analysis. This image is named `morphology.ome_STAT3D`.
+5. STAT3D uses `morphology.ome_STAT3D` to measure nuclei characteristics—such as average diameter, average expansion, and average minimum distance—using QuPath Image Analysis Software. These parameters are used by STAT3D to tailor the subsequent processing steps.
+
+**Segmentation**
+
+6. STAT3D performs Cellpose nuclear segmentation on `morphology.ome_STAT3D` using the previously calculated average diameter (converted to pixels). STAT3D enables 3D segmentation via the `cellpose_do_3d` parameter.
+
+**Cell-to-transcripts mapping**
+
+7. STAT3D performs cell-to-transcript mapping to accurately assign each transcript to the nearest cell. This step utilizes the average nuclear expansion parameter previously calculated by the pipeline.
+
+**Downstream Analysis**
+
+8. STAT3D generates a Seurat spatial object using the `Read10x` function. The resulting object (`sp_obj.rds`) undergoes quality control filtering, SCTransform normalization, Principal Component Analysis (PCA), and UMAP dimensionality reduction. Physical coordinates are preserved to allow for spatial visualization of the tissue architecture.
+9. STAT3D performs automated cell type annotation using the SingleR reference-based method. This step assigns identities to cells based on reference datasets and generates confidence metrics, saving the results in `singler.rds`. The annotations are then used to generate comparative transcriptomic (UMAP) and spatial maps.
+
+## Parameters
+
+```{r}
+if (file.exists(params$config_file)) {
+  # Requires r-yaml or just use base parsing for simple structures
+  # We assume yaml is installed as standard with rmarkdown
+  cfg <- yaml::read_yaml(params$config_file)
+  
+  # Helper to format values
+  fmt_val <- function(x) {
+    if (is.null(x)) return("NULL")
+    if (is.logical(x)) return(ifelse(x, "TRUE", "FALSE"))
+    if (is.list(x) || length(x) > 1) return(paste(x, collapse = ", "))
+    as.character(x)
+  }
+  
+  df_cfg <- data.frame(
+    Parameter = names(cfg),
+    Value = vapply(cfg, fmt_val, character(1)),
+    stringsAsFactors = FALSE
+  )
+  
+  # Sort alphabetically
+  df_cfg <- df_cfg[order(df_cfg$Parameter), ]
+  
+  knitr::kable(df_cfg, row.names = FALSE)
+} else {
+  cat("Configuration file not found.")
+}
+```
+
+## Effective Analysis Logic
+
+This section details how key parameters were determined (User-defined vs. Auto-calculated).
+
+```{r}
+# Function to safely read single value CSVs
+read_val <- function(fname, col_name) {
+  fpath <- p(fname)
+  if (file.exists(fpath)) {
+    df <- read.csv(fpath)
+    if (nrow(df) > 0 && col_name %in% names(df)) {
+      return(round(df[[col_name]][1], 2))
+    }
+  }
+  return(NA)
+}
+
+# --- 1. Slice Selection Logic ---
+slice_logic <- "Unknown"
+slice_details <- ""
+
+# Check Config priorities (consistent with pipeline logic)
+if (!is.null(cfg$Z_1)) {
+  slice_logic <- "Manual Selection (Config)"
+  # Collect all Z_n keys
+  z_keys <- grep("^Z_[0-9]+$", names(cfg), value = TRUE)
+  z_vals <- unlist(cfg[z_keys])
+  slice_details <- paste("Slices:", paste(z_vals, collapse = ", "))
+} else if (!is.null(cfg$Z_STACK) && cfg$Z_STACK == "ALL") {
+  slice_logic <- "Max Projection (All Slices)"
+  slice_details <- "Using entire Z-Stack"
+} else {
+  # Default: Laplacian Based
+  slice_logic <- "Auto-Selection (Laplacian)"
+  lap_file <- p("preprocessing/Laplacian_score.csv")
+  if (file.exists(lap_file)) {
+    lap_df <- read.csv(lap_file)
+    # Pipeline default logic: Sort by score desc, take top 2 (or top 1 if HIGHEST)
+    if (!is.null(cfg$Laplacian) && cfg$Laplacian == "HIGHEST") {
+       top_slices <- lap_df[order(lap_df$Sharpness_score, decreasing = TRUE), ][1, "Z_slice"]
+       slice_details <- paste("Top 1 Slice based on Sharpness:", top_slices)
+    } else {
+       # Default is usually top 2
+       top_slices <- lap_df[order(lap_df$Sharpness_score, decreasing = TRUE), ][1:min(2, nrow(lap_df)), "Z_slice"]
+       slice_details <- paste("Top 2 Slices based on Sharpness:", paste(top_slices, collapse = ", "))
+    }
+  }
+}
+
+# --- 2. Nuclei Diameter ---
+nuclei_logic <- "Unknown"
+nuclei_val <- NA
+
+if (!is.null(cfg$nuclei_diameter)) {
+  nuclei_logic <- "User Defined (Config)"
+  nuclei_val <- cfg$nuclei_diameter
+} else {
+  nuclei_logic <- "Auto-Calculated"
+  nuclei_val <- read_val("segmentation/nuclei_diameter.csv", "Average_Diameter")
+}
+
+# --- 3. Nuclear Expansion ---
+exp_logic <- "Unknown"
+exp_val <- NA
+# Check for NUCLEAR_EXPANSION_SET (as per your description)
+if (!is.null(cfg$NUCLEAR_EXPANSION_SET)) {
+  exp_logic <- "User Defined (Config)"
+  exp_val <- cfg$NUCLEAR_EXPANSION_SET
+} else {
+  exp_logic <- "Auto-Calculated"
+  exp_val <- read_val("segmentation/average_nuclear_expansion.csv", "Average_Nuclear_Expansion")
+}
+
+# Create Summary Table
+df_logic <- data.frame(
+  Parameter = c("Z-Slice Selection", "Nuclei Diameter", "Nuclear Expansion"),
+  Method = c(slice_logic, nuclei_logic, exp_logic),
+  Value = c(slice_details, paste(nuclei_val, "µm"), paste(exp_val, "µm")),
+  stringsAsFactors = FALSE
+)
+
+knitr::kable(df_logic, caption = "Key logical decisions made by the pipeline.")
+```
+
+## Preprocessing
+
+**Key Preprocessing Files:**
+
+- **Laplacian score**: Table in CSV format containing two columns, "Z_slice" and "Sharpness_score", representing the sharpness value assigned to each z-slice of the z-stack. A higher sharpness score indicates a greater number of strong edges, characterizing the local curvature of features measured by the Laplacian algorithm.
+- **z_slice_measurements**: Table in CSV format displaying measurement details (Image, Object ID, Object type, Name, etc.) for the entire Z-stack. The Z index column emphasizes the specific z-slice number within the stack.
+
+```{r, results="asis"}
+preprocessing_files <- list(
+  c("Laplacian score", p("preprocessing/Laplacian_score.csv")),
+  c("Z-slice measurements", p("preprocessing/z_slice_measurements.csv")),
+  c("Processed image", p("preprocessing/"))
+)
+markdown_list(vapply(preprocessing_files, function(item) {
+  paste0(item[1], ": ", link_or_missing(item[2]))
+}, character(1)))
+```
+
+```{r}
+laplacian_csv <- p("preprocessing/Laplacian_score.csv")
+if (file.exists(laplacian_csv)) {
+  head(read.csv(laplacian_csv), 10)
+}
+```
+
+## Segmentation
+
+**Key Segmentation Files:**
+
+- **average_nuclear_expansion**: CSV file displaying the image-tailored average nuclear expansion in micrometers (µm). This measurement is automatically computed by STAT3D during the cell-to-transcript mapping step. The user can modify this measurement via the `NUCLEAR_EXPANSION_SET` parameter in the `config.yaml` file.
+- **nuclei_diameter**: CSV file displaying the average diameter of the nuclei in micrometers (µm). This physical value is automatically converted into pixels by the pipeline. The resulting pixel value is used by STAT3D to guide Cellpose segmentation. This measurement can be overwritten by the user via the `NUCLEI_DIAMETER` parameter in the `config.yaml` file.
+
+```{r, results="asis"}
+segmentation_files <- list(
+  c("QuPath measurements", p("segmentation/QuPath_measurements.csv")),
+  c("Nuclei diameter", p("segmentation/nuclei_diameter.csv")),
+  c("Average min distance", p("segmentation/average_min_distance.csv")),
+  c("Average nuclear expansion", p("segmentation/average_nuclear_expansion.csv")),
+  c("Segmentation mask (NPY)", p("segmentation/"))
+)
+markdown_list(vapply(segmentation_files, function(item) {
+  paste0(item[1], ": ", link_or_missing(item[2]))
+}, character(1)))
+```
+
+```{r}
+expansion_csv <- p("segmentation/average_nuclear_expansion.csv")
+if (file.exists(expansion_csv)) {
+  head(read.csv(expansion_csv), 10)
+}
+```
+
+## Counts
+
+This section contains the gene expression data generated by mapping transcript detections to individual cells. The output is provided in 10X-compatible format (matrix, features, and barcodes), where the sparse matrix encodes feature-by-cell counts, and the barcodes include 3D spatial localization for each cell. These files form the foundation for downstream Seurat analysis.
+
+```{r, results="asis"}
+count_files <- list(
+  p("counts/matrix.mtx.gz"),
+  p("counts/features.tsv.gz"),
+  p("counts/barcodes.tsv.gz")
+)
+markdown_list(vapply(count_files, link_or_missing, character(1)))
+```
+
+### Features
+
+```{r}
+features_tsv <- p("counts/features.tsv.gz")
+if (file.exists(features_tsv)) {
+  head(read.delim(features_tsv, header = FALSE), 10)
+}
+```
+
+### Barcodes
+
+```{r}
+barcodes_tsv <- p("counts/barcodes.tsv.gz")
+if (file.exists(barcodes_tsv)) {
+  head(read.delim(barcodes_tsv, header = FALSE), 10)
+}
+```
+
+## Downstream Analysis
+
+This section contains the results of the spatial analysis and automated cell type annotation. It includes the Seurat spatial object (`sp_obj.rds`) which has undergone normalization (SCTransform), dimensionality reduction (PCA and UMAP), and clustering. The `singler.rds` file provides the automated cell type assignments based on the chosen reference dataset.
+
+```{r, results="asis"}
+analysis_files <- list(
+  p("analysis/sp_obj.rds"),
+  p("analysis/singler.rds")
+)
+markdown_list(vapply(analysis_files, link_or_missing, character(1)))
+```
+
+## Plots
+
+**Description of diagnostic and analysis plots in logical workflow order:**
+
+1. **QC plot**: Violin plot displaying key quality control metrics that assess the transcriptomic complexity and sequencing depth (nFeature and nCount) of individual cells.
+2. **spatialobj_plot**: Spatial representation of the tissue sample showing the physical location of each cell as an individual point, preserving the native tissue architecture and spatial context before annotation.
+3. **UMAP_SingleR**: UMAP plot revealing the transcriptomic relationships between cells in a reduced dimensional space, colored by automated cell type assignments.
+4. **SingleR_predictions_QC**: Heatmap displaying the prediction confidence scores from SingleR. Higher scores (closer to 1) reflect stronger evidence for a particular cell type assignment.
+5. **Spatial_SingleR**: Final spatial projection displaying the organization of cells into transcriptionally distinct clusters following automated SingleR annotation.
+
+```{r, results="asis"}
+plot_files <- list(
+  p("plots/QC.pdf"),
+  p("plots/spatialobj_plot.pdf"),
+  p("plots/UMAP_SingleR.pdf"),
+  p("plots/SingleR_predictions_QC.pdf"),
+  p("plots/Spatial_SingleR.pdf")
+)
+markdown_list(vapply(plot_files, link_or_missing, character(1)))
+```
+
+```{r, results="asis"}
+cat(paste0(
+  "<h3>Plot previews</h3>\n",
+  paste(vapply(plot_files, embed_plot, character(1)), collapse = "\n\n")
+))
+```
+
+## Benchmarks
+
+```{r, results="asis"}
+# 1. Look for the global workflow summary (created by the wrapper after the run)
+bench_file <- p("benchmarks/workflow_resource_usage.txt")
+
+# 2. Look for individual rule benchmarks (created during the run)
+bench_dir <- p("benchmarks")
+tsv_files <- list.files(bench_dir, pattern = "\\.tsv$", full.names = TRUE)
+
+if (file.exists(bench_file)) {
+  cat("### Global Workflow Usage\n\n")
+  lines <- readLines(bench_file)
+  lines <- lines[grepl("=", lines)]
+  parts <- strsplit(lines, "=", fixed = TRUE)
+  
+  key <- vapply(parts, `[`, 1, FUN.VALUE = character(1))
+  val <- vapply(parts, `[`, 2, FUN.VALUE = character(1))
+  
+  df_bench <- data.frame(Metric = key, Value = val, stringsAsFactors = FALSE)
+  
+  if ("max_rss_mb" %in% df_bench$Metric) {
+    df_bench <- df_bench[df_bench$Metric != "max_rss_kb", ]
+    df_bench$Metric[df_bench$Metric == "max_rss_mb"] <- "Max RSS (MB)"
+  }
+  
+  df_bench$Metric[df_bench$Metric == "start_ts"] <- "Start Time"
+  df_bench$Metric[df_bench$Metric == "end_ts"] <- "End Time"
+  df_bench$Metric[df_bench$Metric == "elapsed_seconds"] <- "Duration (s)"
+  df_bench$Metric[df_bench$Metric == "exit_code"] <- "Exit Code"
+  
+  print(knitr::kable(df_bench, row.names = FALSE))
+}
+
+if (length(tsv_files) > 0) {
+  cat("\n### Individual Rule Benchmarks\n\n")
+  
+  bench_list <- lapply(tsv_files, function(f) {
+    df <- read.delim(f)
+    if (nrow(df) > 0) {
+      data.frame(
+        Rule = sub("\\.tsv$", "", basename(f)),
+        Seconds = round(df$s, 1),
+        Max_RSS_MB = round(df$max_rss, 1),
+        CPU_Load = round(df$mean_load, 2),
+        stringsAsFactors = FALSE
+      )
+    }
+  })
+  
+  summary_bench <- do.call(rbind, bench_list)
+  # Sort by duration
+  summary_bench <- summary_bench[order(summary_bench$Seconds, decreasing = TRUE), ]
+  
+  print(knitr::kable(summary_bench, row.names = FALSE, 
+                     col.names = c("Rule", "Duration (s)", "Max RSS (MB)", "Avg CPU Load")))
+}
+
+if (!file.exists(bench_file) && length(tsv_files) == 0) {
+  cat("No benchmark data found yet.")
+}
+```

@@ -1,11 +1,12 @@
-- test the other reference databases
-- embedding toy_dataset inside the docker image or automatic download of the files (?)
+- URGENT: test the other reference databases
+- Should we set the nuclei_diameter to 5 in the test/toy data config(s)?
+- Sync versioning between pipeline and container
+- Embedding toy_dataset inside the docker image or automatic download of the files (?)
+- Test clusters on NAISS
+- Final audit
 
 Standards:
 - Benchmark artifacts: include a small table or summary in the README (or docs/) linking to benchmark TSVs and how to generate the Snakemake HTML report.
-- Reproducibility: ensure pixi.lock is committed and Docker build uses --frozen.
-- Config schema: add a lightweight validation (YAML schema or explicit checks) so invalid configs fail fast.
-- Tests: one end‑to‑end toy dataset run in CI (or a documented local test) with expected outputs.
 - Resource reporting: document --report usage and where results/benchmarks are produced.
 
 To be deleted:

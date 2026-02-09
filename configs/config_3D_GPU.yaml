@@ -42,6 +42,8 @@ sample_size: 15000
 #Cellpose
 cellpose_use_gpu: true
 cellpose_do_3D: true
+# ATTENTION: This value must be in MICRONS (µm).
+# The pipeline will automatically convert it to pixels.
 #nuclei_diameter: 30
 
 #Cell-to-transcript files and parameters
