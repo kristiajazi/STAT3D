@@ -28,6 +28,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     xz-utils \
     ca-certificates \
     git \
+    poppler-utils \
     libgl1 \
     libglib2.0-0 \
     time \

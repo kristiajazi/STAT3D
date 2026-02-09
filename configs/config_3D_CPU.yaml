@@ -44,6 +44,8 @@ cellpose_do_3D: true
 
 #Cell-to-transcript files and parameters
 transcripts_df: /stat3d/transcripts.parquet
+# ATTENTION: This value must be in MICRONS (µm).
+# The pipeline will automatically convert it to pixels.
 #nuclei_diameter: 30
 
 #SingleR Annotation

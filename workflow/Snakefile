@@ -3,6 +3,7 @@
 import yaml
 import os
 import pandas as pd
+from datetime import datetime
 
 print("CONFIG CONTENTS:", config)
 
@@ -147,6 +148,12 @@ if "INPUT_TIFF" not in config:
         "Run with --configfile /path/to/config.yaml (see stat3d --help)."
     )
 
+# Define filename segments for the report
+_raw_basename = os.path.basename(config["INPUT_TIFF"])
+# Handles .ome.tif, .tiff, .tif by removing them
+input_tiff_clean = _raw_basename.replace(".ome.tif", "").replace(".tif", "").replace(".tiff", "")
+current_date = datetime.now().strftime("%Y%m%d")
+
 input_tiff_basename = os.path.splitext(os.path.basename(config["INPUT_TIFF"]))[0]
 image_output = os.path.join(preproc_dir, f"{input_tiff_basename}_STAT3D.tif")
 seg_npy_output = os.path.join(segmentation_dir, f"{input_tiff_basename}_STAT3D_seg.npy")
@@ -185,7 +192,15 @@ singler_rds = os.path.join(analysis_dir, "singler.rds")
 Spatial_SingleR_pdf = os.path.join(plots_dir, "Spatial_SingleR.pdf")
 UMAP_SingleR_pdf = os.path.join(plots_dir, "UMAP_SingleR.pdf")
 QC_predictions_pdf = os.path.join(plots_dir, "SingleR_predictions_QC.pdf")
-report_html = os.path.join(results_dir, "stat3d-report.html")
+
+# PNG previews for Quarto report
+QC_png = QC_pdf.replace(".pdf", ".png")
+spatialobj_plot_png = spatialobj_plot_pdf.replace(".pdf", ".png")
+Spatial_SingleR_png = Spatial_SingleR_pdf.replace(".pdf", ".png")
+UMAP_SingleR_png = UMAP_SingleR_pdf.replace(".pdf", ".png")
+QC_predictions_png = QC_predictions_pdf.replace(".pdf", ".png")
+
+report_html = os.path.join(results_dir, f"STAT3D-report_{input_tiff_clean}_{current_date}.html")
 
 # Rule all dispaying each sequential STAT3D output 
 rule all:
@@ -208,6 +223,11 @@ rule all:
         Spatial_SingleR_pdf,
         UMAP_SingleR_pdf,
         QC_predictions_pdf,
+        QC_png,
+        spatialobj_plot_png,
+        Spatial_SingleR_png,
+        UMAP_SingleR_png,
+        QC_predictions_png,
         report_html
 
 
@@ -487,6 +507,14 @@ rule dump_config:
         with open(output.yaml, 'w') as f:
             yaml.dump(config, f, default_flow_style=False)
 
+rule convert_pdf_to_png:
+    input:
+        "{path}/{name}.pdf"
+    output:
+        "{path}/{name}.png"
+    shell:
+        "pdftoppm -png -singlefile -rx 300 -ry 300 {input} {wildcards.path}/{wildcards.name}"
+
 rule quarto_report:
     input:
         qmd = "scripts/report.qmd",
@@ -498,14 +526,20 @@ rule quarto_report:
         avg_exp = average_nuclear_expansion_csv,
         nuclei_diam = nuclei_diameter_csv,
         qc_pdf = QC_pdf,
+        qc_png = QC_png,
         qc_pred = QC_predictions_pdf,
+        qc_pred_png = QC_predictions_png,
         spatial_pdf = spatialobj_plot_pdf,
+        spatial_png = spatialobj_plot_png,
         umap_pdf = UMAP_SingleR_pdf,
-        singler_pdf = Spatial_SingleR_pdf
+        umap_png = UMAP_SingleR_png,
+        singler_pdf = Spatial_SingleR_pdf,
+        singler_png = Spatial_SingleR_png
     output:
         report = report_html
     params:
-        results_dir = results_dir
+        results_dir = os.path.abspath(results_dir),
+        benchmark_dir = os.path.abspath(benchmark_dir)
     resources:
         mem_mb=500
     shell:
@@ -513,6 +547,7 @@ rule quarto_report:
         # Capture absolute path of the destination BEFORE changing directory via cd
         # This handles cases where users provide relative paths in config directory
         dest_path=$(realpath {output.report})
+        config_path=$(realpath {input.config_yaml})
 
         # Change directory to scripts/ to avoid relative path issues with Quarto resources
         cd $(dirname {input.qmd})
@@ -523,7 +558,7 @@ rule quarto_report:
         quarto render $(basename {input.qmd}) \
             --to html \
             -P results_dir={params.results_dir} \
-            -P config_file={input.config_yaml} \
+            -P config_file=$config_path \
             --output $report_name
         
         # Move the fully embedded report to the final destination using the absolute path

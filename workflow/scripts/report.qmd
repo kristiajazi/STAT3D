@@ -63,9 +63,32 @@ embed_plot <- function(path, height = 520) {
 }
 ```
 
-## Overview
+## Preview
 
 Results directory: `r results_dir`
+
+## Overview
+
+STAT3D is a modular pipeline for the analysis of 3D spatial transcriptomics data. The following sections detail the results of the automated analysis.
+
+### Workflow Summary
+
+**Image pre-processing**
+1. STAT3D generates a `z_slice_measurements` CSV file to identify and assess the structural integrity of the z-stacks in the pyramidal image.
+2. STAT3D generates a TIF image for every z-slice of the z-stack. These images allow for visual inspection of the sharpness and quality of each slice. The images are stored in a folder named "export".
+3. STAT3D computes the Laplacian score for every image in the z-stacks. The results are displayed during the pipeline execution and stored in a CSV file named "Laplacian score".
+4. STAT3D selects the two sharpest z-slices based on the Laplacian score calculation and creates a new, reduced OME.TIFF image which serves as the base for downstream analysis. This image is named `morphology.ome_STAT3D`.
+5. STAT3D uses `morphology.ome_STAT3D` to measure nuclei characteristics—such as average diameter, average expansion, and average minimum distance—using QuPath Image Analysis Software. These parameters are used by STAT3D to tailor the subsequent processing steps.
+
+**Segmentation**
+6. STAT3D performs Cellpose nuclear segmentation on `morphology.ome_STAT3D` using the previously calculated average diameter (converted to pixels). STAT3D enables 3D segmentation via the `cellpose_do_3d` parameter.
+
+**Cell-to-transcripts mapping**
+7. STAT3D performs cell-to-transcript mapping to accurately assign each transcript to the nearest cell. This step utilizes the average nuclear expansion parameter previously calculated by the pipeline.
+
+**Downstream Analysis**
+8. STAT3D generates a Seurat spatial object using the `Read10x` function. The resulting object is saved as `sp_obj.rds` and contains spatial information for all cells with detected counts.
+9. STAT3D performs SingleR annotation on the Seurat object and saves the result as `singler.rds`.
 
 ## Parameters
 
@@ -175,7 +198,7 @@ if (!is.null(cfg$NUCLEAR_EXPANSION_SET)) {
 df_logic <- data.frame(
   Parameter = c("Z-Slice Selection", "Nuclei Diameter", "Nuclear Expansion"),
   Method = c(slice_logic, nuclei_logic, exp_logic),
-  Value = c(slice_details, paste(nuclei_val, "pixels"), paste(exp_val, "pixels")),
+  Value = c(slice_details, paste(nuclei_val, "µm"), paste(exp_val, "µm")),
   stringsAsFactors = FALSE
 )
 
@@ -183,6 +206,11 @@ knitr::kable(df_logic, caption = "Key logical decisions made by the pipeline.")
 ```
 
 ## Preprocessing
+
+**Key Preprocessing Files:**
+
+- **Laplacian score**: Table in CSV format containing two columns, "Z_slice" and "Sharpness_score", representing the sharpness value assigned to each z-slice of the z-stack. A higher sharpness score indicates a greater number of strong edges, characterizing the local curvature of features measured by the Laplacian algorithm.
+- **z_slice_measurements**: Table in CSV format displaying measurement details (Image, Object ID, Object type, Name, etc.) for the entire Z-stack. The Z index column emphasizes the specific z-slice number within the stack.
 
 ```{r, results="asis"}
 preprocessing_files <- list(
@@ -203,6 +231,11 @@ if (file.exists(laplacian_csv)) {
 ```
 
 ## Segmentation
+
+**Key Segmentation Files:**
+
+- **average_nuclear_expansion**: CSV file displaying the image-tailored average nuclear expansion in micrometers (µm). This measurement is automatically computed by STAT3D during the cell-to-transcript mapping step. The user can modify this measurement via the `NUCLEAR_EXPANSION_SET` parameter in the `config.yaml` file.
+- **nuclei_diameter**: CSV file displaying the average diameter of the nuclei in micrometers (µm). This physical value is automatically converted into pixels by the pipeline. The resulting pixel value is used by STAT3D to guide Cellpose segmentation. This measurement can be overwritten by the user via the `NUCLEI_DIAMETER` parameter in the `config.yaml` file.
 
 ```{r, results="asis"}
 segmentation_files <- list(
@@ -260,6 +293,14 @@ markdown_list(vapply(analysis_files, link_or_missing, character(1)))
 ```
 
 ## Plots
+
+**Description of diagnostic and analysis plots:**
+
+- **QC plot**: Violin plot displaying key quality control metrics that assess the transcriptomic complexity and sequencing depth (nFeature and nCount) of individual cells.
+- **SingleR_predictions_QC**: Heatmap displaying the prediction scores from SingleR. Higher scores (closer to 1) reflect stronger evidence for a particular cell type assignment.
+- **Spatial_SingleR**: Spatial projection displaying the organization of cells into transcriptionally distinct clusters following SingleR annotation.
+- **spatialobj_plot**: Spatial representation of the tissue sample showing the physical location of each cell as an individual point, preserving the native tissue architecture.
+- **UMAP_SingleR**: UMAP plot revealing the transcriptomic relationships between cells, colored by automated cell type assignment from SingleR.
 
 ```{r, results="asis"}
 plot_files <- list(
