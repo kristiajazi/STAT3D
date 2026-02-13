@@ -58,6 +58,7 @@ if "memory_mb" in config:
 directory = config["directory"]
 results_dir = os.path.join(directory, "results")
 benchmark_dir = os.path.join(results_dir, "benchmarks")
+SCRIPTS_DIR = os.path.join(os.path.dirname(workflow.snakefile), "scripts")
 
 memory_floor_mb = int(config.get("memory_mb", 0) or 0)
 
@@ -232,7 +233,7 @@ rule all:
 
 rule generate_zslice_groovy:
     output:
-        "scripts/Z_slice_script.groovy"
+        os.path.join(SCRIPTS_DIR, "Z_slice_script.groovy")
     params:
         z_slice_csv=z_slice_csv,
         export_dir=export_dir
@@ -277,7 +278,7 @@ print "Done!"
 rule run_zslice_script:
     input:
         image=config["INPUT_TIFF"],
-        script="scripts/Z_slice_script.groovy"
+        script=os.path.join(SCRIPTS_DIR, "Z_slice_script.groovy")
     output:
         zslice = z_slice_csv
     shell:
@@ -294,7 +295,7 @@ rule compute_laplacian:
         os.path.join(benchmark_dir, "compute_laplacian.tsv")
     shell:
         """
-        python scripts/Laplacian_score_script.py {input.tiff} {output.csv}
+        python {SCRIPTS_DIR}/Laplacian_score_script.py {input.tiff} {output.csv}
         """
 
 rule process_tiff:
@@ -325,7 +326,7 @@ rule process_tiff:
             # User-specified mode (highest priority - overrides everything)
             print(f"User-specified Z-slices: {user_z_slices}")
             subprocess.run([
-                "python", "scripts/process_tiff.py",
+                "python", os.path.join(SCRIPTS_DIR, "process_tiff.py"),
                 input.tiff,
                 str(config["LEVEL"]),
                 str(z_stack_mode),
@@ -337,7 +338,7 @@ rule process_tiff:
             # MAX projection mode
             print("Z_STACK=ALL: Performing MAX projection")
             subprocess.run([
-                "python", "scripts/process_tiff.py",
+                "python", os.path.join(SCRIPTS_DIR, "process_tiff.py"),
                 input.tiff,
                 str(config["LEVEL"]),
                 str(z_stack_mode),
@@ -365,7 +366,7 @@ rule process_tiff:
                 print(f"Using Z-slices from CSV: {z_slices}")
             
             subprocess.run([
-                "python", "scripts/process_tiff.py",
+                "python", os.path.join(SCRIPTS_DIR, "process_tiff.py"),
                 input.tiff,
                 str(config["LEVEL"]),
                 str(z_stack_mode),
@@ -376,7 +377,7 @@ rule process_tiff:
 
 rule generate_groovy_script:
     output:
-        "scripts/QuPath_script.groovy"
+        os.path.join(SCRIPTS_DIR, "QuPath_script.groovy")
     run:
         with open(output[0], "w") as f:
             f.write(f"""// QuPath_script.groovy
@@ -389,7 +390,7 @@ saveDetectionMeasurements('{csv_QuPath_output}')
 rule run_qupath_analysis:
     input:
         image=image_output,
-        script="scripts/QuPath_script.groovy"
+        script=os.path.join(SCRIPTS_DIR, "QuPath_script.groovy")
     output:
         csv_QuPath_output
     resources:
@@ -413,7 +414,7 @@ rule image_measurements:
     benchmark:
         os.path.join(benchmark_dir, "image_measurements.tsv")
     shell:
-        "Rscript scripts/image_measurements.R {input.csv} {output.min_distance} {output.nuclear_expansion} {output.nuclei_diameter} {params.sample_size}"
+        "Rscript {SCRIPTS_DIR}/image_measurements.R {input.csv} {output.min_distance} {output.nuclear_expansion} {output.nuclei_diameter} {params.sample_size}"
 
 rule run_cellpose:
     input:
@@ -439,7 +440,7 @@ rule run_cellpose:
     benchmark:
         os.path.join(benchmark_dir, "run_cellpose.tsv")
     script:
-        "scripts/run_cellpose.py"
+        os.path.join(SCRIPTS_DIR, "run_cellpose.py")
 
 rule cell_to_transcript:
     input:
@@ -478,9 +479,9 @@ rule cell_to_transcript:
     benchmark:
         os.path.join(benchmark_dir, "cell_to_transcript.tsv")
     script:
-        "scripts/cell_to_transcript.py"
+        os.path.join(SCRIPTS_DIR, "cell_to_transcript.py")
         if config.get("cellpose_do_3D", False)
-        else "scripts/cell_to_transcript_2D.py"
+        else os.path.join(SCRIPTS_DIR, "cell_to_transcript_2D.py")
 
 
 rule gzip_outputs:
@@ -517,7 +518,7 @@ rule convert_pdf_to_png:
 
 rule quarto_report:
     input:
-        qmd = "scripts/report.qmd",
+        qmd = os.path.join(SCRIPTS_DIR, "report.qmd"),
         config_yaml = os.path.join(benchmark_dir, "run_config.yaml"),
         laplacian = Laplacian_score_csv,
         z_slice = z_slice_csv,
@@ -549,7 +550,7 @@ rule quarto_report:
         dest_path=$(realpath {output.report})
         config_path=$(realpath {input.config_yaml})
 
-        # Change directory to scripts/ to avoid relative path issues with Quarto resources
+        # Change directory to the scripts directory to avoid relative path issues with Quarto resources
         cd $(dirname {input.qmd})
         
         report_name=$(basename {output.report})
@@ -601,4 +602,4 @@ rule seurat_spatial_object_automatic_annotation:
     benchmark:
         os.path.join(benchmark_dir, "seurat_spatial_object.tsv")
     script:
-        "scripts/seurat_spatial_object.R" if config.get("cellpose_do_3D", False) else "scripts/seurat_spatial_object_2D.R"
+        os.path.join(SCRIPTS_DIR, "seurat_spatial_object.R") if config.get("cellpose_do_3D", False) else os.path.join(SCRIPTS_DIR, "seurat_spatial_object_2D.R")
