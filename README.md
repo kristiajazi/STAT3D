@@ -1,4 +1,4 @@
-# STAT3D
+# STAT
 
 Spatial Trancriptomics Analysis Tool 3D.
 
