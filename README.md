@@ -1,6 +1,6 @@
 # STAT
 
-Spatial Trancriptomics Analysis Tool 3D.
+Spatial Trancriptomics Analysis Tool
 
 ## Table of Contents
 
