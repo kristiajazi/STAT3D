@@ -157,8 +157,8 @@ STAT3D supports several configuration parameters (defined in your user-provided 
 | Parameter | Description | Example / Notes |
 |------------------------|------------------------|------------------------|
 | `INPUT_TIFF` | name of your image in the stat3d container | e.g. stst3d/name_of_your_morphology.ome.tiff image / Recommended path : ´stat3d/morphology_X.ome.tif´|
-| `Level` | determine the level that will be extracted from the pyramydal image (morphology.ome.tif) | Integer (e.g. `0`, `1`) / Recommended level: 2 |
-| `Z_SLICE_A` and `Z_SLICE_B` | determine the two z-stacks that will be extracted from the single pyramidal level | Integer z indices (e.g. `4`, `5`). The optimal z_A and z_B are automatically calculated by STAT3D, dispalyed as message in the Docker terminal and inputed in the wrokflow. However, they can be overwritten with this parameter |
+| `LEVEL` | determine the level that will be extracted from the pyramydal image (morphology.ome.tif) | Integer (e.g. `0`, `1`) / Recommended level: 2 |
+| `Z_1 to `Z_6` | determine the  z-slices of the z-stack that will be extracted from the single pyramidal level | Integer z indices (e.g. `4`, `5`). The optimal z_top1 and z_top2 are automatically calculated by STAT3D, dispalyed as message in the Docker terminal and inputed in the wrokflow. However, they can be overwritten with this parameter |
 | `CELL_EXPANSION` | define cell size, based on detected nucleus objects  | Integer (pixels) |
 | `SIGMA` | control /reduce the noise effect | Float (e.g. `1.0`) |
 | `THRESHOLD` | intensity parameter | Float or int |
@@ -168,12 +168,13 @@ STAT3D supports several configuration parameters (defined in your user-provided 
 | `MEDIAN_RADIUS` | reduce image texture | Integer (pixels) |
 | `sample_size` | number of nuclei used to calculate all the parameters | Integer (e.g. `2000`) / Recommended number : 15000 |
 | `cellpose_use_gpu` | enable of GPU during 3D Cellpose segmentation. If set as flase the segmentation runs in CPU | Boolean (e.g. ´true´ or ´false´) / Recommended : ´true´ for morphology.ome.tiff images smaller than 3 GB |
-| `cellpose_img_filter` |  name the image processed by Cellpose and produced after z-stack extractions. This name must be written before the pipeline starts. | e.g. ´morphology_X.ome_STAT3D´ / If the INPUT_TIFF is ´morphology_X.ome.tif´, the parameter needed in this slot is ´morphology_X.ome_STAT3D´ |
+| `cellpose_do_3D` |enable 3D or 2D Cellpose segmentation. If set as flase the segmentation is  performed in 2D| Boolean (e.g. ´true´ or ´false´) |
+| `nuclei_diameter` |  integer or decimal number ( in microns) to set as customized nuclei diameter . It overwrites STAT3D measurement  |
 | `transcripts_df` | name of the transcripts.parquet file provided by 10x. This name must be written before the pipeline starts. | e.g. ´/stat3d/transcripts.parquet´ |
+| `ref` | Name of the "celldex" reference dataset  | e.g. ´HumanPrimaryCellAtlasData´ / Datasets supported : HumanPrimaryCellAtlasData, BlueprintEncodeData, DatabaseImmuneCellExpressionData, MonacoImmuneData, NovershternHematopoieticData, MouseRNAseqData |
+| `label_column` | Granularity of SingleR annotation it can be set as label.main or label.fine | label.main annotates the main cells function and phenotypes (e.g. CD8 T cells); label.fine defines specifically cells functions and phenotypes (e.g. Ehxausted CD8 T cells) |
 | `PIXEL_SIZE` | pixel size at various levels of the image pyramid | Integer (e.g. `0.85` for level 2)/ Recommended pixel sizes by 10x are listed in Table 1 |
 | `Z_SLICE_MICRON` | spacing size between each z-slice | Integer (e.g. `3` )/ 10x uses 3 microns. Do not change it if 10x hasn't released a new image format |
-| `label_column` | Granularity of SingleR annotation it can be set as label.main or label.fine | label.main annotates the main cells function and phenotypes (e.g. CD8 T cells); label.fine defines specifically cells functions and phenotypes (e.g. Ehxausted CD8 T cells) |
-| `ref` | Name of the "celldex" reference dataset  | e.g. ´HumanPrimaryCellAtlasData´ / Datasets supported : HumanPrimaryCellAtlasData, BlueprintEncodeData, DatabaseImmuneCellExpressionData, MonacoImmuneData, NovershternHematopoieticData, MouseRNAseqData |
 | `memory_mb` | Optional memory floor (MB) applied to all rules. Set to 0 to use automatic sizing. | Example: `memory_mb: 32000` | Cap for RAM usage in Megabytes (e.g. `28000` on 32GB RAM). Prevents system freeze on local machines. Set to `0` for auto-scaling on clusters. |
 | `fallback_to_cpu` | If true, switches to CPU inference if GPU fails with "Out Of Memory" (OOM) error. | Recommended value: `true` |
 
@@ -243,18 +244,16 @@ The HTML report includes execution times, rule graphs, and the benchmark tables 
 ## STAT3D validation datasets
 The datsets used for the validation of STAT3D piepline can be found in the webpages listed below.
 
-| Dataset | Link
+| Dataset | Link/DOI
 |------------------------|------------------------|
 | HCP | https://www.10xgenomics.com/datasets/pancreatic-cancer-with-xenium-human-multi-tissue-and-cancer-panel-1-standard |
-| KCP | https://www.10xgenomics.com/datasets/human-kidney-preview-data-xenium-human-multi-tissue-and-cancer-panel-1-standard|
+| KCP | https://www.10xgenomics.com/datasets/human-kidney-preview-data-xenium-human-multi-tissue-and-cancer-panel-1-standard |
+| TC70 (Toy dataset) | doi: 10.5281/zenodo.18377027 |
 
 
 ## Memory Management & Performance
-Quale fase é migliore?
 
-- STAT3D implements an adaptive hardware-aware system designed to maximize performance on HPC clusters while maintaining stability on personal laptops.
-
-- STAT3D implements an **adaptive memory system** designed to work efficiently on both personal laptops and HPC clusters.
+STAT3D implements an **adaptive memory system** designed to work efficiently on both personal laptops and HPC clusters.
 
 ### Smart Retry Strategy
 
