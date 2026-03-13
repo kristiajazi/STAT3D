@@ -53,6 +53,99 @@ docker pull ghcr.io/kristiajazi/stat3d:latest
                   ...└── ...scripts/
 
 
+
+
+
+
+
+# Preparing the Workflow Directory
+
+Follow the steps below to prepare the required directory structure before running **STAT3D**.
+
+---
+
+## 1. Create a working directory
+
+Create a folder called `test` in a location of your choice.
+Example:
+
+```
+C:/Users/test
+```
+
+---
+
+## 2. Obtain the workflow files
+
+### Option A – Clone the STAT3D repository
+
+Clone the STAT3D repository into the `test` folder and copy the `workflow` directory into `test`.
+
+### Option B – Download manually
+
+Download the files from the STAT3D repository manually.
+
+Then:
+
+1. Create a folder called `scripts` containing all downloaded scripts.
+2. Create a directory called `workflow`.
+3. Place the `scripts` folder and the `Snakefile` file inside the `workflow` directory.
+
+The `workflow` directory must follow this structure:
+
+```
+workflow/
+├── Snakefile
+└── scripts/
+```
+
+---
+
+## 3. Add the configuration file
+
+### Option A
+
+From the cloned repository, copy a configuration file from the `configs` folder and paste it into the `test` directory.
+
+### Option B
+
+Download a configuration file manually from the `configs` folder and store it in the `test` directory.
+
+**Note**
+
+The configuration file can:
+
+* keep its original name (e.g. `config_2D_GPU.yaml`)
+* or be renamed to a simpler name such as `config.yaml`.
+
+See the **Running the pipeline** section below for how the command may change depending on the configuration filename.
+
+---
+
+## 4. Add Xenium input files
+
+The Xenium input files must be placed inside the `test` directory, for example:
+
+* `morphology.ome.tiff`
+* `transcripts.parquet`
+
+---
+
+## 5. Final folder structure before running STAT3D
+
+Your directory should look like this:
+
+```
+test/
+├── morphology.ome.tiff
+├── transcripts.parquet
+├── config.yaml
+└── workflow/
+    ├── Snakefile
+    └── scripts/
+```
+
+
 ## Running the pipeline
 
 To run the pipeline with a configuration file called "config":
