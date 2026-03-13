@@ -29,23 +29,50 @@ STAT3D is typically run via the Docker container. Provide your own config file (
 docker pull ghcr.io/kristiajazi/stat3d:latest
 ```
 
-### Running the pipeline
+## Folder structure before running the pipeline
 
-To run the pipeline with a configuration file:
+1. In a specific path create a folder called e.g. "test", the path will be e.g. "C:/Users/test"
+2. Option A : clone STAT3D repository in "test" and copy/paste the "workflow" directoy in "test".
+   Option B : Download the "workflow" folder files manually from STAT3D repository. Create a folder called "scripts" containing all the downloaded scripts ; create a directory called "workflow", paste inside it the "scripts" folder and the         "Snakefile" file.
+   Note : the "workflow" directory must follow the architecture displayed below
+   workflow/
+           ├── Snakefile
+           └── scripts/
+3.Option A : From the cloned repository folder, copy the configuration file of choice stored in "configs" folder and paste it in "test" folder
+  Option B : Download manually the configuration file of choice stored in "configs" folder and store it in "test" folder
+  Note : the configuration file of choice can be renamed simply as "config" or left with the original name e.g. "config_2D_GPU". See in the section below "Running the pipeline" , how the code might change based on this.
+4.Xenium files such as "morphology.ome.tiff" and "transcripts.parquet" files must be stored in "test" folder
+
+5.Folder architecture before STAT3D run
+  test/
+      ├── morphology.ome.tiff
+      ├── transcripts.parquet
+      ├── config.yaml
+      ├──  workflow/
+                  ├── Snakefile
+                  └── scripts/
+
+
+## Running the pipeline
+
+To run the pipeline with a configuration file called "config":
 
 ``` bash
-docker run --platform linux/amd64 --rm \
-  -v /path/to/my_data:/data \
-  ghcr.io/kristiajazi/stat3d:latest \
-  --configfile /data/config.yaml --cores 4
+docker run --platform linux/amd64 --gpus all --rm -v C:/Users/test:/stat3d ghcr.io/kristiajazi/stat3d:latest --configfile /stat3d/config.yaml --cores 4
+```
+
+To run the pipeline with a configuration file called "config_2D_GPU":
+
+``` bash
+docker run --platform linux/amd64 --gpus all --rm -v C:/Users/test:/stat3d ghcr.io/kristiajazi/stat3d:latest --configfile /stat3d/config_2D_GPU.yaml --cores 4
 ```
 
 Notes:
+- The variables that the users can change in this command are only the path "C:/Users/test", the folder name ("test") and the configuration file name ("config".yaml) 
+- The workflow is embedded in the container. You only need to mount your input/output folder (e.g. "test") and pass a config via `--configfile`.
 
-- The workflow is embedded in the container. You only need to mount your input/output folder and pass a config via `--configfile`.
-- Use one of the example configs in `./configs/` as a starting point (including toy dataset configs).
 
-### Quickstart (toy dataset, fresh clone)
+## Test on toy dataset
 
 From the repository root:
 
