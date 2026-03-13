@@ -75,11 +75,11 @@ workflow/
 
 ## 3. Add the configuration file
 
-### Option A
+### Option A 
 
 From the cloned repository, copy a configuration file from the `configs` folder and paste it into the `test` directory.
 
-### Option B
+### Option B 
 
 Download a configuration file manually from the `configs` folder and store it in the `test` directory.
 
