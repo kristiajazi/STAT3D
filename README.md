@@ -117,7 +117,7 @@ The Xenium input files must be placed inside the `test` directory, for example:
 
 ## 5. Final folder structure before running STAT3D
 
-Your directory should look like this:
+Your `test` directory should look like this:
 
 ```
 test/
