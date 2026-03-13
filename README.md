@@ -1,4 +1,4 @@
-# ![stat3d logo](docs/stat3d_logo.svg)
+<p align="center"> <img src="docs/stat3d_logo.svg" width="280"> </p> <p align="center"> Spatial Transcriptomics Analysis in 3D </p> <p align="center"> <img src="https://img.shields.io/badge/workflow-Snakemake-brightgreen"> <img src="https://img.shields.io/badge/container-Docker-blue"> <img src="https://img.shields.io/badge/container-Apptainer-orange"> <img src="https://img.shields.io/badge/license-MIT-lightgrey"> </p>
 
 Spatial Trancriptomics Analysis Tool in 3D
 
