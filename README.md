@@ -1,4 +1,16 @@
-<p align="center"> <img src="docs/stat3d_logo.svg" width="280"> </p> <p align="center"> Spatial Transcriptomics Analysis Tool in 3D </p> <p align="center"> <img src="https://img.shields.io/badge/workflow-Snakemake-brightgreen"> <img src="https://img.shields.io/badge/container-Docker-blue"> <img src="https://img.shields.io/badge/container-Apptainer-orange">  </p>
+<p align="center">
+  <img src="docs/stat3d_logo.svg" width="280" style="margin-left:40px;">
+</p>
+
+<p align="center">
+Spatial Transcriptomics Analysis Tool in 3D
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/workflow-Snakemake-brightgreen">
+  <img src="https://img.shields.io/badge/container-Docker-blue">
+  <img src="https://img.shields.io/badge/container-Apptainer-orange">
+</p>
 
 
 ## Table of Contents
