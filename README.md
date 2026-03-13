@@ -36,8 +36,8 @@ docker pull ghcr.io/kristiajazi/stat3d:latest
    Option B : Download the "workflow" folder files manually from STAT3D repository. Create a folder called "scripts" containing all the downloaded scripts ; create a directory called "workflow", paste inside it the "scripts" folder and the         "Snakefile" file.
    Note : the "workflow" directory must follow the architecture displayed below
    workflow/
-           ├── Snakefile
-           └── scripts/
+           ├── ...Snakefile
+           └── ...scripts/
 3.Option A : From the cloned repository folder, copy the configuration file of choice stored in "configs" folder and paste it in "test" folder
   Option B : Download manually the configuration file of choice stored in "configs" folder and store it in "test" folder
   Note : the configuration file of choice can be renamed simply as "config" or left with the original name e.g. "config_2D_GPU". See in the section below "Running the pipeline" , how the code might change based on this.
@@ -45,12 +45,12 @@ docker pull ghcr.io/kristiajazi/stat3d:latest
 
 5.Folder architecture before STAT3D run
   test/
-      ├── morphology.ome.tiff
-      ├── transcripts.parquet
-      ├── config.yaml
+      ├── ...morphology.ome.tiff
+      ├── ...transcripts.parquet
+      ├── ...config.yaml
       ├──  workflow/
-                  ├── Snakefile
-                  └── scripts/
+                  ...├── ...Snakefile
+                  ...└── ...scripts/
 
 
 ## Running the pipeline
