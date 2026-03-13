@@ -66,7 +66,7 @@ Clone STAT3D repository into the `test` folder and copy the `workflow` directory
 
 ### Option B – Download manually
 
-Download the workflow files from the STAT3D repository manually.
+Download the `workflow` files from the STAT3D repository manually.
 
 Then:
 
