@@ -354,7 +354,7 @@ The datsets used for the validation of STAT3D piepline can be found in the webpa
 | TC70 (Toy dataset) | doi: 10.5281/zenodo.18377027 |
 
 
-## Memory Management & Performance
+## Memory Management & Performance-------section to be deleted 
 
 STAT3D implements an **adaptive memory system** designed to work efficiently on both personal laptops and HPC clusters.
 
