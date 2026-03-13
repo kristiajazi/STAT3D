@@ -29,34 +29,6 @@ STAT3D is typically run via the Docker container. Provide your own config file (
 docker pull ghcr.io/kristiajazi/stat3d:latest
 ```
 
-## Folder structure before running the pipeline
-
-1. In a specific path create a folder called e.g. "test", the path will be e.g. "C:/Users/test"
-2. Option A : clone STAT3D repository in "test" and copy/paste the "workflow" directoy in "test".
-   Option B : Download the "workflow" folder files manually from STAT3D repository. Create a folder called "scripts" containing all the downloaded scripts ; create a directory called "workflow", paste inside it the "scripts" folder and the         "Snakefile" file.
-   Note : the "workflow" directory must follow the architecture displayed below
-   workflow/
-           ├── ...Snakefile
-           └── ...scripts/
-3.Option A : From the cloned repository folder, copy the configuration file of choice stored in "configs" folder and paste it in "test" folder
-  Option B : Download manually the configuration file of choice stored in "configs" folder and store it in "test" folder
-  Note : the configuration file of choice can be renamed simply as "config" or left with the original name e.g. "config_2D_GPU". See in the section below "Running the pipeline" , how the code might change based on this.
-4.Xenium files such as "morphology.ome.tiff" and "transcripts.parquet" files must be stored in "test" folder
-
-5.Folder architecture before STAT3D run
-  test/
-      ├── ...morphology.ome.tiff
-      ├── ...transcripts.parquet
-      ├── ...config.yaml
-      ├──  workflow/
-                  ...├── ...Snakefile
-                  ...└── ...scripts/
-
-
-
-
-
-
 
 # Preparing the Workflow Directory
 
