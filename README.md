@@ -73,6 +73,7 @@ Then:
 1. Create a folder called `scripts` containing all downloaded scripts.
 2. Create a directory called `workflow`.
 3. Place the `scripts` folder and the `Snakefile` file inside the `workflow` directory.
+4. Move `workflow` directory in `test`
 
 The `workflow` directory must follow this structure:
 
