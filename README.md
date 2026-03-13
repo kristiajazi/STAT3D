@@ -26,7 +26,7 @@ Spatial Transcriptomics Analysis Tool in 3D
 
 ## Description
 
-STAT3D is a tool designed for the analysis of Xenium-derived spatial transcriptomics data including 3D Cellpose segmentation. It provides functionalities for data preprocessing, analysis, and visualization of 3D and 2D spatial transcriptomics datasets.
+STAT3D is a tool designed for the analysis of Xenium-derived spatial transcriptomics data including for the first time automatic and tailored 3D Cellpose segmentation. It provides functionalities for data preprocessing, analysis, and visualization of 3D and 2D spatial transcriptomics datasets.
 
 ## Installation
 
