@@ -1,6 +1,6 @@
 # STAT3D
 
-Spatial Trancriptomics Analysis Tool
+Spatial Trancriptomics Analysis Tool in 3D
 
 ## Table of Contents
 
