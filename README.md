@@ -118,7 +118,7 @@ test/
 ```
 
 
-## Running the pipeline
+## Running the pipeline on Docker desktop terminal
 
 To run the pipeline with a configuration file called "config":
 
