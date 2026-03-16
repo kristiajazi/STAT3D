@@ -60,11 +60,11 @@ C:/Users/test
 
 ## 2. Obtain the workflow files
 
-### Option A – Clone the STAT3D repository
+### Option A (Advanced users) – Clone the STAT3D repository
 
 Clone STAT3D repository into the `test` folder and copy the `workflow` directory into `test`.
 
-### Option B – Download manually
+### Option B (Basic users)  – Download manually
 
 Download the `workflow` files from the STAT3D repository manually.
 
@@ -87,11 +87,11 @@ workflow/
 
 ## 3. Add the configuration file
 
-### Option A 
+### Option A (Advanced users)
 
 From the cloned repository, copy a configuration file from the `configs` folder and paste it into the `test` directory.
 
-### Option B 
+### Option B (Basic users)
 
 Download a configuration file manually from the `configs` folder and store it in the `test` directory.
 
