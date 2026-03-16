@@ -3,16 +3,6 @@
 # Set working directory
 directory: /stat3d
 
-# MEMORY SETTINGS
-# Optional memory floor (MB). Use 0 for automatic sizing (HPC Clusters auto-scaling).
-# Set to ~85% of total RAM on laptops (e.g. 28000 for 32GB).
-memory_mb: 28000
-
-# ROBUSTNESS
-# If True: Automatically switch to CPU if GPU runs out of memory (slower but guarantees completion).
-# If False: Fail if GPU cannot handle the image.
-fallback_to_cpu: true
-
 #z extraction for image reduction
 INPUT_TIFF: /stat3d/morphology.ome.tif
 LEVEL: 2
