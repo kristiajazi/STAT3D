@@ -1,7 +1,6 @@
 SOPA WORKING STEPS
-SOPA is a true mess..follow these steps
 
-SOPA RUN WITH CLI SUCCESSFULLY
+SOPA runs with CLI successfully, see steps below
 
 0. Work always in the same directory folder during all the steps
 1.Download the xenium dataset from 10x webpage or the links saved in STAT3D page
@@ -28,12 +27,6 @@ and creates the anndata file. The anndata needs to be saved in the same folder w
 
 
 
-
-
-sopa explorer write sopa_directory.zarr # convert for interactive vizualisation
-
-
-
 TEST NOT SUCCESSFUL WITH ENV SOPA
 
 0. Work always in the same directory folder during all the steps
@@ -48,17 +41,5 @@ TEST NOT SUCCESSFUL WITH ENV SOPA
 9.check if you need to install sopa, but it actually does not need : pip install sopa[cellpose]
 10.from the env run  this command to enable parallelization of the processes : set SOPA_PARALLELIZATION_BACKEND=dask
 11.run the pipeline with this command : snakemake --config sdata_path=C:/Users/Malin_Group/Kristi/sopa_directory.zarr --configfile=C:/Users/Malin_Group/Kristi/cellpose.yaml --cores 1 --use-conda
-
-
-
-
-
-Time monitoring $start = Get-Date
-sopa segmentation cellpose data.zarr --channels morphology_focus --diameter 50
-Write-Host "Processing time: $((Get-Date) - $start)"
-
-Measure-Command { 
-    sopa segmentation cellpose data.zarr --channels morphology_focus --diameter 50 
-}
 
 
