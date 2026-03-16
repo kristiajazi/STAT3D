@@ -41,96 +41,10 @@ REQUIRED_CONFIG_KEYS = [
     "cellpose_use_gpu",
 ]
 
-missing_keys = [key for key in REQUIRED_CONFIG_KEYS if key not in config]
-if missing_keys:
-    raise ValueError(
-        "Missing required config keys: " + ", ".join(missing_keys)
-    )
-
-if "memory_mb" in config:
-    try:
-        memory_mb_value = int(config.get("memory_mb", 0))
-    except (TypeError, ValueError):
-        raise ValueError("memory_mb must be an integer (MB).")
-    if memory_mb_value < 0:
-        raise ValueError("memory_mb must be >= 0 (0 means auto).")
-
 directory = config["directory"]
 results_dir = os.path.join(directory, "results")
 benchmark_dir = os.path.join(results_dir, "benchmarks")
 SCRIPTS_DIR = os.path.join(os.path.dirname(workflow.snakefile), "scripts")
-
-memory_floor_mb = int(config.get("memory_mb", 0) or 0)
-
-
-def _file_mb(path: str) -> float:
-    try:
-        return os.path.getsize(path) / (1024 * 1024)
-    except OSError:
-        return 0.0
-
-
-def _with_floor(mem_mb: int) -> int:
-    if memory_floor_mb > 0:
-        return max(mem_mb, memory_floor_mb)
-    return mem_mb
-
-
-def _mem_mb_from_file(path: str, multiplier: float, minimum: int) -> int:
-    size_mb = _file_mb(path)
-    return max(minimum, int(size_mb * multiplier))
-
-
-#def _cellpose_mem_mb(image_path: str, attempt: int) -> int:
-#    is_3d = config.get("cellpose_do_3D", False)
-#    multiplier = 8 if is_3d else 4
-#    minimum = 16000 if is_3d else 6000
-#    mem_mb = _mem_mb_from_file(image_path, multiplier, minimum)
-#    if attempt and attempt > 1:
-#        mem_mb = int(mem_mb * 1.5)
-#    return mem_mb
-
-
-def _cellpose_mem_mb(image_path: str, attempt: int) -> int:
-    # 1. Retrieve parameters and physical limit from the config
-    is_3d = config.get("cellpose_do_3D", False)
-    system_limit = int(config.get("memory_mb", 0)) 
-    
-    # 2. Logic Attempt 2+ (Tiling ON - Low Memory)
-    if attempt > 1:
-        # Cellpose in tile mode uses very little RAM (physically ~4GB).
-        # We ask for 12GB to be generous (Python overhead + library loading).
-        safe_ram = 12000 
-        
-        # BUT, if the user said "I only have 8GB" (system_limit=8000),
-        # we must honor that, otherwise the job will never start.
-        if system_limit > 0:
-            return min(safe_ram, system_limit)
-        return safe_ram
-
-    # 3. Logic Attempt 1 (Tiling OFF - High Memory)
-    # Ideal calculation based on file size
-    multiplier = 8 if is_3d else 4
-    minimum = 16000 if is_3d else 6000
-    estimated_ram = _mem_mb_from_file(image_path, multiplier, minimum)
-    
-    # If there's a system limit, we try to ask for the maximum possible,
-    # hoping that's enough. If it's not enough, it will crash and go to attempt 2.
-    if system_limit > 0:
-        return min(estimated_ram, system_limit)
-        
-    return estimated_ram
-
-
-def _get_cellpose_retries(wildcards):
-    use_gpu = config.get("cellpose_use_gpu", False)
-    fallback = config.get("fallback_to_cpu", True)
-    if use_gpu and fallback:
-        return 2
-    return 1
-
-
-cellpose_retries = _get_cellpose_retries(None)
 
 
 # Subdirectories for organized output
@@ -289,8 +203,6 @@ rule compute_laplacian:
         tiff = config["INPUT_TIFF"]
     output:
         csv = Laplacian_score_csv
-    resources:
-        mem_mb=lambda wildcards, input: _with_floor(_mem_mb_from_file(input.tiff, 3, 2000))
     benchmark:
         os.path.join(benchmark_dir, "compute_laplacian.tsv")
     shell:
@@ -307,8 +219,6 @@ rule process_tiff:
         ) else []
     output:
         image_output
-    resources: 
-        mem_mb=lambda wildcards, input: _with_floor(_mem_mb_from_file(input.tiff, 4, 3000))
     benchmark:
         os.path.join(benchmark_dir, "process_tiff.tsv")
     run:
@@ -393,8 +303,6 @@ rule run_qupath_analysis:
         script=os.path.join(SCRIPTS_DIR, "QuPath_script.groovy")
     output:
         csv_QuPath_output
-    resources:
-        mem_mb=lambda wildcards, input: _with_floor(_mem_mb_from_file(input.image, 4, 4000))
     benchmark:
         os.path.join(benchmark_dir, "run_qupath_analysis.tsv")
     shell:
@@ -409,8 +317,6 @@ rule image_measurements:
         min_distance = average_min_distance_csv,
         nuclear_expansion = average_nuclear_expansion_csv,
         nuclei_diameter = nuclei_diameter_csv
-    resources:
-        mem_mb=lambda wildcards, input: _with_floor(_mem_mb_from_file(input.csv, 2, 1000))
     benchmark:
         os.path.join(benchmark_dir, "image_measurements.tsv")
     shell:
@@ -422,7 +328,6 @@ rule run_cellpose:
         diameter_csv = nuclei_diameter_csv
     output:
         seg_npy = seg_npy_output
-    retries: cellpose_retries
     params:
         diameter = lambda wildcards, input: (
             float(config["nuclei_diameter"]) / float(config["PIXEL_SIZE"])
@@ -433,10 +338,6 @@ rule run_cellpose:
         ),
         use_gpu = "--use_gpu" if config["cellpose_use_gpu"] else "",
         do_3D = "--do_3D" if config.get("cellpose_do_3D", False) else ""
-    resources:
-        mem_mb = lambda wildcards, input, attempt: _with_floor(
-            _cellpose_mem_mb(input.image, attempt)
-        )
     benchmark:
         os.path.join(benchmark_dir, "run_cellpose.tsv")
     script:
@@ -472,10 +373,6 @@ rule cell_to_transcript:
                 "Average_Nuclear_Expansion"
             ].iloc[0] / config["Z_SLICE_MICRON"]
         )
-    resources:
-        mem_mb=lambda wildcards, input: _with_floor(
-            _mem_mb_from_file(input.transcripts, 6, 8000)
-        )
     benchmark:
         os.path.join(benchmark_dir, "cell_to_transcript.tsv")
     script:
@@ -499,7 +396,6 @@ rule gzip_outputs:
         gzip -c {input.features} > {output.features_gz}
         gzip -c {input.barcodes} > {output.barcodes_gz}
         """
-
 
 rule dump_config:
     output:
@@ -541,8 +437,6 @@ rule quarto_report:
     params:
         results_dir = os.path.abspath(results_dir),
         benchmark_dir = os.path.abspath(benchmark_dir)
-    resources:
-        mem_mb=500
     shell:
         """
         # Capture absolute path of the destination BEFORE changing directory via cd
@@ -597,8 +491,6 @@ rule seurat_spatial_object_automatic_annotation:
         pdf_spatial_singler = Spatial_SingleR_pdf,
         pdf_qc = QC_pdf,
         pdf_qc_predictions = QC_predictions_pdf
-    resources:
-        mem_mb=lambda wildcards, input: _with_floor(_mem_mb_from_file(input.matrix, 6, 12000))
     benchmark:
         os.path.join(benchmark_dir, "seurat_spatial_object.tsv")
     script:
