@@ -355,29 +355,6 @@ The datsets used for the validation of STAT3D piepline can be found in the webpa
 | TC70 (Toy dataset) | doi: 10.5281/zenodo.18377027 |
 
 
-## Memory Management & Performance-------section to be deleted 
-
-STAT3D implements an **adaptive memory system** designed to work efficiently on both personal laptops and HPC clusters.
-
-### Smart Retry Strategy
-
-The pipeline automatically adjusts its strategy if a job fails due to memory constraints:
-
-1. **Attempt 1 (Fast Mode):** Tries to process the full image in memory. Fastest, but high RAM/VRAM usage.
-2. **Attempt 2 (Safe Mode):** If Attempt 1 fails, it retries using a **Tiled** approach (significantly lower memory footprint).
-3. **Attempt 3 (CPU Fallback):** If GPU memory is insufficient even with tiling, the pipeline can automatically switch to **CPU inference** (if `fallback_to_cpu: true`), guaranteeing that your analysis finishes regardless of GPU limitations.
-
-*Note: You can track exact memory usage and execution time for each rule in the `results/benchmarks/` folder (TSV files).*
-
-### Configuration Guide
-To prevent system instability (especially on laptops), you can define a hard memory limit in your configuration file.
-
-* **On Laptops:** Set `memory_mb` in `config.yaml` to ~85% of your physical RAM (e.g., `28000` for a 32GB machine) to prevent system instability.
-* **On Clusters (Slurm):** Set `memory_mb: 0`. The pipeline will calculate requirements dynamically based on image size.
-
-**Note:** It is normal to see a "Job failed" message in the logs during the first attempt. Snakemake will automatically display `(retry 1)` and proceed with the tiled method.
-
-
 ## Known Issues
 
 ### Cellpose CUDA out-of-memory (GPU + 3D)
