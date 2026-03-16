@@ -62,7 +62,7 @@ C:/Users/xenium_stat3d
 
 ### Option A (Advanced users) – Clone the STAT3D repository
 
-Clone STAT3D repository into the `xenium_stat3d` folder and copy the `workflow` directory into `test`.
+Clone STAT3D repository into the `xenium_stat3d` folder and copy the `workflow` directory into `xenium_stat3d`.
 
 ### Option B (Basic users)  – Download manually
 
