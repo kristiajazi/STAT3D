@@ -49,11 +49,11 @@ Follow the steps below to prepare the required directory structure before runnin
 
 ## 1. Create a working directory
 
-Create a folder called `test` in a location of your choice.
+Create a folder called `xenium_stat3d` in a location of your choice.
 Example:
 
 ```
-C:/Users/test
+C:/Users/xenium_stat3d
 ```
 
 ---
@@ -62,7 +62,7 @@ C:/Users/test
 
 ### Option A (Advanced users) – Clone the STAT3D repository
 
-Clone STAT3D repository into the `test` folder and copy the `workflow` directory into `test`.
+Clone STAT3D repository into the `xenium_stat3d` folder and copy the `workflow` directory into `test`.
 
 ### Option B (Basic users)  – Download manually
 
@@ -73,7 +73,7 @@ Then:
 1. Create a folder called `scripts` containing all downloaded scripts.
 2. Create a directory called `workflow`.
 3. Place the `scripts` folder and the `Snakefile` file inside the `workflow` directory.
-4. Move `workflow` directory in `test`
+4. Move `workflow` directory in `xenium_stat3d`
 
 The `workflow` directory must follow this structure:
 
@@ -89,11 +89,11 @@ workflow/
 
 ### Option A (Advanced users)
 
-From the cloned repository, copy a configuration file from the `configs` folder and paste it into the `test` directory.
+From the cloned repository, copy a configuration file from the `configs` folder and paste it into the `xenium_stat3d` directory.
 
 ### Option B (Basic users)
 
-Download a configuration file manually from the `configs` folder and store it in the `test` directory.
+Download a configuration file manually from the `configs` folder and store it in the `xenium_stat3d` directory.
 
 **Note**
 
@@ -108,7 +108,7 @@ See the **Running the pipeline** section below for how the command may change de
 
 ## 4. Add Xenium input files
 
-The Xenium input files must be placed inside the `test` directory, for example:
+The Xenium input files must be placed inside the `xenium_stat3d` directory, for example:
 
 * `morphology.ome.tiff`
 * `transcripts.parquet`
@@ -117,10 +117,10 @@ The Xenium input files must be placed inside the `test` directory, for example:
 
 ## 5. Final folder structure before running STAT3D
 
-Your `test` directory should look like this:
+Your `xenium_stat3d` directory should look like this:
 
 ```
-test/
+xenium_stat3d/
 ├── morphology.ome.tiff
 ├── transcripts.parquet
 ├── config.yaml
@@ -135,18 +135,18 @@ test/
 To run the pipeline with a configuration file called "config":
 
 ``` bash
-docker run --platform linux/amd64 --gpus all --rm -v C:/Users/test:/stat3d ghcr.io/kristiajazi/stat3d:latest --configfile /stat3d/config.yaml --cores 4
+docker run --platform linux/amd64 --gpus all --rm -v C:/Users/xenium_stat3d:/stat3d ghcr.io/kristiajazi/stat3d:latest --configfile /stat3d/config.yaml --cores 4
 ```
 
 To run the pipeline with a configuration file called "config_2D_GPU":
 
 ``` bash
-docker run --platform linux/amd64 --gpus all --rm -v C:/Users/test:/stat3d ghcr.io/kristiajazi/stat3d:latest --configfile /stat3d/config_2D_GPU.yaml --cores 4
+docker run --platform linux/amd64 --gpus all --rm -v C:/Users/xenium_stat3d:/stat3d ghcr.io/kristiajazi/stat3d:latest --configfile /stat3d/config_2D_GPU.yaml --cores 4
 ```
 
 Notes:
-- The variables that the users can change in this command are only the path "C:/Users/test", the folder name ("test") and the configuration file name ("config".yaml) 
-- The workflow is embedded in the container. You only need to mount your input/output folder (e.g. "test") and pass a config via `--configfile`.
+- The variables that the users can change in this command are only the path "C:/Users/test", the folder name ("xenium_stat3d") and the configuration file name ("config".yaml) 
+- The workflow is embedded in the container. You only need to mount your input/output folder (e.g. "xenium_stat3d") and pass a config via `--configfile`.
 
 
 ## Test on toy dataset
