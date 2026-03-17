@@ -356,7 +356,10 @@ The datsets used for the validation of STAT3D piepline can be found in the webpa
 
 
 ## Apptainer file for High performance cluster
-| Simple Interaction File (.sif) file  | Zenodo doi: 10.5281/zenodo.19069559 |
+
+| File | Zenodo DOI
+|------------------------|------------------------|
+| Simple Interaction File (.sif)  | 10.5281/zenodo.19069559 |
 
 ## Known Issues
 
