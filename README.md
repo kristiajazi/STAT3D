@@ -355,7 +355,7 @@ The datsets used for the validation of STAT3D piepline can be found in the webpa
 | TC70 (Toy dataset image) | doi: 10.5281/zenodo.18377027 |
 
 
-## Apptainer file for High performance cluster
+## Apptainer file for High Performance Clusters
 
 | File | Zenodo DOI
 |------------------------|------------------------|
