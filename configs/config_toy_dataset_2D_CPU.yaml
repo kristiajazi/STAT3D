@@ -1,10 +1,10 @@
 # STAT3D configuration file
 
 # Set working directory
-directory: /test
+directory: /stat3d
 
 #z extraction for image reduction
-INPUT_TIFF: /data/TC70_cropped.ome.tif
+INPUT_TIFF: /stat3d/TC70_cropped.ome.tif
 LEVEL: 0 # must be 0
 #Z_1: 
 #Z_2: 
