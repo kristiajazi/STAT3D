@@ -108,7 +108,8 @@ See the **Running the pipeline** section below for how the command may change de
 
 ## 4. Add Xenium input files
 
-The Xenium input files must be placed inside the `xenium_stat3d` directory, for example:
+The Xenium input files must be placed inside the `xenium_stat3d` directory.
+The required files are the following:
 
 * `morphology.ome.tiff`
 * `transcripts.parquet`
