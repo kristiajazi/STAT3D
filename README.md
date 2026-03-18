@@ -310,7 +310,12 @@ STAT3D supports several configuration parameters (defined in your user-provided 
 | `PIXEL_SIZE` | pixel size at various levels of the image pyramid | Integer (e.g. `0.85` for level 2)/ Recommended pixel sizes by 10x are listed in Table 1 |
 | `Z_SLICE_MICRON` | spacing size between each z-slice | Integer (e.g. `3` )/ 10x uses 3 microns. Do not change it if 10x hasn't released a new image format |
 
-To change these values, edit your own YAML config file (start from one of the examples in `./configs/`) and re-run the pipeline with `--configfile /path/to/your_config.yaml`. For most parameters, start with conservative values and adjust based on the visual quality of segmentation on a small test region. It is recommended to test the QuPath parameters with QuPath App at `Analyze >Cell Detection >Cell detection` to achieve optimal tailoring.
+To change these values, edit your own YAML config file (start from one of the examples in `./configs/`) and re-run the pipeline with `--configfile /path/to/your_config.yaml`.
+For most parameters, start with conservative values and adjust based on the visual quality of segmentation on a small test region.
+It is recommended to test the QuPath parameters with QuPath App at `Analyze >Cell Detection >Cell detection` to achieve optimal tailoring.
+
+# Note
+If Z_1,Z_2,Z_3,Z_4,Z_5,Z_6, Z_STACK and Laplacian parameters are silenced, STAT3D automatically performs the selection of the two most sharp z-slices returning a multi-plane (2-planes) z-stack which can be analysed with 3D cllpose segmentation.
 
 ## Table 1. Pixel Size at various level (by 10x Genomics)
 The table displays the pixel sizes associated with each pyramidal level in images generated with Xenium platform.
