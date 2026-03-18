@@ -289,9 +289,9 @@ STAT3D supports several configuration parameters (defined in your user-provided 
 |------------------------|------------------------|------------------------|
 | `INPUT_TIFF` | name of your image in the stat3d container | e.g. stst3d/name_of_your_morphology.ome.tiff image / Recommended path : ´stat3d/morphology_X.ome.tif´|
 | `LEVEL` | determine the level that will be extracted from the pyramydal image (morphology.ome.tif) | Integer (e.g. `0`, `1`) / Recommended level: 2 |
-| `Z_1` to `Z_6` | determine the  z-slices of the z-stack that will be extracted from the single pyramidal level | Integer z indices (e.g. `4`, `5`). The optimal z_top1 and z_top2 are automatically calculated by STAT3D, dispalyed as message in the Docker terminal and inputed in the wrokflow. However, they can be overwritten with this parameter |
-| `Z_STACK` | set at "ALL" it considers all the z-slices in the z-stack and perform Maximum Intensity Projection (MIP) returining a 2D flattened OME.TIFF image.The analysis must be carried with 2D segmentation.  | Boolean / if silenced (e.g. #Z_STACK), STAT3D performs automatically LS calculation |
-| `Laplacian` | set to "HIGHEST" it considers the z-slice with the higest LS score.The analysis must be carried with 2D segmentation. | Boolean /if silenced (e.g. #Laplacian), STAT3D performs automatically LS calculation and selection of the two sharpest z-slices|
+| `Z_1` to `Z_6` | determine the  z-slices of the z-stack that will be extracted from the single pyramidal level. Multiple z-slices can be selected as well as only one z-slice. | Integer z indices (e.g. `4`, `5`). The optimal z_top1 and z_top2 are automatically calculated by STAT3D, dispalyed as message in the Docker terminal and inputed in the wrokflow. However, they can be overwritten with this parameter |
+| `Z_STACK` | set at "ALL" it considers all the z-slices in the z-stack and performs Maximum Intensity Projection (MIP) returining a 2D flattened OME.TIFF image.The analysis must be carried on with 2D segmentation.  | Boolean / if silenced (e.g. #Z_STACK), STAT3D performs automatically LS calculation |
+| `Laplacian` | set to "HIGHEST" it considers the z-slice with the higest LS score.The analysis must be carried on with 2D segmentation. | Boolean /if silenced (e.g. #Laplacian), STAT3D performs automatically LS calculation and selection of the two sharpest z-slices|
 | `NUCLEAR_EXPANSION_SET` | determine nuclear expansion for each cell nuclei to ensure correct cell-to-transcript assignment  | Integer (microns) |
 | `CELL_EXPANSION` | QuPath parameter to define cell size, based on detected nucleus objects  | Integer (pixels) |
 | `SIGMA` | QuPath parameter to control /reduce the noise effect | Float (e.g. `1.0`), QuPath parameter |
@@ -353,10 +353,9 @@ To run STAT3D, use the following commands:
 docker pull ghcr.io/kristiajazi/stat3d:latest # only once when using STAT3D for the first time
 
 # Run with an explicit config file
-docker run --platform linux/amd64 --rm \
-  -v /path/to/my_data:/data \
-  ghcr.io/kristiajazi/stat3d:latest \
-  --configfile /data/config.yaml --cores 4
+
+docker run --platform linux/amd64 --gpus all --rm -v C:/Users/xenium_stat3d:/stat3d ghcr.io/kristiajazi/stat3d:latest --configfile /stat3d/config.yaml --cores 4
+
 ```
 
 ## Benchmarking and Reports
@@ -365,10 +364,10 @@ STAT3D writes per-rule benchmarks to `results/benchmarks/` for computationally i
 
 ```bash
 # ensure the folder exists
-mkdir -p /path/to/workdir/results/benchmarks
+mkdir -p C:/Users/xenium_stat3d/results/benchmarks
 
 # use an absolute path for the report
-snakemake --cores 4 --report /path/to/workdir/results/benchmarks/stat3d-report.html
+snakemake --cores 4 --report C:/Users/xenium_stat3d/results/benchmarks/stat3d-report.html
 ```
 
 The HTML report includes execution times, rule graphs, and the benchmark tables for profiling and reproducibility.
