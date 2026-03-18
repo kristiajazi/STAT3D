@@ -384,7 +384,7 @@ The datsets used for the validation of STAT3D piepline can be found in the webpa
 |------------------------|------------------------|
 | HCP | https://www.10xgenomics.com/datasets/pancreatic-cancer-with-xenium-human-multi-tissue-and-cancer-panel-1-standard |
 | KCP | https://www.10xgenomics.com/datasets/human-kidney-preview-data-xenium-human-multi-tissue-and-cancer-panel-1-standard |
-| TC70 (Toy dataset image) | doi: 10.5281/zenodo.18377027 |
+| TC70 (Toy dataset image) | https://zenodo.org/records/19092042?preview=1&token=eyJhbGciOiJIUzUxMiIsImlhdCI6MTc3MzgzNTg2MCwiZXhwIjoxNzkxNjc2Nzk5fQ.eyJpZCI6ImMwNzViOWNhLTFkMzAtNDNiYS04MmJlLTcwZTE0ZWMzOWEwNyIsImRhdGEiOnt9LCJyYW5kb20iOiJmZjRjYjY0OTY0M2M4YzZkYzZmYjc0MjVmMmJkZWI4YSJ9.O34bHC_pcZjf19IxKHoXSL2Oh2WHd78uSOCsJqGHGK4blkEkvulqovISyljbyJr2-GZgRVfB5h4KASJ4FyFiTw  |
 
 
 ## Apptainer file for High Performance Clusters
