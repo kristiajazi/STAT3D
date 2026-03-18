@@ -185,10 +185,19 @@ xenium_stat3d/
 If you want to enter the container interactively to explore files or run commands manually without a config file, override the entrypoint:
 
 ``` bash
-docker run --platform linux/amd64 --gpus all -it \
-  --entrypoint /bin/bash \
-  -v C:/your/directory/path:/stat3d \
-  ghcr.io/kristiajazi/stat3d:latest
+docker run --platform linux/amd64 --gpus all -it --entrypoint /bin/bash -v C:/Users/xenium_data:/stat3d ghcr.io/kristiajazi/stat3d:latest
+```
+
+Followed by entering the `workflow` directory:
+
+``` bash
+cd /stat3d/workflow
+```
+
+Run the pipeline with the configuration file of choice:
+
+``` bash
+snakemake --configfile config.yaml --cores 4 
 ```
 
 Once inside, you can run `stat3d --help` or navigate to `/stat3d/workflow`.
