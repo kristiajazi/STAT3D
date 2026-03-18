@@ -43,7 +43,7 @@ ref : HumanPrimaryCellAtlasData
 label_column: label.main
 
 #Level 2 pixel size 
-PIXEL_SIZE: 0.85
+PIXEL_SIZE: 0.2125 #must respect levels number
 
 #Z slice spacing 
 Z_SLICE_MICRON: 3
