@@ -257,7 +257,7 @@ STAT3D organizes all its outputs in a `results/` folder within your specified wo
 | File | Subfolder | Description |
 |------|-----------|-------------|
 | `z_slice_measurement.csv` | `preprocessing/` | This file identifies how many z-stacks are in each level of the image pyramid. |
-| `export` | `preprocessing/` | This folder contains images of every z-stack in the `morphology.ome.tif` image. The images can be inspected with software such as QuPath and help the user choose the most accurate two z-stacks to consider as `Z_stack_A` and `Z_stack_B`. The image resolution quantification is provided in `Laplacian_score.csv`. |
+| `export` | `preprocessing/` | This folder contains images of every z-stack in the `morphology.ome.tif` image. The images can be inspected with software such as QuPath and help the user choose the most accurate z-slice/s to consider. The image resolution quantification is provided in `Laplacian_score.csv`. |
 | `Laplacian_score.csv` | `preprocessing/` | This file indicates the level of sharpness of the first 10 images (`z0, z1, z2, … z9`) forming the z-stack in the `morphology.ome.tif` image. |
 | `QuPath_measurements.csv` | `segmentation/` | This file contains information about the size and area of nuclei detected in the tissue biopsy. It serves as the basis for calculating the nuclei average diameter and average nuclear expansion.|
 | `nuclei_diameter.csv` | `segmentation/` | Image-tailored calculation of cell diameters for Cellpose. This file contains the average diameter of nuclei in the tissue biopsy. |
