@@ -180,18 +180,6 @@ xenium_stat3d/
 ```
 
 
-
-From the repository root:
-
-```bash
-docker run --platform linux/amd64 --rm \
-  -v $(pwd)/test_run:/test \
-  -v $(pwd)/toy_dataset:/data:ro \
-  -v $(pwd)/configs/config_toy_dataset_2D_CPU.yaml:/config.yaml:ro \
-  ghcr.io/kristiajazi/stat3d:latest \
-  --configfile /config.yaml --cores 4
-```
-
 ### Interactive mode
 
 If you want to enter the container interactively to explore files or run commands manually without a config file, override the entrypoint:
