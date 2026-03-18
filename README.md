@@ -289,27 +289,28 @@ STAT3D supports several configuration parameters (defined in your user-provided 
 |------------------------|------------------------|------------------------|
 | `INPUT_TIFF` | name of your image in the stat3d container | e.g. stst3d/name_of_your_morphology.ome.tiff image / Recommended path : ´stat3d/morphology_X.ome.tif´|
 | `LEVEL` | determine the level that will be extracted from the pyramydal image (morphology.ome.tif) | Integer (e.g. `0`, `1`) / Recommended level: 2 |
-| `Z_1 to `Z_6` | determine the  z-slices of the z-stack that will be extracted from the single pyramidal level | Integer z indices (e.g. `4`, `5`). The optimal z_top1 and z_top2 are automatically calculated by STAT3D, dispalyed as message in the Docker terminal and inputed in the wrokflow. However, they can be overwritten with this parameter |
-| `CELL_EXPANSION` | define cell size, based on detected nucleus objects  | Integer (pixels) |
-| `SIGMA` | control /reduce the noise effect | Float (e.g. `1.0`) |
-| `THRESHOLD` | intensity parameter | Float or int |
-| `MIN_AREA` | define the range of nucleus size | Integer |
-| `MAX_AREA` | define the range of nucleus size | Integer |
-| `BACKGROUND_RADIUS` | if background subtraction is considered, 0 equals no background subtraction | Integer (pixels) |
-| `MEDIAN_RADIUS` | reduce image texture | Integer (pixels) |
+| `Z_1` to `Z_6` | determine the  z-slices of the z-stack that will be extracted from the single pyramidal level | Integer z indices (e.g. `4`, `5`). The optimal z_top1 and z_top2 are automatically calculated by STAT3D, dispalyed as message in the Docker terminal and inputed in the wrokflow. However, they can be overwritten with this parameter |
+| `Z_STACK` | set at "ALL" it considers all the z-slices in the z-stack and perform Maximum Intensity Projection (MIP) returining a 2D flattened OME.TIFF image.The analysis must be carried with 2D segmentation.  | Boolean / if silenced (e.g. #Z_STACK), STAT3D performs automatically LS calculation |
+| `Laplacian` | set to "HIGHEST" it considers the z-slice with the higest LS score.The analysis must be carried with 2D segmentation. | Boolean /if silenced (e.g. #Laplacian), STAT3D performs automatically LS calculation and selection of the two sharpest z-slices|
+| `NUCLEAR_EXPANSION_SET` | determine nuclear expansion for each cell nuclei to ensure correct cell-to-transcript assignment  | Integer (microns) |
+| `CELL_EXPANSION` | QuPath parameter to define cell size, based on detected nucleus objects  | Integer (pixels) |
+| `SIGMA` | QuPath parameter to control /reduce the noise effect | Float (e.g. `1.0`), QuPath parameter |
+| `THRESHOLD` | QuPath parameter for intensity parameter | Float or int |
+| `MIN_AREA` | QuPath parameter to define the range of nucleus size | Integer |
+| `MAX_AREA` | QuPath parameter to define the range of nucleus size | Integer |
+| `BACKGROUND_RADIUS` | QuPath parameter. If background subtraction is considered, 0 equals no background subtraction | Integer (pixels) |
+| `MEDIAN_RADIUS` | QuPath parameter to reduce image texture | Integer (pixels) |
 | `sample_size` | number of nuclei used to calculate all the parameters | Integer (e.g. `2000`) / Recommended number : 15000 |
 | `cellpose_use_gpu` | enable of GPU during 3D Cellpose segmentation. If set as flase the segmentation runs in CPU | Boolean (e.g. ´true´ or ´false´) / Recommended : ´true´ for morphology.ome.tiff images smaller than 3 GB |
-| `cellpose_do_3D` |enable 3D or 2D Cellpose segmentation. If set as flase the segmentation is  performed in 2D| Boolean (e.g. ´true´ or ´false´) |
+| `cellpose_do_3D` |enable 3D or 2D Cellpose segmentation. If set as flase the segmentation is  performed in 2D| Boolean (e.g. ´true´ or ´false´). If only one z-slice is choosen, then STAT3D must be run in 2D. |
 | `nuclei_diameter` |  integer or decimal number ( in microns) to set as customized nuclei diameter . It overwrites STAT3D measurement  |
 | `transcripts_df` | name of the transcripts.parquet file provided by 10x. This name must be written before the pipeline starts. | e.g. ´/stat3d/transcripts.parquet´ |
 | `ref` | Name of the "celldex" reference dataset  | e.g. ´HumanPrimaryCellAtlasData´ / Datasets supported : HumanPrimaryCellAtlasData, BlueprintEncodeData, DatabaseImmuneCellExpressionData, MonacoImmuneData, NovershternHematopoieticData, MouseRNAseqData |
 | `label_column` | Granularity of SingleR annotation it can be set as label.main or label.fine | label.main annotates the main cells function and phenotypes (e.g. CD8 T cells); label.fine defines specifically cells functions and phenotypes (e.g. Ehxausted CD8 T cells) |
 | `PIXEL_SIZE` | pixel size at various levels of the image pyramid | Integer (e.g. `0.85` for level 2)/ Recommended pixel sizes by 10x are listed in Table 1 |
 | `Z_SLICE_MICRON` | spacing size between each z-slice | Integer (e.g. `3` )/ 10x uses 3 microns. Do not change it if 10x hasn't released a new image format |
-| `memory_mb` | Optional memory floor (MB) applied to all rules. Set to 0 to use automatic sizing. | Example: `memory_mb: 32000` | Cap for RAM usage in Megabytes (e.g. `28000` on 32GB RAM). Prevents system freeze on local machines. Set to `0` for auto-scaling on clusters. |
-| `fallback_to_cpu` | If true, switches to CPU inference if GPU fails with "Out Of Memory" (OOM) error. | Recommended value: `true` |
 
-To change these values, edit your own YAML config file (start from one of the examples in `./configs/`) and re-run the pipeline with `--configfile /path/to/your_config.yaml`. For most parameters, start with conservative values and adjust based on the visual quality of segmentation on a small test region.
+To change these values, edit your own YAML config file (start from one of the examples in `./configs/`) and re-run the pipeline with `--configfile /path/to/your_config.yaml`. For most parameters, start with conservative values and adjust based on the visual quality of segmentation on a small test region. It is recommended to test the QuPath parameters with QuPath App at `Analyze >Cell Detection >Cell detection` to achieve optimal tailoring.
 
 ## Table 1. Pixel Size at various level (by 10x Genomics)
 The table displays the pixel sizes associated with each pyramidal level in images generated with Xenium platform.
