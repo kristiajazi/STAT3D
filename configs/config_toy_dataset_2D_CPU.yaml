@@ -37,7 +37,7 @@ cellpose_do_3D: false
 #nuclei_diameter: 30
 
 #Cell-to-transcript files and parameters
-transcripts_df: /data/transcriptsTC070.parquet
+transcripts_df: /stat3d/transcriptsTC070.parquet
 
 #SingleR Annotation
 ref : HumanPrimaryCellAtlasData
