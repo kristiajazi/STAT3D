@@ -290,8 +290,8 @@ STAT3D supports several configuration parameters (defined in your user-provided 
 | `INPUT_TIFF` | name of your image in the stat3d container | e.g. stst3d/name_of_your_morphology.ome.tiff image / Recommended path : ´stat3d/morphology_X.ome.tif´|
 | `LEVEL` | determine the level that will be extracted from the pyramydal image (morphology.ome.tif) | Integer (e.g. `0`, `1`) / Recommended level: 2 |
 | `Z_1` to `Z_6` | determine the  z-slices of the z-stack that will be extracted from the single pyramidal level. Multiple z-slices can be selected as well as only one z-slice. | Integer z indices (e.g. `4`, `5`). The optimal z_top1 and z_top2 are automatically calculated by STAT3D, dispalyed as message in the Docker terminal and inputed in the wrokflow. However, they can be overwritten with this parameter |
-| `Z_STACK` | set at "ALL" it considers all the z-slices in the z-stack and performs Maximum Intensity Projection (MIP) returining a 2D flattened OME.TIFF image.The analysis must be carried on with 2D segmentation.  | Boolean / if silenced (e.g. #Z_STACK), STAT3D performs automatically LS calculation |
-| `Laplacian` | set to "HIGHEST" it considers the z-slice with the higest LS score.The analysis must be carried on with 2D segmentation. | Boolean /if silenced (e.g. #Laplacian), STAT3D performs automatically LS calculation and selection of the two sharpest z-slices|
+| `Z_STACK` | set at "ALL" it considers all the z-slices in the z-stack and performs Maximum Intensity Projection (MIP) returining a 2D flattened OME.TIFF image.The analysis must be carried on with 2D segmentation.  | Boolean |
+| `Laplacian` | set to "HIGHEST" it considers the z-slice with the higest LS score.The analysis must be carried on with 2D segmentation. | Boolean |
 | `NUCLEAR_EXPANSION_SET` | determine nuclear expansion for each cell nuclei to ensure correct cell-to-transcript assignment  | Integer (microns) |
 | `CELL_EXPANSION` | QuPath parameter to define cell size, based on detected nucleus objects  | Integer (pixels) |
 | `SIGMA` | QuPath parameter to control /reduce the noise effect | Float (e.g. `1.0`), QuPath parameter |
