@@ -152,6 +152,35 @@ Notes:
 
 ## Test on toy dataset
 
+Store the `toy_dataset` files in `xenium_data` folder, together with one of the configuration files dedicated for the toy dataset which is located in `configs` directory.
+The `workflow` directory remains invariate.
+
+Run the pipeline in 2D with the command:
+
+``` bash
+docker run --platform linux/amd64 --gpus all --rm -v C:/Users/xenium_stat3d:/stat3d ghcr.io/kristiajazi/stat3d:latest --configfile /stat3d/config_toy_dataset_2D_CPU.yaml --cores 4
+```
+
+Run the pipeline in 3D with the command:
+
+``` bash
+docker run --platform linux/amd64 --gpus all --rm -v C:/Users/xenium_stat3d:/stat3d ghcr.io/kristiajazi/stat3d:latest --configfile /stat3d/config_toy_dataset_3D_CPU.yaml --cores 4
+```
+
+The layout of `xenium_data` directory must follow this structure:
+
+```
+xenium_stat3d/
+├── TC70_cropped.ome.tif 
+├── transcriptsTC070.parquet 
+├── config_toy_dataset_3D_CPU.yaml  # or config_toy_dataset_2D_CPU.yaml
+└── workflow/
+    ├── Snakefile
+    └── scripts/
+```
+
+
+
 From the repository root:
 
 ```bash
