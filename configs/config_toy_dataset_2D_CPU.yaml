@@ -32,7 +32,7 @@ sample_size: 15000
 #Cellpose
 cellpose_use_gpu: false
 cellpose_do_3D: false
-#nuclei_diameter: 30
+nuclei_diameter: 5.8
 
 #Cell-to-transcript files and parameters
 transcripts_df: /stat3d/transcriptsTC070.parquet
