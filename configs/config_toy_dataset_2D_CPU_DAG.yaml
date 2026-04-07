@@ -29,7 +29,7 @@ MEDIAN_RADIUS: 0.0
 sample_size: 15000
 
 #Cellpose
-cellpose_use_gpu: true
+cellpose_use_gpu: false
 cellpose_do_3D: false
 #nuclei_diameter: 30
 
