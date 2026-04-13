@@ -24,22 +24,3 @@ and creates the anndata file. The anndata needs to be saved in the same folder w
 12.Get the report: sopa report sopa_HCP_directory.zarr report.html
 13.Use th script : ann_to_R.py in coda to create the spatialexperiment needed in R
 14.In R use the script "sopa_analysis" for transforming the anndata file in SingleCellExperiment and analyse the data as usual
-
-
-
-TEST NOT SUCCESSFUL WITH ENV SOPA
-
-0. Work always in the same directory folder during all the steps
-1.Download the xenium dataset from 10x webpage or the links saved in STAT3D page
-2.Extract the files and create a new folder called "sopa_directory" which must contain these files : experiment.xenium, morphology_mip and _focus, transcripts. parquest. Since it is not really clear which other files to include, I include them all except for morphology.ome.tiff
-3.downgrade cellpose to v3.0.8 (it should be v3, not v4) use conda and install sopa : pip install sopa[cellpose], pip uninstall cellpose, pip install cellpose==3.0.8
-4.convert the sopa_directory in .zarr (SpatialData sdata) format : sopa convert sopa_directory --technology xenium # it is better to have this file ready before using the sopa environment which is described below
-5.download the config.yaml file called "cellpose.yaml" , in the same folder where .zarr is located, the yaml file was modifed with the gpu addition and saved in test_sopa folder
-6.close this prompt window and open a new one for creating the sopa environment
-7.create the sopa environment with : conda update conda , followed by:  conda create --name sopa , then enter the env by writing: conda activate sopa #if you don't create this environment the pipeline does not run
-8.install snakemake : pip install snakemake
-9.check if you need to install sopa, but it actually does not need : pip install sopa[cellpose]
-10.from the env run  this command to enable parallelization of the processes : set SOPA_PARALLELIZATION_BACKEND=dask
-11.run the pipeline with this command : snakemake --config sdata_path=C:/Users/Malin_Group/Kristi/sopa_directory.zarr --configfile=C:/Users/Malin_Group/Kristi/cellpose.yaml --cores 1 --use-conda
-
-
