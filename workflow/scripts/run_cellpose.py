@@ -8,6 +8,7 @@ image_path = snakemake.input["image"]
 seg_npy = snakemake.output["seg_npy"]
 
 image_base = os.path.splitext(os.path.basename(image_path))[0]
+preproc_dir = os.path.dirname(image_path)
 segmentation_dir = os.path.dirname(seg_npy)
 results_dir = os.path.dirname(segmentation_dir)
 benchmark_dir = os.path.join(results_dir, "benchmarks")
@@ -17,7 +18,7 @@ diameter = float(snakemake.params["diameter"])
 use_gpu = bool(snakemake.config.get("cellpose_use_gpu", False))
 do_3d = bool(snakemake.config.get("cellpose_do_3D", False))
 
-# Fixed settings (no dynamic tuning)
+# Fixed settings
 batch_size = "8"
 tile = False
 
@@ -79,6 +80,16 @@ end_ts = datetime.now(timezone.utc).isoformat()
 with open(log_path, "a", encoding="utf-8") as log_file:
     log_file.write(f"end_ts={end_ts}\n")
 
+# Expected output in segmentation directory
 expected_seg = os.path.join(segmentation_dir, f"{image_base}_seg.npy")
 if not os.path.exists(seg_npy) and os.path.exists(expected_seg):
     os.rename(expected_seg, seg_npy)
+
+# Fix: handle case where Cellpose writes to input directory
+fallback_seg = os.path.join(preproc_dir, f"{image_base}_seg.npy")
+if not os.path.exists(seg_npy) and os.path.exists(fallback_seg):
+    os.rename(fallback_seg, seg_npy)
+
+# Final safety check 
+if not os.path.exists(seg_npy):
+    raise FileNotFoundError(f"Segmentation output not found for {image_base}")
