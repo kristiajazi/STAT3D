@@ -1,0 +1,52 @@
+HPC- NAISS/SUPR QUICK COMMANDS 
+
+ssh ajazi@alvis1.c3se.chalmers.se # enter Alvis
+
+salloc -A naiss2026-4-420 -p alvis --gpus-per-node=A100:1 --time=04:00:00 -C MEM512 # request memory and space for 4h
+
+srun --pty bash #enter the node
+
+ls /mimer/NOBACKUP/groups #find your project inside mimer and look in the output list for your project id, mine is naiss2026-4-420
+
+mkdir -p /mimer/NOBACKUP/groups/naiss2026-4-420/ajazi #create a working directory (in groups , not projects)
+
+scp C:\Users\Kristi\miniconda3\envs\morphology.ome.tif ajazi@alvis2.c3se.chalmers.se:/mimer/NOBACKUP/groups/naiss2026-4-420/ajazi/morphology.ome.tif #upload a file from another powershell terminal (not x86)
+
+scp C:\Users\Kristi\miniconda3\envs\transcripts.parquet ajazi@alvis2.c3se.chalmers.se:/mimer/NOBACKUP/groups/naiss2026-4-420/ajazi/transcripts.parquet #upload a file from another powershell terminal (not x86)
+
+cd /mimer/NOBACKUP/groups/naiss2026-4-420/ajazi/
+
+mkdir -p /mimer/NOBACKUP/groups/naiss2026-4-420/ajazi/NAISS_test_TMA
+
+mv morphology.ome.tif transcripts.parquet NAISS_test_TMA/ #move files to the directory needed if they are saved one directory up
+
+copy the rest of the files (Snakefile, config.yaml, scripts) in NAISS_test_TMA
+
+cd /mimer/NOBACKUP/groups/naiss2026-4-420/ajazi/NAISS_test_TMA
+
+run the pipeline from certain rule (process_tiff) to the end (seurat_spatial_object_automatic_annotation) :
+
+ /usr/bin/apptainer exec --nv \
+  -B /mimer/NOBACKUP/groups/naiss2026-4-420/ajazi/NAISS_test_TMA:/stat3d \
+  /cephyr/users/ajazi/Alvis/stat3d.sif \
+  snakemake seurat_spatial_object_automatic_annotation \
+    --snakefile /stat3d/Snakefile \
+    --configfile /stat3d/config.yaml \
+    --cores 1 \
+    --printshellcmds \
+    --forcerun process_tiff
+
+or with pyarrow downgraded if the tissue is a TMA
+
+
+/usr/bin/apptainer exec --nv \
+  -B /mimer/NOBACKUP/groups/naiss2026-4-420/ajazi/NAISS_test_TMA:/stat3d \
+  /cephyr/users/ajazi/Alvis/stat3d_pyarrow21.sif \
+  snakemake seurat_spatial_object_automatic_annotation \
+    --snakefile /stat3d/Snakefile \
+    --configfile /stat3d/config.yaml \
+    --cores 1 \
+    --printshellcmds \
+    --forcerun process_tiff
+
+scp -r ajazi@alvis2.c3se.chalmers.se:/mimer/NOBACKUP/groups/naiss2026-4-420/ajazi/NAISS_test_TMA/results C:/Users/Kristi  #save the results in your computer
