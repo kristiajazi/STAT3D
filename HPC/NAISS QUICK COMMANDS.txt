@@ -38,7 +38,6 @@ run the pipeline from certain rule (process_tiff) to the end (seurat_spatial_obj
 
 or with pyarrow downgraded if the tissue is a TMA
 
-
 /usr/bin/apptainer exec --nv \
   -B /mimer/NOBACKUP/groups/naiss2026-4-420/ajazi/NAISS_test_TMA:/stat3d \
   /cephyr/users/ajazi/Alvis/stat3d_pyarrow21.sif \
