@@ -18,6 +18,9 @@ suppressPackageStartupMessages({
   library(GenomeInfoDbData, quietly = TRUE)
 })
 
+#increase Global space
+options(future.globals.maxSize = 40 * 1024^3)
+
 # Snakemake I/O
 input_dir <- dirname(snakemake@input[["matrix"]])
 barcodes_file <- snakemake@input[["barcodes"]]
