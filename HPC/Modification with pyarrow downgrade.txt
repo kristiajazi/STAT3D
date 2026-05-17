@@ -6,9 +6,9 @@ The working versions are v17 and  v21.
 
 2. Check the format of my tar file (use the Alvis terminal) because Apptainer expects a specific Docker-format tar, not just any tar: tar -tf /cephyr/users/ajazi/Alvis/stat3d.tar | head -20
 
-2.1.The tar format is a OCI format — use oci-archive because the output above is "blobs/sha256/"
+2.1.The tar format is a OCI format — use "oci-archive" because the output from step 2 is "blobs/sha256/"
 
-3. Because of that format , the correct block to copy and paste at once  is : 
+3. Because of that format , the correct block to copy and paste at once is : 
 
 cat > /cephyr/users/ajazi/Alvis/patch.def << 'EOF'
 Bootstrap: oci-archive
