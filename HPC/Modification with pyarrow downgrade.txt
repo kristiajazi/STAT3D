@@ -1,0 +1,37 @@
+Modification with pyarrow downgrade on HPC
+
+1.Upload to Alvis ( /cephyr/users/ajazi/Alvis/) the .tar file too, choose the same location as the .sif file
+
+2. Check the format of my tar file (use the Alvis terminal) because Apptainer expects a specific Docker-format tar, not just any tar: tar -tf /cephyr/users/ajazi/Alvis/stat3d.tar | head -20
+
+2.1.The tar format is a OCI format — use oci-archive because the output above is "blobs/sha256/"
+
+3. Because of that format , the correct block to copy and paste at once  is : 
+
+cat > /cephyr/users/ajazi/Alvis/patch.def << 'EOF'
+Bootstrap: oci-archive
+From: /cephyr/users/ajazi/Alvis/stat3d.tar
+
+%post
+    /etc/stat3d/.pixi/envs/default/bin/pip install pyarrow==21.0.0 --break-system-packages
+EOF
+
+4. verify : cat /cephyr/users/ajazi/Alvis/patch.def
+
+5. Built with the downgraded pyarrow patch : apptainer build stat3d_pyarrow21.sif patch.def
+
+6. Verify : apptainer exec /cephyr/users/ajazi/Alvis/stat3d_pyarrow21.sif \
+  /etc/stat3d/.pixi/envs/default/bin/python3.10 -c \
+  "import pyarrow; print(pyarrow.__version__)"
+
+7.Run the pipeline with the swapped/new sif file :
+
+/usr/bin/apptainer exec --nv \
+  -B /mimer/NOBACKUP/groups/naiss2026-4-420/ajazi/NAISS_test_TMA:/stat3d \
+  /cephyr/users/ajazi/Alvis/stat3d_pyarrow21.sif \
+  snakemake seurat_spatial_object_automatic_annotation \
+    --snakefile /stat3d/Snakefile \
+    --configfile /stat3d/config.yaml \
+    --cores 1 \
+    --printshellcmds \
+    --forcerun cell_to_transcript
