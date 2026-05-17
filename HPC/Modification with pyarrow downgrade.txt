@@ -1,4 +1,6 @@
-Modification with pyarrow downgrade on HPC
+Modification regarding pyarrow downgrade on HPC.
+The downgrade is mandatory when analysing the TMAa samples since 10x produced the transcripts.parquet files in a way that the files cannot be read with updated versions (>= v22)  of pyarrow. 
+The working versions are v17 and  v21.
 
 1.Upload to Alvis ( /cephyr/users/ajazi/Alvis/) the .tar file too, choose the same location as the .sif file
 
