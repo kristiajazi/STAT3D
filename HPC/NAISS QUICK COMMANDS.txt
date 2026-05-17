@@ -2,7 +2,7 @@ HPC- NAISS/SUPR QUICK COMMANDS
 
 ssh ajazi@alvis1.c3se.chalmers.se # enter Alvis
 
-salloc -A naiss2026-4-420 -p alvis --gpus-per-node=A100:1 --time=04:00:00 -C MEM512 # request memory and space for 4h
+salloc -A naiss2026-4-420 -p alvis --gpus-per-node=A100:1 --time=04:00:00 -C MEM512 # request memory and space for 4h , if the segmentation is killed, then increase the GPU to get more RAM : A100:2 or A100:4
 
 srun --pty bash #enter the node
 
