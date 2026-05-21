@@ -16,8 +16,8 @@ img = tiff.imread(tiff_path)
 if img.ndim < 3:
     raise ValueError("Image does not contain Z-slices. Cannot compute slice-wise sharpness.")
 
-# Pick the first 10 Z-slices (or fewer if image has <10 slices)
-num_slices = min(10, img.shape[0])
+# Pick the first 18 Z-slices (or fewer if image has <10 slices)
+num_slices = min(18, img.shape[0])
 
 scores = []  # to store results
 
