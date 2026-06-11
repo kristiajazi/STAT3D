@@ -317,7 +317,7 @@ For most parameters, start with conservative values and adjust based on the visu
 It is recommended to test the QuPath parameters with QuPath App at `Analyze >Cell Detection >Cell detection` to achieve optimal tailoring.
 
 **Note**
-If Z_1,Z_2,Z_3,Z_4,Z_5,Z_6, Z_STACK and Laplacian parameters are silenced, STAT3D automatically performs the selection of the two most sharp z-slices returning a multi-plane (2-planes) z-stack which can be analysed with 3D cllpose segmentation.
+If Z_1,Z_2,Z_3,Z_4,Z_5,Z_6, Z_STACK and Laplacian parameters are silenced, STAT3D automatically performs the selection of the two most sharp z-slices returning a multi-plane (2-planes) z-stack which can be analysed with 3D Cellpose segmentation.
 
 ## Table 1. Pixel Size at various level (by 10x Genomics)
 The table displays the pixel sizes associated with each pyramidal level in images generated with Xenium platform.
