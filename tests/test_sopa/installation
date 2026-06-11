@@ -23,4 +23,4 @@ one python script subsequentially, which are saved in /test_sopa. First the R sc
 and creates the anndata file. The anndata needs to be saved in the same folder where also sopa_direcotry.zarr is saved.
 12.Get the report: sopa report sopa_HCP_directory.zarr report.html
 13.Use th script : ann_to_R.py in conda to create the spatialexperiment needed in R
-14.In R use the script "sopa_analysis" for transforming the anndata file in SingleCellExperiment and analyse the data as usual
+14.In R use the script "sopa_analysis" for transforming the Anndata file in SingleCellExperiment and analyse the data as usual
