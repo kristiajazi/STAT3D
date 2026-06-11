@@ -206,7 +206,7 @@ Once inside, you can run `stat3d --help` or navigate to `/stat3d/workflow`.
 
 ## Inputs
 
-Required files are:
+Required files :
 
 | File | Description
 |------------------------|------------------------|
