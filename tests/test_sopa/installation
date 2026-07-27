@@ -15,7 +15,7 @@ the workers will not have enough memory space for allocating the data, 1900 crea
 9.Do not need to resolve the segmentation with : sopa resolve cellpose sopa_directory.zarr # resolve segmentation conflicts at boundaries, it is done automatically
 10.run : sopa aggregate sopa_directory.zarr --aggregate-channels --min-transcripts 10 (use the config file to check the parameters, this does not work :sopa aggregate sopa_directory.zarr --average-intensities, but they still suggest it even if is wrong)
 11.run time with supercomputer HCP dataset in gpu : 48 minutes, 6 hours with my laptop (SOPA did not test the datasets they talk about (except for merscope, maybe) for the time efficiency they created a test dataset explained in supplementary data)
-11.1 Annotation sopa annotate tangram "sopa annotate tangram sopa_directory.zarr --sc-reference-path adata_reference.h5ad --cell-type-key cell_type" #"Tangram is a transcript-based annotation that uses an annotated single-cell reference.
+11.1 Annotation sopa with tangram, run : sopa annotate tangram sopa_directory.zarr --sc-reference-path adata_reference.h5ad --cell-type-key cell_type #"Tangram is a transcript-based annotation that uses an annotated single-cell reference.
 Let's suppose your reference AnnData object is stored in a file called adata_reference.h5ad (preferably, keep raw counts), and the cell type is in adata.obs["cell_type"]. Then, you can annotate your spatial data with the command above.
 11.2 in conda install tangram : pip install tangram-sc
 11.3 Create your AnnData file with references like this : In R create a data frame for the ref "HumanPrimaryCells" from celldex , since online they are difficult to find. The generation of the hd5a is performed through one R script and 
