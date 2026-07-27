@@ -2,7 +2,7 @@ SOPA WORKING STEPS
 
 SOPA runs with CLI successfully, see steps below
 
-0. Work always in the same directory folder during all the steps
+0. Work with conda in same directory folder during all the steps
 1.Download the xenium dataset from 10x webpage or the links saved in STAT3D page
 2.Extract the files and create a new folder called "sopa_directory" which must contain these files : experiment.xenium, morphology_mip and _focus, transcripts.parquet. Since it is not really clear which other files to include, I include them all except for morphology.ome.tiff
 3.Install sopa with downgraded cellpose to v3.0.8 (it should be v3, not v4) use conda and install sopa : pip install sopa[cellpose], pip uninstall cellpose, pip install cellpose==3.0.8
