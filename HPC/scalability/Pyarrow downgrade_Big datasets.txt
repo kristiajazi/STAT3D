@@ -36,4 +36,4 @@ EOF
     --configfile /stat3d/config.yaml \
     --cores 1 \
     --printshellcmds \
-    --forcerun cell_to_transcript
+    --forcerun process_tiff
