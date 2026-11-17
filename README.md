@@ -391,9 +391,13 @@ The datsets used for the validation of STAT3D piepline can be found in the webpa
 
 ## Apptainer file for High Performance Clusters
 
-| File | Zenodo link
+| File | FigShare link-doi
 |------------------------|------------------------|
-| Simple Interaction File (.sif)  | https://zenodo.org/records/19091773?preview=1&token=eyJhbGciOiJIUzUxMiIsImlhdCI6MTc3MzgzNTI0NCwiZXhwIjoxNzkxNjc2Nzk5fQ.eyJpZCI6ImQ2YzA1MWZjLWRiMGEtNDZhZC1iZDIyLTg2OTE0YjQ3NTFlYSIsImRhdGEiOnt9LCJyYW5kb20iOiIyYjA4OTc3MTc4NmI2ZWY4Mzk1ZDUxYWYwNDEyZjRlNCJ9.JvyBxRoxN_HVwsaFRW8EznWKog6opZaYohg1lTfl0IMTYBcvGDIvhCEqUWdofVi_zkelQ1gY4aQjV_-xoew6fQ  |
+| Simple Interaction File (.sif) for Alvis-like architecture ARM64 (NAISS) with Cellpose V 3.1.1.1 (nuclei model)  | https://doi.org/10.6084/m9.figshare.33461998 |
+| sif file for Arrhenius-like architecture AMD64 (NAISS) with Cellpose V4 (cpsam model, not nuclei model) | 10.6084/m9.figshare.35039710 |
+| sif file for Arrhenius-like architecture AMD64 (NAISS) with Cellpose V 3.1.1.1 ( nuclei model) | 10.6084/m9.figshare.35039869 |
+
+
 
 ## Known Issues
 
